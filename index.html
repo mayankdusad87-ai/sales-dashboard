@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sales Dashboard</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F1F2FA;--card:#FFFFFF;--ink:#1B1C33;--ink2:#44475F;--muted:#5D607A;--line:#E6E7F2;--hover:#F3F2FE;--sel:#E8E5FD;
+  --shadow:0 1px 2px rgba(30,27,75,.06),0 6px 18px rgba(30,27,75,.08);--shadow2:0 2px 4px rgba(30,27,75,.08),0 12px 26px rgba(30,27,75,.15);
+  --target:#C3C6DA;--target2:#8E92B0;--good:#15803D;--warn:#B45309;--bad:#B91C1C;
+  --goodbg:#DCFCE7;--warnbg:#FEF3C7;--badbg:#FEE2E2;
+  --bar1:#6D5EF0;--bar2:#3F2FC4;--alt1:#2BB3A3;--alt2:#0F766E;--hold:#F59E0B;--unsold:#E2E4F0;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#0F1020;--card:#1A1B2E;--ink:#ECECF6;--ink2:#CBCDE0;--muted:#A4A6C0;--line:#2E3049;--hover:#24253C;--sel:#2F2C5C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);--shadow2:0 2px 4px rgba(0,0,0,.5),0 12px 26px rgba(0,0,0,.5);
+  --target:#4A4D6C;--target2:#9A9DC0;--good:#4ADE80;--warn:#FBBF24;--bad:#FCA5A5;
+  --goodbg:#123524;--warnbg:#3B2A08;--badbg:#431616;
+  --bar1:#9B8FF8;--bar2:#6D5EF0;--alt1:#5EEAD4;--alt2:#14A89A;--hold:#FBBF24;--unsold:#34364F;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1020;--card:#1A1B2E;--ink:#ECECF6;--ink2:#CBCDE0;--muted:#A4A6C0;--line:#2E3049;--hover:#24253C;--sel:#2F2C5C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);--shadow2:0 2px 4px rgba(0,0,0,.5),0 12px 26px rgba(0,0,0,.5);
+  --target:#4A4D6C;--target2:#9A9DC0;--good:#4ADE80;--warn:#FBBF24;--bad:#FCA5A5;
+  --goodbg:#123524;--warnbg:#3B2A08;--badbg:#431616;
+  --bar1:#9B8FF8;--bar2:#6D5EF0;--alt1:#5EEAD4;--alt2:#14A89A;--hold:#FBBF24;--unsold:#34364F;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.3 "Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--bar1);outline-offset:1px}
+.app{min-height:100vh;display:flex;flex-direction:column;gap:8px;padding-bottom:10px}
+@media (min-width:1280px){.app{height:100vh;min-height:820px}.vis,.focus{flex:1;min-height:0}}
+
+/* header */
+.hdr{display:flex;align-items:center;gap:10px;padding:8px 14px;color:#fff;background:linear-gradient(100deg,#2E2A85 0%,#4F2FBF 55%,#7A2FD6 100%)}
+.hdr h1{margin:0;font-size:17px;font-weight:650;white-space:nowrap}
+.tabs{display:flex;gap:4px;background:rgba(255,255,255,.12);border-radius:10px;padding:3px}
+.tabs button{border:0;background:none;color:#EDE9FE;padding:4px 12px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:#fff;color:#2E2A85}
+.sp{flex:1}
+.live{display:flex;align-items:center;gap:6px;font-size:12px;color:#EDE9FE;white-space:nowrap}
+.live i{width:8px;height:8px;border-radius:50%;background:#4ADE80;box-shadow:0 0 0 3px rgba(74,222,128,.25)}
+.live.stale i{background:#FBBF24;box-shadow:0 0 0 3px rgba(251,191,36,.25)}
+.tbtn{cursor:pointer;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.tbtn:hover{background:rgba(255,255,255,.28)}
+
+/* filters */
+.flt{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0 14px;padding:6px 12px;background:var(--card);border-radius:12px;box-shadow:var(--shadow)}
+.flt label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
+select{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:3px 6px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;max-width:190px}
+select:hover{border-color:var(--bar1)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--sel);color:var(--ink);border:0;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.reset{background:none;border:1px solid var(--line);border-radius:8px;padding:3px 10px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink2)}
+.reset:hover{background:var(--hover)}
+.fbtn{display:none}
+.sheet-h{display:none}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin:0 14px}
+.tiles.six{grid-template-columns:repeat(6,minmax(0,1fr))}
+.tile{position:relative;min-width:0;min-height:104px;border-radius:14px;padding:9px 11px;color:#fff;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s;overflow:hidden;cursor:pointer;border:0;text-align:left;font:inherit}
+.tile:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
+.tile.sel{outline:3px solid var(--ink);outline-offset:2px}
+.tile .tl{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:20px}
+.tile .tv{font-size:25px;font-weight:700;line-height:1.15;margin-top:5px;white-space:nowrap;letter-spacing:-.3px}
+.tile .tv small{font-size:13px;font-weight:600;letter-spacing:0;margin-left:3px}
+.tile .ts{font-size:11.5px;font-weight:500;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
+.t0{background:linear-gradient(135deg,#4F46E5,#3730A3)}.t1{background:linear-gradient(135deg,#C94532,#A92D22)}
+.t2{background:linear-gradient(135deg,#0E7F75,#0B5F58)}.t3{background:linear-gradient(135deg,#FBBF3C,#F39C12);color:#2B1700}
+.t4{background:linear-gradient(135deg,#2268DC,#1749A8)}.t5{background:linear-gradient(135deg,#7C3AED,#5B21B6)}
+.t6{background:linear-gradient(135deg,#C71E68,#96114B)}.t7{background:linear-gradient(135deg,#27356F,#141C45)}
+.si{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:12px;font-weight:800;line-height:1;flex:none}
+.tile .si{position:absolute;top:8px;right:8px;background:#fff}
+.si.good{color:#15803D}.si.warn{color:#B45309}.si.bad{color:#B91C1C}
+.mini{height:5px;border-radius:9px;background:rgba(255,255,255,.28);margin-top:6px;overflow:hidden;position:relative}
+.mini i{display:block;height:100%;border-radius:9px;background:#fff}
+.mini b{position:absolute;top:0;bottom:0;width:2px;background:rgba(0,0,0,.55)}
+
+/* cards */
+.vis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:8px;margin:0 14px}
+.card{min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:9px 12px;overflow:hidden}
+.chd{display:flex;align-items:center;gap:8px;min-height:24px;margin-bottom:6px;flex-wrap:wrap}
+.chd h2{margin:0;font-size:13.5px;font-weight:650;white-space:nowrap}
+.chd .sub{font-size:11.5px;color:var(--muted);font-weight:600}
+.togs{display:flex;gap:4px;margin-left:auto}
+.tog{cursor:pointer;background:none;border:1px solid var(--line);border-radius:7px;padding:2px 8px;font-size:11.5px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.tog:hover{background:var(--hover)}
+.tog[aria-pressed="true"]{background:var(--sel);border-color:transparent;color:var(--ink)}
+.cbd{flex:1;min-height:0;overflow:auto;position:relative}
+.cbd.chart{overflow:hidden;min-height:180px}
+.empty{height:100%;min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:600;text-align:center;padding:10px}
+.note{font-size:11.5px;color:var(--muted);margin-top:4px}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{position:sticky;top:0;background:var(--card);font-size:11px;font-weight:600;color:var(--muted);text-align:right;padding:3px 4px;border-bottom:1px solid var(--line);white-space:nowrap;z-index:1}
+td{font-size:12.5px;text-align:right;padding:0 4px;height:28px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;padding-left:2px}
+td:first-child{font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+tfoot td{font-weight:700;border-bottom:0;border-top:1.5px solid var(--target2);position:sticky;bottom:0;background:var(--card)}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--hover)}
+tr.on td{background:var(--sel)}
+td.bar{width:34%;min-width:70px}
+.hb{position:relative;height:12px;background:var(--line);border-radius:4px;overflow:visible}
+.hb i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:linear-gradient(90deg,var(--bar1),var(--bar2))}
+.hb i.good{background:var(--good)}.hb i.warn{background:var(--warn)}.hb i.bad{background:var(--bad)}
+.hb i.alt{background:linear-gradient(90deg,var(--alt1),var(--alt2))}
+.hb b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.pill{display:inline-block;min-width:42px;text-align:center;padding:1px 6px;border-radius:99px;font-size:11.5px;font-weight:700}
+.pill.good{background:var(--goodbg);color:var(--good)}.pill.warn{background:var(--warnbg);color:var(--warn)}.pill.bad{background:var(--badbg);color:var(--bad)}.pill.na{color:var(--muted)}
+.dim{color:var(--muted)}
+
+/* stacked bars */
+.stk{display:flex;height:14px;border-radius:4px;overflow:hidden;background:var(--line)}
+.stk i{display:block;height:100%}
+.c-sold{background:var(--bar2)}.c-hold{background:var(--hold)}.c-uns{background:var(--alt1)}
+.c-dir{background:var(--alt2)}.c-ind{background:var(--bar1)}
+.lg{display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2)}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.split{display:grid;grid-template-columns:80px 1fr 48px;gap:6px 8px;align-items:center;margin:6px 0}
+.split .k{font-weight:600;font-size:12px}
+.split .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* charts */
+svg.ch{display:block;width:100%;height:100%}
+.ch .b:hover{opacity:.85}
+.ch .tg{stroke:var(--ink);stroke-width:2}
+.ch .vl{font-size:11px;font-weight:700;fill:var(--ink);text-anchor:middle}
+.ch .xl{font-size:10.5px;font-weight:600;fill:var(--muted);text-anchor:middle}
+.ch .gl{stroke:var(--line)}
+.ch .hit{fill:transparent;cursor:pointer}
+
+/* focus */
+.focus{display:grid;grid-template-columns:300px minmax(0,1.2fr) minmax(0,1fr);gap:8px;margin:0 14px}
+.fa{justify-content:space-between;border-top:4px solid var(--fc,var(--bar2));padding:16px}
+.fa-label{font-size:14px;font-weight:650;color:var(--ink2)}
+.fa-num{font-size:54px;font-weight:800;line-height:1.05;letter-spacing:-1.5px;margin:10px 0 6px;word-break:break-word}
+.fa-num small{font-size:18px;font-weight:650;letter-spacing:0;margin-left:5px;color:var(--ink2)}
+.fa-state{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:700}
+.fa-state .si.good{background:var(--goodbg);color:var(--good)}.fa-state .si.warn{background:var(--warnbg);color:var(--warn)}.fa-state .si.bad{background:var(--badbg);color:var(--bad)}
+.fa-line{font-size:14px;color:var(--ink2);margin-top:8px;line-height:1.4}
+.fa-def{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.45;border-top:1px solid var(--line);padding-top:10px}
+.fa-x{margin-top:12px;align-self:flex-start}
+
+/* footer, states */
+.srcnote{margin:0 14px;font-size:11.5px;color:var(--muted);display:flex;gap:6px 14px;flex-wrap:wrap}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:50;padding:16px}
+.box{background:var(--card);border-radius:14px;box-shadow:var(--shadow2);padding:22px;max-width:380px;width:100%}
+.box h2{margin:0 0 8px;font-size:17px}
+.box p{margin:0 0 14px;color:var(--ink2);line-height:1.45}
+.box input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);margin-bottom:10px}
+.box button{width:100%;padding:9px;border:0;border-radius:8px;background:var(--bar2);color:#fff;font-weight:700;cursor:pointer}
+.err{color:var(--bad);font-weight:600;min-height:18px;font-size:12.5px}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--card);padding:6px 9px;border-radius:7px;font-size:12px;font-weight:600;z-index:60;display:none;max-width:260px;line-height:1.35}
+
+/* laptop / tablet */
+@media (max-width:1279px){
+  .tiles{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .tiles.six{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .vis{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none}
+  .card{min-height:330px}
+  .focus{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .focus .fa{grid-column:1 / -1;min-height:0}
+}
+/* phone */
+@media (max-width:760px){
+  .hdr{flex-wrap:wrap;padding:8px 16px;gap:8px}
+  .hdr h1{font-size:15px}
+  .hdr .sp{display:none}
+  .tabs{order:3;width:100%}
+  .tabs button{flex:1}
+  .fbtn{display:inline-flex}
+  .flt{position:fixed;left:0;right:0;bottom:0;margin:0;border-radius:16px 16px 0 0;z-index:40;flex-direction:column;align-items:stretch;padding:14px 16px 20px;transform:translateY(105%);transition:transform .22s;box-shadow:0 -10px 30px rgba(0,0,0,.25)}
+  .flt.open{transform:none}
+  .flt label{justify-content:space-between}
+  .flt select{max-width:62%;padding:7px}
+  .sheet-h{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15px}
+  .bar-m{display:flex;gap:8px;margin:0 16px;align-items:center;overflow-x:auto}
+  .tiles,.tiles.six{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin:0;padding:2px 16px 4px;gap:8px;scrollbar-width:none}
+  .tile{flex:0 0 46%;scroll-snap-align:start;min-height:96px}
+  .vis{display:flex;flex-direction:column;margin:0 16px}
+  .card{min-height:0}
+  .cbd{flex:none;max-height:340px}
+  .cbd.chart{height:200px;min-height:0}
+  .focus{display:flex;flex-direction:column;margin:0 16px}
+  .fa{padding:12px}
+  .fa-num{font-size:40px}
+  .srcnote{margin:0 16px}
+  td:first-child{max-width:110px}
+}
+@media (min-width:761px){.bar-m{display:contents}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hdr">
+    <h1>Sales Dashboard</h1>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabMgmt" aria-selected="true" data-tab="mgmt">Management</button>
+      <button role="tab" id="tabSite" aria-selected="false" data-tab="site">Site Head</button>
+    </div>
+    <span class="sp"></span>
+    <span class="live" id="live"><i></i><span id="liveTxt">Loading…</span></span>
+    <button class="tbtn" id="refresh" title="Load the latest data from the sheet">Refresh</button>
+    <button class="tbtn" id="theme" title="Switch light / dark">Theme</button>
+  </header>
+
+  <div class="bar-m">
+    <button class="reset fbtn" id="fopen">Filters</button>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="flt" id="flt">
+    <div class="sheet-h">Filters <button class="reset" id="fclose">Done</button></div>
+    <label>Period <select id="fPer"></select></label>
+    <label>Project <select id="fProj"></select></label>
+    <label>Closing manager <select id="fCm"></select></label>
+    <label>Sourcing manager <select id="fSm"></select></label>
+    <label>Source <select id="fSrc"></select></label>
+    <button class="reset" id="freset">Reset</button>
+  </div>
+
+  <section class="tiles" id="tiles" aria-label="Key numbers"></section>
+  <main class="vis" id="vis"></main>
+  <main class="focus" id="focus" style="display:none" aria-live="polite"></main>
+  <footer class="srcnote" id="srcnote"></footer>
+</div>
+<div class="tip" id="tip"></div>
+<div class="overlay" id="gate" style="display:none">
+  <form class="box" id="gateForm">
+    <h2>Sales Dashboard</h2>
+    <p>Enter the dashboard password to view the sales numbers.</p>
+    <input type="password" id="gatePass" autocomplete="current-password" placeholder="Password" required>
+    <div class="err" id="gateErr"></div>
+    <button type="submit">Open dashboard</button>
+  </form>
+</div>
+<div class="overlay" id="loading"><div class="box"><h2>Loading sales data…</h2><p id="loadMsg">Reading the Google Sheet.</p></div></div>
+
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+var DAY=864e5, REFRESH_MS=5*60*1000;
+var MN=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
+function lab(v){return v===""||v==null?"Not entered":v}
+function fmt(n){return n==null||isNaN(n)?"–":Math.round(n).toLocaleString("en-IN")}
+function pct(n,d){return d?n/d*100:null}
+function fp(v,dp){return v==null?"–":v.toFixed(dp==null?(Math.abs(v)<10?1:0):dp)+"%"}
+function median(a){if(!a.length)return null;var s=a.slice().sort(function(x,y){return x-y}),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2}
+function isCP(src){return /channel/i.test(src)}
+
+/* ---------- dates ---------- */
+function today(){return Math.floor((Date.now()+5.5*36e5)/DAY)} // India time
+function ymd(d){var x=new Date(d*DAY);return[x.getUTCFullYear(),x.getUTCMonth(),x.getUTCDate()]}
+function mkDay(y,m,d){return Math.floor(Date.UTC(y,m,d)/DAY)}
+function ymOf(d){var a=ymd(d);return a[0]*100+a[1]+1}
+function ymLab(ym){return MN[ym%100-1]+" "+String(Math.floor(ym/100)).slice(2)}
+function monStart(ym){return mkDay(Math.floor(ym/100),ym%100-1,1)}
+function monEnd(ym){return mkDay(Math.floor(ym/100),ym%100,0)}
+function ymAdd(ym,n){var y=Math.floor(ym/100),m=ym%100-1+n;y+=Math.floor(m/12);m=((m%12)+12)%12;return y*100+m+1}
+function addMonths(d,n){var a=ymd(d),ym=ymAdd(a[0]*100+a[1]+1,n),last=ymd(monEnd(ym))[2];return mkDay(Math.floor(ym/100),ym%100-1,Math.min(a[2],last))}
+function weekOf(d){var a=ymd(d),first=new Date(Date.UTC(a[0],a[1],1)).getUTCDay();return Math.ceil((a[2]+((first+6)%7))/7)}
+function monthsIn(p){var out=[],ym=ymOf(p.from),e=ymOf(p.to);while(ym<=e){out.push(ym);ym=ymAdd(ym,1)}return out}
+function fyStart(d){var a=ymd(d);return a[1]>=3?a[0]:a[0]-1}
+
+/* ---------- state ---------- */
+var DATA=null,ROWS=[],INV=[],CT=[],ST=[],MIN_DAY=0;
+var F={per:"fy",proj:"",cm:"",sm:"",src:"",cp:""};
+var tab="mgmt",focus=null,ui={trend:"book",chan:"split",why:"lost",fdim:"proj",strend:"book",ssrc:"src"};
+var lastLoad=0,loadErr="";
+
+/* ---------- period ---------- */
+function period(key){
+  var t=today(),a=ymd(t),cur=a[0]*100+a[1]+1,fy=fyStart(t),p;
+  if(key==="mtd")p={from:monStart(cur),to:t,label:"This month",shift:1};
+  else if(key==="lm"){var l=ymAdd(cur,-1);p={from:monStart(l),to:monEnd(l),label:"Last month ("+ymLab(l)+")",shift:1}}
+  else if(key==="qtd"){var qs=ymAdd(cur,-((a[1]-3+12)%3));p={from:monStart(qs),to:t,label:"This quarter",shift:3}}
+  else if(key==="fy")p={from:mkDay(fy,3,1),to:t,label:"FY "+fy+"-"+String(fy+1).slice(2)+" to date",shift:12};
+  else if(key==="lfy")p={from:mkDay(fy-1,3,1),to:mkDay(fy,2,31),label:"FY "+(fy-1)+"-"+String(fy).slice(2),shift:12};
+  else if(key==="l12")p={from:monStart(ymAdd(cur,-11)),to:t,label:"Last 12 months",shift:12};
+  else if(key==="all")p={from:MIN_DAY,to:t,label:"All time",shift:0};
+  else if(/^m\d{6}$/.test(key)){var ym=+key.slice(1);p={from:monStart(ym),to:Math.min(monEnd(ym),t),label:ymLab(ym),shift:1,month:ym}}
+  else return period("fy");
+  if(key==="mtd")p.month=cur;if(key==="lm")p.month=ymAdd(cur,-1);
+  p.key=key;p.full={from:p.from,to:p.month?monEnd(p.month):(key==="fy"?mkDay(fy+1,2,31):key==="qtd"?monEnd(ymAdd(ymOf(p.from),2)):p.to)};
+  return p;
+}
+function prevOf(p){if(!p.shift)return null;return{from:addMonths(p.from,-p.shift),to:addMonths(p.to,-p.shift),label:p.shift===1?"last month":p.shift===3?"last quarter":"last year"}}
+
+/* ---------- data ---------- */
+function ingest(d){
+  DATA=d;var f=d.fields,D=d.dict,ix={};f.forEach(function(k,i){ix[k]=i});
+  ROWS=d.W.map(function(r){var o={};f.forEach(function(k,i){o[k]=D[k]?D[k][r[i]]:r[i]});o.uniq=/^unique\s*revisit$/i.test(o.awv||"");return o});
+  MIN_DAY=ROWS.reduce(function(m,r){return r.vday>0&&r.vday<m?r.vday:m},today());
+  CT=d.CT.map(function(r){return{m:r[0],ym:+r[1].replace("-",""),t:r[2],w:r[3]}});
+  ST=d.ST.map(function(r){return{m:r[0],ym:+r[1].replace("-",""),b:r[2],t:r[3],w:r[4]}});
+  INV=d.INV.map(function(r){return{proj:r[0],unit:r[1],floor:r[2],grp:r[3],st:r[4],area:r[5],type:r[6]}});
+}
+function pass(r,FF){
+  if(FF.proj&&r.proj!==FF.proj)return false;
+  if(FF.cm&&r.cm!==FF.cm)return false;
+  if(FF.sm&&r.sm!==FF.sm)return false;
+  if(FF.cp&&r.cp!==FF.cp)return false;
+  if(FF.src){if(FF.src==="Direct"){if(isCP(r.src))return false}else if(FF.src==="Indirect"){if(!isCP(r.src))return false}else if(r.src!==FF.src)return false}
+  return true;
+}
+function blank(){return{fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],cps:{},cpWalk:0}}
+function fin(s){s.net=s.gross-s.cx;s.conv=pct(s.gross,s.fresh);s.tatM=median(s.tat);s.ncp=Object.keys(s.cps).length;return s}
+// one pass: totals, optional groups by keyFn
+function stats(FF,p,keyFn){
+  var tot=blank(),G={};
+  for(var i=0;i<ROWS.length;i++){var r=ROWS[i];if(!pass(r,FF))continue;
+    var inV=r.vday>=p.from&&r.vday<=p.to,inB=r.bk&&r.bday>=p.from&&r.bday<=p.to,inC=r.cx&&r.cday>=p.from&&r.cday<=p.to;
+    if(!inV&&!inB&&!inC)continue;
+    var tg=[tot];if(keyFn){var k=keyFn(r);if(!G[k])G[k]=blank();tg.push(G[k])}
+    for(var j=0;j<tg.length;j++){var s=tg[j];
+      if(inV){if(r.kind===0){s.fresh++;if(r.aff==="Hot"&&!r.bk)s.hot++}else if(r.uniq)s.rev++;if(r.cp&&isCP(r.src)){s.cps[r.cp]=1;s.cpWalk++}}
+      if(inB){s.gross++;if(r.vday>0&&r.bday>=r.vday)s.tat.push(r.bday-r.vday)}
+      if(inC)s.cx++}}
+  fin(tot);for(var g in G)fin(G[g]);
+  return{tot:tot,G:G};
+}
+// buckets: months of p, or weeks 1-6 when p is one month
+function series(FF,p,weekly){
+  var keys=weekly?[1,2,3,4,5,6]:monthsIn(p),B={};keys.forEach(function(k){B[k]=blank()});
+  function key(d){return weekly?weekOf(d):ymOf(d)}
+  for(var i=0;i<ROWS.length;i++){var r=ROWS[i];if(!pass(r,FF))continue;var s;
+    if(r.vday>=p.from&&r.vday<=p.to&&(s=B[key(r.vday)])){if(r.kind===0){s.fresh++;if(r.aff==="Hot"&&!r.bk)s.hot++}else if(r.uniq)s.rev++;if(r.cp&&isCP(r.src)){s.cps[r.cp]=1;s.cpWalk++}}
+    if(r.bk&&r.bday>=p.from&&r.bday<=p.to&&(s=B[key(r.bday)])){s.gross++;if(r.vday>0&&r.bday>=r.vday)s.tat.push(r.bday-r.vday)}
+    if(r.cx&&r.cday>=p.from&&r.cday<=p.to&&(s=B[key(r.cday)]))s.cx++}
+  keys.forEach(function(k){fin(B[k])});
+  if(weekly)while(keys.length>4&&!B[keys[keys.length-1]].fresh&&!B[keys[keys.length-1]].gross&&!B[keys[keys.length-1]].cx&&keys[keys.length-1]>weekOf(p.full.to))keys.pop();
+  return{keys:keys,B:B};
+}
+/* ---------- targets ---------- */
+function targets(FF,p){
+  var months=monthsIn(p),res={book:null,walk:null,bookM:{},walkM:{},bookW:null,walkW:null,why:""};
+  if(FF.proj||FF.src||FF.cp){res.why="Targets are set per manager, not per project or source";return res}
+  var bRows,wRows;
+  if(FF.cm&&FF.sm){res.why="No target for a closing + sourcing manager pair";return res}
+  if(FF.cm){bRows=CT.filter(function(t){return t.m===FF.cm}).map(function(t){return{ym:t.ym,v:t.t,w:t.w}});wRows=null}
+  else if(FF.sm){bRows=ST.filter(function(t){return t.m===FF.sm}).map(function(t){return{ym:t.ym,v:t.b,w:null}});wRows=ST.filter(function(t){return t.m===FF.sm}).map(function(t){return{ym:t.ym,v:t.t,w:t.w}})}
+  else{bRows=CT.map(function(t){return{ym:t.ym,v:t.t,w:t.w}});wRows=ST.map(function(t){return{ym:t.ym,v:t.t,w:t.w}})}
+  function sum(rows,M){var tot=0,any=false,W=[0,0,0,0,0,0],anyW=false;rows.forEach(function(t){if(months.indexOf(t.ym)<0)return;M[t.ym]=(M[t.ym]||0)+t.v;tot+=t.v;any=true;if(t.w)t.w.forEach(function(x,i){W[i]+=x;if(x)anyW=true})});return{tot:any?tot:null,W:anyW?W:null}}
+  var b=sum(bRows,res.bookM);res.book=b.tot;res.bookW=b.W;
+  if(wRows){var w=sum(wRows,res.walkM);res.walk=w.tot;res.walkW=w.W}
+  if(res.book==null&&res.walk==null)res.why="No target set for "+(months.length===1?ymLab(months[0]):"these months");
+  return res;
+}
+// achievement over months that have a target, with pace for a running period
+function achieve(ser,M,metric){
+  var got=0,tgt=0,ms=[];for(var k in M){k=+k;if(ser.B[k]){got+=metric(ser.B[k]);tgt+=M[k];ms.push(k)}}
+  if(!ms.length||!tgt)return null;
+  ms.sort();var s=monStart(ms[0]),e=monEnd(ms[ms.length-1]),t=today();
+  var pace=t>=e?1:t<s?0:(t-s+1)/(e-s+1);
+  var pc=got/tgt*100;
+  return{got:got,tgt:tgt,pc:pc,pace:pace*100,st:pc>=pace*100?"good":pc>=pace*80?"warn":"bad"};
+}
+/* ---------- inventory ---------- */
+function inv(proj){
+  var s={tot:0,Sold:0,"On hold":0,Unsold:0,area:0,uArea:0};
+  INV.forEach(function(u){if(proj&&u.proj!==proj)return;s.tot++;s[u.grp]++;s.area+=u.area;if(u.grp==="Unsold")s.uArea+=u.area});
+  return s;
+}
+function invBy(proj,key){var G={};INV.forEach(function(u){if(proj&&u.proj!==proj)return;var k=u[key];if(!G[k])G[k]={tot:0,Sold:0,"On hold":0,Unsold:0};G[k].tot++;G[k][u.grp]++});return G}
+
+/* ---------- metric catalogue ---------- */
+var METRICS=[
+  {id:"net",label:"Net Bookings",v:function(s){return s.net},f:fmt,tgt:"book",up:1,def:"Bookings (row has a Booking Date or Booking Done = Y) minus cancellations (Booking Cancellation = Yes) in the period. Booking month from Booking Date; cancellation month from Cancellation Date. Target: Closing Targets (Sourcing Targets when a sourcing manager is picked)."},
+  {id:"fresh",label:"Fresh Walk-ins",v:function(s){return s.fresh},f:fmt,tgt:"walk",up:1,def:"Rows where Customer Fresh/Revisit (column AW) = Fresh, by Date of Visit. Target: Sourcing Targets → Walk-ins."},
+  {id:"conv",label:"Walk-in to Booking",v:function(s){return s.conv},f:function(v){return fp(v)},up:1,min:5,def:"Bookings in the period ÷ fresh walk-ins in the period. No target is set for this."},
+  {id:"rev",label:"Unique Revisits",v:function(s){return s.rev},f:fmt,up:1,def:"Rows where Customer Fresh/Revisit (column AW) = Unique Revisit, by Date of Visit. Second, third and later revisits are not counted."},
+  {id:"cx",label:"Cancellations",v:function(s){return s.cx},f:fmt,up:-1,def:"Rows with Booking Cancellation = Yes, by Cancellation Date (Booking Date when that is empty)."},
+  {id:"hot",label:"Hot Leads Open",v:function(s){return s.hot},f:fmt,up:1,def:"Fresh walk-ins in the period with Customer Affinity = Hot that have not booked yet."},
+  {id:"cpf",label:"Active CP Firms",v:function(s){return s.ncp},f:fmt,up:1,def:"Distinct Channel Partner Company names (column AA) that brought at least one walk-in (fresh or revisit) in the period, where Source = Channel Partner."},
+  {id:"inv",label:"Unsold Inventory",inv:true,def:"From the Inventory Status tab, as of now (not affected by the period). Sold = Sold + Booked + Overdue · On hold = Reserved + Blocked · Unsold = Available."}
+];
+var SITE_TILES=["net","fresh","conv","rev","hot","inv"];
+function M(id){for(var i=0;i<METRICS.length;i++)if(METRICS[i].id===id)return METRICS[i]}
+
+/* ---------- small renderers ---------- */
+function si(st){return st?'<span class="si '+st+'" aria-hidden="true">'+(st==="good"?"✓":st==="warn"?"!":"✕")+'</span>':""}
+function pill(v,st){return'<span class="pill '+(st||"na")+'">'+(v==null?"–":fp(v,0))+'</span>'}
+function hbar(v,max,cls,mark){var w=max>0?Math.max(0,Math.min(100,v/max*100)):0;return'<div class="hb"><i class="'+(cls||"")+'" style="width:'+w.toFixed(1)+'%"></i>'+(mark!=null&&max>0?'<b style="left:'+Math.min(100,mark/max*100).toFixed(1)+'%"></b>':"")+'</div>'}
+function stOf(pc,pace){if(pc==null)return"";return pc>=pace?"good":pc>=pace*.8?"warn":"bad"}
+function deltaTxt(cur,prev,m,P){if(!P||prev==null||cur==null)return"";var d=cur-prev;if(m.id==="conv")return(d>=0?"▲ ":"▼ ")+Math.abs(d).toFixed(1)+" pts vs "+P.label;if(!prev)return cur?"New vs "+P.label:"";var r=d/prev*100;return(d>=0?"▲ ":"▼ ")+Math.abs(r).toFixed(0)+"% vs "+P.label}
+function deltaSt(cur,prev,m){if(prev==null||cur==null||cur===prev)return"";return(cur>prev)===(m.up>0)?"good":"bad"}
+function empty(t){return'<div class="empty">'+esc(t)+'</div>'}
+function card(id,title,sub,togs,body,cls){return'<section class="card" id="'+id+'"><div class="chd"><h2>'+title+'</h2>'+(sub?'<span class="sub">'+sub+'</span>':"")+(togs||"")+'</div><div class="cbd'+(cls?" "+cls:"")+'">'+body+'</div></section>'}
+function togs(name,opts,cur){return'<div class="togs">'+opts.map(function(o){return'<button class="tog" data-ui="'+name+'" data-uv="'+o[0]+'" aria-pressed="'+(o[0]===cur)+'">'+o[1]+'</button>'}).join("")+'</div>'}
+function drow(f,v,cells,on){return'<tr class="click'+(on?" on":"")+'" data-f="'+f+'" data-v="'+esc(v)+'" tabindex="0">'+cells+'</tr>'}
+
+// column chart: items [{lab,v,t,tip,per}]
+var gradN=0;
+function colChart(el,items,opt){
+  opt=opt||{};var W=Math.max(260,el.clientWidth||400),H=Math.max(150,el.clientHeight||200),top=18,bot=20,l=6,r=6;
+  var max=0;items.forEach(function(it){max=Math.max(max,it.v||0,it.t||0)});if(!max)max=1;
+  var n=items.length,bw=(W-l-r)/n,pad=Math.min(14,bw*.22),h=H-top-bot,step=n>14?Math.ceil(n/12):1;
+  var gid="g"+(++gradN),s='<svg class="ch" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="'+esc(opt.aria||"chart")+'"><defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var('+(opt.alt?"--alt1":"--bar1")+')"/><stop offset="1" stop-color="var('+(opt.alt?"--alt2":"--bar2")+')"/></linearGradient></defs>';
+  s+='<line class="gl" x1="'+l+'" x2="'+(W-r)+'" y1="'+(top+h)+'" y2="'+(top+h)+'"/>';
+  items.forEach(function(it,i){var x=l+i*bw+pad,w=Math.max(2,bw-2*pad),v=it.v||0,bh=v/max*h,y=top+h-bh;
+    s+='<rect class="b" fill="url(#'+gid+')" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(0,bh).toFixed(1)+'" rx="3"/>';
+    if(it.t!=null){var ty=top+h-it.t/max*h;s+='<line class="tg" x1="'+(x-3).toFixed(1)+'" x2="'+(x+w+3).toFixed(1)+'" y1="'+ty.toFixed(1)+'" y2="'+ty.toFixed(1)+'"/>'}
+    if(n<=16||i%step===0)s+='<text class="vl" x="'+(x+w/2).toFixed(1)+'" y="'+Math.max(11,Math.min(y,it.t!=null?top+h-it.t/max*h:y)-4).toFixed(1)+'">'+esc(opt.fmt?opt.fmt(it.v):fmt(it.v))+'</text>';
+    if(i%step===0)s+='<text class="xl" x="'+(x+w/2).toFixed(1)+'" y="'+(H-5)+'">'+esc(it.lab)+'</text>';
+    s+='<rect class="hit" x="'+(l+i*bw).toFixed(1)+'" y="0" width="'+bw.toFixed(1)+'" height="'+H+'" data-tip="'+esc(it.tip||"")+'"'+(it.per?' data-per="'+it.per+'"':"")+'/>';
+  });
+  el.innerHTML=s+'</svg>';
+}
+
+/* ---------- filter bar ---------- */
+function uniq(key){var c={};ROWS.forEach(function(r){var v=r[key];if(v)c[v]=(c[v]||0)+1});return Object.keys(c).sort(function(a,b){return c[b]-c[a]})}
+function setOpts(sel,opts,cur){sel.innerHTML=opts.map(function(o){return'<option value="'+esc(o[0])+'"'+(o[0]===cur?" selected":"")+'>'+esc(o[1])+'</option>'}).join("")}
+function recentMonths(n){var out=[],ym=ymOf(today());for(var i=0;i<n;i++){out.push(["m"+ym,ymLab(ym)]);ym=ymAdd(ym,-1)}return out}
+function projList(){var c={};ROWS.forEach(function(r){if(r.proj&&r.vday>=today()-730)c[r.proj]=(c[r.proj]||0)+1});INV.forEach(function(u){c[u.proj]=(c[u.proj]||0)+.001});return Object.keys(c).sort(function(a,b){return c[b]-c[a]})}
+function personList(key,T){var c={},t=today()-400;ROWS.forEach(function(r){if(r[key]&&r.vday>=t)c[r[key]]=(c[r[key]]||0)+1});T.forEach(function(x){c[x.m]=(c[x.m]||0)+1e6});return Object.keys(c).sort()}
+function renderFilters(){
+  setOpts($("fPer"),[["mtd","This month"],["lm","Last month"],["qtd","This quarter"],["fy","This FY to date"],["lfy","Last FY"],["l12","Last 12 months"],["all","All time"]].concat(recentMonths(18)),F.per);
+  var pj=projList().map(function(p){return[p,lab(p)]});
+  setOpts($("fProj"),tab==="site"?pj:[["","All projects"]].concat(pj),F.proj);
+  setOpts($("fCm"),[["","All"]].concat(personList("cm",CT).map(function(x){return[x,x]})),F.cm);
+  setOpts($("fSm"),[["","All"]].concat(personList("sm",ST).map(function(x){return[x,x]})),F.sm);
+  setOpts($("fSrc"),[["","All"],["Direct","Direct"],["Indirect","Indirect (Channel Partner)"]].concat(uniq("src").filter(function(s){return!isCP(s)}).map(function(s){return[s,s]})),F.src);
+  var P=period(F.per),ch=[];
+  ch.push('<span class="chip" title="Period">'+esc(P.label)+'</span>');
+  [["proj","Project"],["cm","Closing"],["sm","Sourcing"],["src","Source"],["cp","CP firm"]].forEach(function(k){if(F[k[0]]&&!(tab==="site"&&k[0]==="proj"))ch.push('<button class="chip" data-x="'+k[0]+'" title="Remove filter">'+k[1]+': <b>'+esc(lab(F[k[0]]))+'</b> ✕</button>')});
+  if(tab==="site")ch.unshift('<span class="chip"><b>'+esc(lab(F.proj))+'</b></span>');
+  $("chips").innerHTML=ch.join("");
+  var n=["proj","cm","sm","src","cp"].filter(function(k){return F[k]&&!(tab==="site"&&k==="proj")}).length;
+  $("fopen").textContent="Filters"+(n?" ("+n+")":"");
+}
+
+/* ---------- tiles ---------- */
+function tileData(id,P,S,PS,TG,ser){
+  var m=M(id),o={m:m,st:"",sub:"",sub2:"",val:"",bar:null};
+  if(m.inv){var iv=inv(F.proj);o.val=fmt(iv.Unsold)+'<small>units</small>';o.sub=fp(pct(iv.Unsold,iv.tot),0)+" of "+fmt(iv.tot)+" unsold";o.sub2=fmt(iv["On hold"])+" on hold · "+fmt(iv.Sold)+" sold";o.big=fmt(iv.Unsold);o.unit="units unsold";return o}
+  var v=m.v(S.tot),pv=PS?m.v(PS.tot):null;
+  o.val=m.f(v)+(m.unit?'<small>'+m.unit+'</small>':"");o.big=m.f(v);o.unit=m.unit||"";
+  if(m.tgt){var a=achieve(ser,m.tgt==="book"?TG.bookM:TG.walkM,m.v);
+    if(a){o.sub=fmt(a.got)+" of "+fmt(a.tgt)+" target ("+fp(a.pc,0)+")";o.st=a.st;o.bar={pc:a.pc,pace:a.pace};o.a=a}
+    else o.noT=TG.why||"No target";
+  }
+  if(id==="net"){if(o.noT)o.sub=fmt(S.tot.gross)+" booked · "+fmt(S.tot.cx)+" cancelled";else o.sub2=fmt(S.tot.gross)+" booked · "+fmt(S.tot.cx)+" cancelled"}
+  if(id==="conv")o.sub=fmt(S.tot.gross)+" bookings ÷ "+fmt(S.tot.fresh)+" fresh";
+  if(id==="rev")o.sub=S.tot.fresh?fp(pct(S.tot.rev,S.tot.fresh),0)+" of fresh walk-ins came back":"";
+  if(id==="cx")o.sub=fp(pct(S.tot.cx,S.tot.gross),0)+" of bookings in period";
+  if(id==="hot")o.sub="of "+fmt(S.tot.fresh)+" fresh walk-ins";
+  if(id==="cpf")o.sub="sent "+fmt(S.tot.cpWalk)+" CP walk-ins";
+  var dt=deltaTxt(v,pv,m,PS&&PS.P);if(!o.sub2||!m.tgt||o.noT)o.sub2=dt;
+  if(!o.sub){o.sub=o.sub2;o.sub2=tab==="mgmt"&&o.noT?o.noT:""}
+  if(!o.st)o.st=deltaSt(v,pv,m);
+  o.dt=dt;o.pv=pv;o.v=v;
+  return o;
+}
+function renderTiles(ids,P,S,PS,TG,ser){
+  var el=$("tiles");el.className="tiles"+(ids.length===6?" six":"");
+  el.innerHTML=ids.map(function(id,i){var o=tileData(id,P,S,PS,TG,ser);var c=METRICS.indexOf(o.m);
+    return'<button class="tile t'+c+(focus===id?" sel":"")+'" data-tile="'+id+'" aria-pressed="'+(focus===id)+'" title="Open '+esc(o.m.label)+' in focus">'+si(o.st)+'<div class="tl">'+esc(o.m.label)+'</div><div class="tv">'+o.val+'</div><div class="ts">'+esc(o.sub)+'</div>'+(o.bar?'<div class="mini"><i style="width:'+Math.min(100,o.bar.pc).toFixed(0)+'%"></i>'+(o.bar.pace<100?'<b style="left:'+o.bar.pace.toFixed(0)+'%"></b>':"")+'</div>':'<div class="ts">'+esc(o.sub2)+'</div>')+'</button>'}).join("");
+}
+
+/* ---------- management cards ---------- */
+function trendCard(P,TG,ser,weekly,id,mode,withTarget){
+  var isB=mode==="book",items=ser.keys.map(function(k){var s=ser.B[k],v=isB?s.net:s.fresh,t=null;
+    if(withTarget){if(weekly){var W=isB?TG.bookW:TG.walkW;t=W?W[k-1]:null}else{var MM=isB?TG.bookM:TG.walkM;t=MM[k]!=null?MM[k]:null}}
+    var lb=weekly?"Wk "+k:ymLab(k);
+    return{lab:lb,v:v,t:t,per:weekly?null:"m"+k,tip:lb+": "+(isB?fmt(s.net)+" net ("+fmt(s.gross)+" booked, "+fmt(s.cx)+" cancelled)":fmt(s.fresh)+" fresh walk-ins, "+fmt(s.rev)+" unique revisits")+(t!=null?" · target "+fmt(t):"")+(weekly?"":" · click to open month")}});
+  if(!weekly&&items.length>24)items=items.slice(-24);
+  return{items:items,html:card(id,(isB?"Net bookings":"Fresh walk-ins")+(weekly?" by week":" by month"),withTarget&&(isB?TG.book!=null:TG.walk!=null)?"▬ target":"",togs(id==="cTrend"?"trend":"strend",[["book","Bookings"],["walk","Walk-ins"]],mode),'<div class="plot" style="position:absolute;inset:0"></div>',"chart")};
+}
+function projCard(P){
+  var S=stats(Object.assign({},F,{proj:""}),P,function(r){return r.proj}),iv=invBy("","proj");
+  var keys=Object.keys(S.G).concat(Object.keys(iv).filter(function(k){return!S.G[k]}));
+  keys=keys.filter(function(k,i){return keys.indexOf(k)===i});
+  keys.sort(function(a,b){var x=S.G[a]||{net:0,fresh:0},y=S.G[b]||{net:0,fresh:0};return y.net-x.net||y.fresh-x.fresh});
+  var mx=0;keys.forEach(function(k){if(S.G[k])mx=Math.max(mx,S.G[k].net)});
+  var rows=keys.map(function(k){var s=S.G[k]||fin(blank()),u=iv[k];
+    return drow("proj",k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td>'+fmt(s.rev)+'</td><td>'+fmt(s.net)+'</td><td>'+fmt(s.cx)+'</td><td>'+fp(s.conv)+'</td><td>'+(u?fmt(u.Unsold)+'<span class="dim">/'+fmt(u.tot)+'</span>':'<span class="dim">–</span>')+'</td>',F.proj===k)}).join("");
+  var t=S.tot,ti=inv("");
+  return card("cProj","Projects",esc(P.label),"",keys.length?'<table><thead><tr><th>Project</th><th>Fresh</th><th>Uniq. revisits</th><th>Net bkg</th><th>Cxl</th><th>Conv</th><th>Unsold</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>Total</td><td>'+fmt(t.fresh)+'</td><td>'+fmt(t.rev)+'</td><td>'+fmt(t.net)+'</td><td>'+fmt(t.cx)+'</td><td>'+fp(t.conv)+'</td><td>'+fmt(ti.Unsold)+'<span class="dim">/'+fmt(ti.tot)+'</span></td></tr></tfoot></table>':empty("No walk-ins in this period"));
+}
+// limit a period to the months that have targets, so actuals and targets cover the same months
+function clip(P,tm){if(!tm.length)return P;tm.sort();var a=tm[0],b=tm[tm.length-1];return{from:Math.max(P.from,monStart(a)),to:Math.min(P.to,monEnd(b)),full:{to:monEnd(b)},label:a===b?ymLab(a):ymLab(a)+"–"+ymLab(b),clipped:monStart(a)>P.from||monEnd(b)<P.full.to}}
+function closingCard(P){
+  var FF=Object.assign({},F,{cm:""}),ms=monthsIn(P),noT=F.proj||F.src||F.cp||F.sm,T={},tm=[];
+  if(!noT)CT.forEach(function(t){if(ms.indexOf(t.ym)>=0){T[t.m]=(T[t.m]||0)+t.t;if(tm.indexOf(t.ym)<0)tm.push(t.ym)}});
+  var PP=clip(P,tm),S=stats(FF,PP,function(r){return r.cm});
+  var names=Object.keys(T);Object.keys(S.G).forEach(function(k){if(k&&S.G[k].gross+S.G[k].cx>0&&names.indexOf(k)<0)names.push(k)});
+  var pace=achievePace(PP),totT=0,totN=0;
+  var list=names.map(function(n){var s=S.G[n]||fin(blank()),t=T[n]||0;totT+=t;totN+=s.net;return{n:n,s:s,t:t,pc:t?s.net/t*100:null}});
+  var gapTot=0;list.forEach(function(x){if(x.t&&x.s.net<x.t)gapTot+=x.t-x.s.net});
+  list.sort(function(a,b){return(a.pc==null)-(b.pc==null)||(a.pc-b.pc)||b.s.net-a.s.net});
+  var mx=0;list.forEach(function(x){mx=Math.max(mx,x.t,x.s.net)});
+  var rows=list.map(function(x){var gap=x.t&&x.s.net<x.t?x.t-x.s.net:0,st=x.pc==null?"":stOf(x.pc,pace);
+    return drow("cm",x.n,'<td title="'+esc(lab(x.n))+'">'+esc(lab(x.n))+'</td><td>'+(x.t?fmt(x.t):'<span class="dim">–</span>')+'</td><td>'+fmt(x.s.net)+'</td><td class="bar">'+hbar(x.s.net,mx,st,x.t||null)+'</td><td>'+pill(x.pc,st)+'</td><td>'+(gap?fmt(gap)+' <span class="dim">'+fp(pct(gap,gapTot),0)+'</span>':'<span class="dim">–</span>')+'</td>',F.cm===x.n)}).join("");
+  var sub=noT?"targets hidden for this filter":(PP.clipped?esc(PP.label)+" (months with targets) · ":"")+"worst first";
+  return card("cCm","Closing managers",sub,"",list.length?'<table><thead><tr><th>Manager</th><th>Target</th><th>Net</th><th></th><th>Achieved</th><th>Gap (share)</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>Total</td><td>'+(totT?fmt(totT):"–")+'</td><td>'+fmt(totN)+'</td><td></td><td>'+pill(totT?totN/totT*100:null,totT?stOf(totN/totT*100,pace):"")+'</td><td>'+(gapTot?fmt(gapTot):"–")+'</td></tr></tfoot></table>':empty("No closing data in this period"));
+}
+function achievePace(P){var e=P.full.to,s=P.from,t=today();return t>=e?100:Math.max(0,(t-s+1)/(e-s+1)*100)}
+function sourcingCard(P){
+  var FF=Object.assign({},F,{sm:""}),ms=monthsIn(P),noT=F.proj||F.src||F.cp||F.cm,TW={},TB={},tm=[];
+  if(!noT)ST.forEach(function(t){if(ms.indexOf(t.ym)>=0){TW[t.m]=(TW[t.m]||0)+t.t;TB[t.m]=(TB[t.m]||0)+t.b;if(tm.indexOf(t.ym)<0)tm.push(t.ym)}});
+  var PP=clip(P,tm),S=stats(FF,PP,function(r){return r.sm});
+  var names=Object.keys(TW);Object.keys(S.G).forEach(function(k){if(k&&S.G[k].fresh>0&&names.indexOf(k)<0)names.push(k)});
+  var pace=achievePace(PP);
+  var list=names.map(function(n){var s=S.G[n]||fin(blank());return{n:n,s:s,tw:TW[n]||0,tb:TB[n]||0}});
+  list.sort(function(a,b){return(b.tw-a.tw)||(b.s.fresh-a.s.fresh)});
+  var mx=0;list.forEach(function(x){mx=Math.max(mx,x.tw,x.s.fresh)});
+  var rows=list.map(function(x){var pw=x.tw?x.s.fresh/x.tw*100:null,pb=x.tb?x.s.net/x.tb*100:null;
+    return drow("sm",x.n,'<td title="'+esc(lab(x.n))+'">'+esc(lab(x.n))+'</td><td>'+fmt(x.s.fresh)+(x.tw?'<span class="dim">/'+fmt(x.tw)+'</span>':"")+'</td><td class="bar">'+hbar(x.s.fresh,mx,x.tw?stOf(pw,pace):"",x.tw||null)+'</td><td>'+pill(pw,x.tw?stOf(pw,pace):"")+'</td><td>'+fmt(x.s.net)+(x.tb?'<span class="dim">/'+fmt(x.tb)+'</span>':"")+'</td><td>'+pill(pb,x.tb?stOf(pb,pace):"")+'</td>',F.sm===x.n)}).join("");
+  return card("cSm","Sourcing managers",noT?"targets hidden for this filter":(PP.clipped?esc(PP.label)+" (months with targets)":"fresh walk-ins & bookings vs target"),"",list.length?'<table><thead><tr><th>Manager</th><th>Walk-ins</th><th></th><th>Ach.</th><th>Bookings</th><th>Ach.</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No sourcing data in this period"));
+}
+function channelCard(P,mode,site){
+  var FF=Object.assign({},F,{src:""}),body="";
+  if(mode==="split"){
+    var S=stats(FF,P,function(r){return isCP(r.src)?"Indirect":"Direct"}),d=S.G.Direct||fin(blank()),n=S.G.Indirect||fin(blank());
+    function line(k,a,b){var t=a+b;return'<div class="split"><span class="k">'+k+'</span><div class="stk" title="Direct '+fmt(a)+' · Indirect '+fmt(b)+'"><i class="c-dir" style="width:'+(t?a/t*100:0)+'%"></i><i class="c-ind" style="width:'+(t?b/t*100:0)+'%"></i></div><span class="v">'+fp(pct(b,t),0)+'</span></div>'}
+    body='<div class="lg"><span><i class="c-dir"></i>Direct</span><span><i class="c-ind"></i>Indirect (CP)</span><span class="dim">right: indirect share</span></div>'+line("Walk-ins",d.fresh,n.fresh)+line("Bookings",d.net,n.net)+
+      '<table style="margin-top:6px"><thead><tr><th>Channel</th><th>Fresh</th><th>Net bkg</th><th>Conv</th></tr></thead><tbody>'+[["Direct",d],["Indirect",n]].map(function(x){return drow("src",x[0],'<td>'+x[0]+'</td><td>'+fmt(x[1].fresh)+'</td><td>'+fmt(x[1].net)+'</td><td>'+fp(x[1].conv)+'</td>',F.src===x[0])}).join("")+'</tbody></table>'+
+      '<div class="note">'+fmt(S.tot.ncp)+' channel-partner firms brought at least one walk-in.</div>';
+  }else if(mode==="proj"){
+    var S2=stats(Object.assign({},FF,{proj:""}),P,function(r){return r.proj+"\u0001"+(isCP(r.src)?"I":"D")}),pj={};
+    for(var k in S2.G){var a=k.split("\u0001");pj[a[0]]=pj[a[0]]||{D:0,I:0,fd:0,fi:0};pj[a[0]][a[1]]+=S2.G[k].net;pj[a[0]]["f"+a[1].toLowerCase()]+=S2.G[k].fresh}
+    var ks=Object.keys(pj).filter(function(k){return pj[k].D+pj[k].I+pj[k].fd+pj[k].fi>0}).sort(function(a,b){return(pj[b].D+pj[b].I)-(pj[a].D+pj[a].I)});
+    body='<div class="lg"><span><i class="c-dir"></i>Direct</span><span><i class="c-ind"></i>Indirect</span><span class="dim">share of net bookings</span></div><table><thead><tr><th>Project</th><th></th><th>Indirect</th><th>Net</th></tr></thead><tbody>'+ks.map(function(k){var x=pj[k],t=x.D+x.I;
+      return drow("proj",k,'<td>'+esc(lab(k))+'</td><td class="bar"><div class="stk"><i class="c-dir" style="width:'+(t?x.D/t*100:0)+'%"></i><i class="c-ind" style="width:'+(t?x.I/t*100:0)+'%"></i></div></td><td>'+fp(pct(x.I,t),0)+'</td><td>'+fmt(t)+'</td>',F.proj===k)}).join("")+'</tbody></table>';
+  }else{
+    var S3=stats(Object.assign({},F,{cp:""}),P,function(r){return isCP(r.src)?r.cp:"\u0000"});delete S3.G["\u0000"];
+    var cps=Object.keys(S3.G).filter(function(k){return k}).sort(function(a,b){return S3.G[b].net-S3.G[a].net||S3.G[b].fresh-S3.G[a].fresh}).slice(0,15),mx=0;
+    cps.forEach(function(k){mx=Math.max(mx,S3.G[k].fresh)});
+    body=cps.length?'<table><thead><tr><th>CP firm</th><th>Fresh</th><th></th><th>Net bkg</th><th>Conv</th></tr></thead><tbody>'+cps.map(function(k){var s=S3.G[k];return drow("cp",k,'<td title="'+esc(k)+'">'+esc(k)+'</td><td>'+fmt(s.fresh)+'</td><td class="bar">'+hbar(s.fresh,mx)+'</td><td>'+fmt(s.net)+'</td><td>'+fp(s.conv)+'</td>',F.cp===k)}).join("")+'</tbody></table><div class="note">Top 15 by bookings. Click a firm to filter.</div>':empty("No channel-partner walk-ins in this period");
+  }
+  return card(site?"sSrcCard":"cChan",site?"Source & channel partners":"Direct vs Indirect","",togs(site?"ssrc":"chan",[["split","Split"],["proj","By project"],["cp","CP firms"]],mode),body);
+}
+var WHY=[["lost","Reason for lost"],["aff","Customer affinity"],["budget","Budget"],["cfg","Preferred config"],["area","Area (sq ft)"],["age","Age"],["loc","Location"],["city","City"],["purpose","Purpose"],["fund","Funding"],["cons","Construction status"],["emp","Employment"],["acc","Accompanied by"],["awv","Visit stage (AW)"],["bkvisit","Booked on fresh / revisit"],["wait","Waiting time"]];
+function waitBand(w){return w<0?"":w<=15?"0–15 min":w<=30?"16–30 min":w<=60?"31–60 min":"Over 1 hour"}
+function whyCard(P,dim,id){
+  var key=dim==="wait"?function(r){return waitBand(r.wait)}:function(r){return r[dim]};
+  var S=stats(F,P,key),visits=dim==="awv",bookingsOnly=dim==="bkvisit";
+  var ks=Object.keys(S.G).filter(function(k){var s=S.G[k];return k!==""&&(visits?s.fresh+s.rev:bookingsOnly?s.gross:s.fresh)>0});
+  var val=function(s){return visits?s.fresh+s.rev:bookingsOnly?s.gross:s.fresh};
+  ks.sort(function(a,b){return val(S.G[b])-val(S.G[a])});
+  var top=ks.slice(0,10),rest=ks.slice(10),mx=0,tot=0;ks.forEach(function(k){tot+=val(S.G[k])});top.forEach(function(k){mx=Math.max(mx,val(S.G[k]))});
+  var blankN=S.G[""]?val(S.G[""]):0;
+  var rows=top.map(function(k){var s=S.G[k],v=val(s);return'<tr><td title="'+esc(k)+'">'+esc(k)+'</td><td>'+fmt(v)+'</td><td class="bar">'+hbar(v,mx,"alt")+'</td><td>'+fp(pct(v,tot),0)+'</td>'+(bookingsOnly?"":'<td>'+fmt(s.gross)+'</td><td>'+(visits?"–":fp(s.conv))+'</td>')+'</tr>'}).join("");
+  if(rest.length){var o=0,og=0,of=0;rest.forEach(function(k){o+=val(S.G[k]);og+=S.G[k].gross;of+=S.G[k].fresh});rows+='<tr><td class="dim">'+rest.length+' others</td><td>'+fmt(o)+'</td><td class="bar">'+hbar(o,mx,"alt")+'</td><td>'+fp(pct(o,tot),0)+'</td>'+(bookingsOnly?"":'<td>'+fmt(og)+'</td><td>'+(visits?"–":fp(pct(og,of)))+'</td>')+'</tr>'}
+  var sel='<select data-why="'+id+'" aria-label="Breakdown">'+WHY.map(function(w){return'<option value="'+w[0]+'"'+(w[0]===dim?" selected":"")+'>'+w[1]+'</option>'}).join("")+'</select>';
+  var h=visits?"Visits":bookingsOnly?"Bookings":"Fresh";
+  return card(id,"Why","",'<div class="togs">'+sel+'</div>',ks.length?'<table><thead><tr><th>'+esc(WHY.filter(function(w){return w[0]===dim})[0][1])+'</th><th>'+h+'</th><th></th><th>Share</th>'+(bookingsOnly?"":'<th>Bkg</th><th>Conv</th>')+'</tr></thead><tbody>'+rows+'</tbody></table>'+(blankN?'<div class="note">'+fmt(blankN)+' not entered in the sheet (left out).</div>':""):empty("Nothing recorded for this in the period"));
+}
+
+/* ---------- site head cards ---------- */
+function peopleCard(P,key,id,title){
+  var FF=Object.assign({},F);FF[key]="";var S=stats(FF,P,function(r){return r[key]});
+  var ks=Object.keys(S.G).filter(function(k){var s=S.G[k];return s.fresh+s.gross+s.rev>0}).sort(function(a,b){return S.G[b].net-S.G[a].net||S.G[b].fresh-S.G[a].fresh}),mx=0;
+  ks.forEach(function(k){mx=Math.max(mx,S.G[k].fresh)});
+  var rows=ks.map(function(k){var s=S.G[k];return drow(key,k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td class="bar">'+hbar(s.fresh,mx)+'</td><td>'+fmt(s.rev)+'</td><td>'+fmt(s.net)+'</td><td>'+fp(s.conv)+'</td><td>'+fmt(s.hot)+'</td>',F[key]===k)}).join("");
+  return card(id,title,"","",ks.length?'<table><thead><tr><th>Name</th><th>Fresh</th><th></th><th>Uniq. revisits</th><th>Net bkg</th><th>Conv</th><th>Hot</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No activity in this period"));
+}
+function siteSrcCard(P,mode){
+  if(mode!=="src")return channelCard(P,mode==="split"?"split":"cp",true).replace(togs("ssrc",[["split","Split"],["proj","By project"],["cp","CP firms"]],mode==="split"?"split":"cp"),togs("ssrc",[["src","Source"],["cp","CP firms"]],mode));
+  var FF=Object.assign({},F,{src:""}),S=stats(FF,P,function(r){return r.src}),ks=Object.keys(S.G).filter(function(k){return S.G[k].fresh+S.G[k].gross>0}).sort(function(a,b){return S.G[b].fresh-S.G[a].fresh}),mx=0;
+  ks.forEach(function(k){mx=Math.max(mx,S.G[k].fresh)});
+  var rows=ks.map(function(k){var s=S.G[k];return drow("src",k,'<td>'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td class="bar">'+hbar(s.fresh,mx,isCP(k)?"":"alt")+'</td><td>'+fmt(s.net)+'</td><td>'+fp(s.conv)+'</td>',F.src===k)}).join("");
+  return card("sSrcCard","Source & channel partners","",togs("ssrc",[["src","Source"],["cp","CP firms"]],mode),ks.length?'<table><thead><tr><th>Source</th><th>Fresh</th><th></th><th>Net bkg</th><th>Conv</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No walk-ins in this period"));
+}
+function invCard(proj,id){
+  var G=invBy(proj,"type"),ks=Object.keys(G).sort(function(a,b){return G[b].tot-G[a].tot}),t=inv(proj);
+  if(!ks.length)return card(id,"Inventory by configuration","",'',empty("This project is not in the Inventory Status tab"));
+  var rows=ks.map(function(k){var g=G[k];return'<tr><td>'+esc(k)+'</td><td class="bar"><div class="stk" title="Sold '+g.Sold+' · On hold '+g["On hold"]+' · Unsold '+g.Unsold+'"><i class="c-sold" style="width:'+g.Sold/g.tot*100+'%"></i><i class="c-hold" style="width:'+g["On hold"]/g.tot*100+'%"></i><i class="c-uns" style="width:'+g.Unsold/g.tot*100+'%"></i></div></td><td>'+fmt(g.Unsold)+'</td><td>'+fp(pct(g.Unsold,t.Unsold),0)+'</td><td>'+fmt(g.tot)+'</td></tr>'}).join("");
+  return card(id,"Inventory by configuration","as of now",'','<div class="lg"><span><i class="c-sold"></i>Sold</span><span><i class="c-hold"></i>On hold</span><span><i class="c-uns"></i>Unsold</span></div><table><thead><tr><th>Type</th><th></th><th>Unsold</th><th>Share of unsold</th><th>Units</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>Total</td><td></td><td>'+fmt(t.Unsold)+'</td><td>100%</td><td>'+fmt(t.tot)+'</td></tr></tfoot></table>');
+}
+
+/* ---------- focus ---------- */
+var FDIMS=[["proj","Project"],["cm","Closing mgr"],["sm","Sourcing mgr"],["chan","Direct / Indirect"]];
+function renderFocus(P,S,PS,TG,ser,weekly,serM){
+  var m=M(focus),el=$("focus"),o=tileData(focus,P,S,PS,TG,serM||ser),c=METRICS.indexOf(m);
+  var colors=["#4F46E5","#C94532","#0E7F75","#F39C12","#2268DC","#7C3AED","#C71E68","#27356F"];
+  var stTxt=o.a?(o.a.pc>=100?"Target achieved":o.a.st==="good"?"On pace for target":o.a.st==="warn"?"Slightly behind pace":"Behind pace"):(o.st==="good"?"Better than "+(PS?PS.P.label:"before"):o.st==="bad"?"Worse than "+(PS?PS.P.label:"before"):"");
+  var ans='<section class="card fa" style="--fc:'+colors[c]+'"><div><div class="fa-label">'+esc(m.label)+' · '+esc(P.label)+'</div><div class="fa-num">'+o.big+(o.unit?'<small>'+esc(o.unit)+'</small>':"")+'</div>'+(stTxt?'<div class="fa-state">'+si(o.st)+esc(stTxt)+'</div>':"")+'<div class="fa-line">'+esc(o.sub)+(o.sub2&&o.sub2!==o.sub?'<br>'+esc(o.sub2):"")+(o.dt&&o.sub2!==o.dt?'<br>'+esc(o.dt):"")+'</div><div class="fa-def">'+esc(m.def)+'</div></div><button class="reset fa-x" data-unfocus>Close focus ✕</button></section>';
+  var mid,right;
+  if(m.inv){
+    var G=invBy(F.proj,"proj"),ks=Object.keys(G).sort(function(a,b){return G[b].Unsold-G[a].Unsold});
+    mid=card("fMid","Unsold by project","as of now","",'<div class="lg"><span><i class="c-sold"></i>Sold</span><span><i class="c-hold"></i>On hold</span><span><i class="c-uns"></i>Unsold</span></div><table><thead><tr><th>Project</th><th></th><th>Unsold</th><th>Units</th></tr></thead><tbody>'+ks.map(function(k){var g=G[k];return drow("proj",k,'<td>'+esc(k)+'</td><td class="bar"><div class="stk"><i class="c-sold" style="width:'+g.Sold/g.tot*100+'%"></i><i class="c-hold" style="width:'+g["On hold"]/g.tot*100+'%"></i><i class="c-uns" style="width:'+g.Unsold/g.tot*100+'%"></i></div></td><td>'+fmt(g.Unsold)+'</td><td>'+fmt(g.tot)+'</td>',F.proj===k)}).join("")+'</tbody></table>');
+    right=invCard(F.proj,"fRight");
+    el.innerHTML=ans+mid+right;return;
+  }
+  // trend
+  var items=ser.keys.map(function(k){var s=ser.B[k],v=m.v(s),t=null;if(m.tgt){if(weekly){var W=m.tgt==="book"?TG.bookW:TG.walkW;t=W?W[k-1]:null}else{var MM=m.tgt==="book"?TG.bookM:TG.walkM;t=MM[k]!=null?MM[k]:null}}var lb=weekly?"Wk "+k:ymLab(k);return{lab:lb,v:v,t:t,per:weekly?null:"m"+k,tip:lb+": "+m.f(v)+(m.unit?" "+m.unit:"")+(t!=null?" · target "+fmt(t):"")}});
+  if(!weekly&&items.length>24)items=items.slice(-24);
+  mid=card("fMid",m.label+(weekly?" by week":" by month"),m.tgt&&(m.tgt==="book"?TG.book!=null:TG.walk!=null)?"▬ target":"","",'<div class="plot" style="position:absolute;inset:0"></div>',"chart");
+  // breakdown
+  var dim=ui.fdim,keyFn=dim==="chan"?function(r){return isCP(r.src)?"Indirect":"Direct"}:function(r){return r[dim]};
+  var FF=Object.assign({},F);if(dim==="chan")FF.src="";else FF[dim]="";
+  var G2=stats(FF,P,keyFn).G,ks2=Object.keys(G2).filter(function(k){var s=G2[k];return(s.fresh+s.gross+s.cx+s.rev)>0&&m.v(s)!=null&&(!m.min||(m.id==="conv"?s.fresh>=m.min:s.tat.length>=m.min))});
+  ks2.sort(function(a,b){var x=m.v(G2[a]),y=m.v(G2[b]);return m.up>0?x-y:y-x});
+  var mx=0;ks2.forEach(function(k){mx=Math.max(mx,m.v(G2[k])||0)});
+  var f=dim==="chan"?"src":dim;
+  right=card("fRight","Worst first","",togs("fdim",FDIMS,dim),ks2.length?'<table><tbody>'+ks2.map(function(k){var v=m.v(G2[k]);return drow(f,k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td class="bar">'+hbar(v,mx,m.up>0?"":"alt")+'</td><td><b>'+m.f(v)+'</b></td>',F[f]===k)}).join("")+'</tbody></table>'+(m.min?'<div class="note">Rows with fewer than '+m.min+(m.id==="conv"?" fresh walk-ins":" bookings")+' are left out.</div>':""):empty("Nothing to compare in this period"));
+  el.innerHTML=ans+mid+right;
+  colChart(el.querySelector("#fMid .plot"),items,{fmt:function(v){return m.f(v)},aria:m.label+" trend",alt:m.up<0});
+}
+
+/* ---------- main render ---------- */
+var charts=[];
+function render(){
+  if(!DATA)return;
+  renderFilters();
+  var P=period(F.per),Pv=prevOf(P),weekly=!!P.month;
+  var S=stats(F,P),PS=Pv?stats(F,Pv):null;if(PS)PS.P=Pv;
+  var TG=tab==="site"?{bookM:{},walkM:{},why:"Targets are set per manager, not per project"}:targets(F,P),ser=series(F,P,weekly);
+  var serM=weekly?series(F,P,false):ser; // achievement is always measured by month
+  $("tabMgmt").setAttribute("aria-selected",tab==="mgmt");$("tabSite").setAttribute("aria-selected",tab==="site");
+  charts=[];
+  if(tab==="mgmt"){
+    renderTiles(METRICS.map(function(m){return m.id}),P,S,PS,TG,serM);
+    if(focus){$("vis").style.display="none";$("focus").style.display="";renderFocus(P,S,PS,TG,ser,weekly,serM)}
+    else{
+      $("focus").style.display="none";$("vis").style.display="";
+      var tr=trendCard(P,TG,ser,weekly,"cTrend",ui.trend,true);
+      $("vis").innerHTML=tr.html+projCard(P)+closingCard(P)+sourcingCard(P)+channelCard(P,ui.chan)+whyCard(P,ui.why,"cWhy");
+      charts.push(["#cTrend .plot",tr.items,{alt:ui.trend==="walk",aria:"trend"}]);
+    }
+  }else{
+    $("focus").style.display="none";$("vis").style.display="";
+    renderTiles(SITE_TILES,P,S,PS,TG,serM);
+    var st=trendCard(P,TG,ser,weekly,"sTrend",ui.strend,false);
+    $("vis").innerHTML=st.html+peopleCard(P,"cm","sCm","Closing managers")+peopleCard(P,"sm","sSm","Sourcing managers")+siteSrcCard(P,ui.ssrc)+whyCard(P,ui.swhy||"lost","sWhy")+invCard(F.proj,"sInv");
+    charts.push(["#sTrend .plot",st.items,{alt:ui.strend==="walk",aria:"trend"}]);
+  }
+  drawCharts();
+  var q=DATA.Q;
+  $("srcnote").innerHTML='<span>Source: '+esc(DATA.file||"All Data.xlsx")+' — Walk-in, Closing Targets, Sourcing Targets, Inventory Status</span><span>'+fmt(q.rows)+' walk-in rows · '+fmt(INV.length)+' units</span>'+(q.noVisitDate||q.noFreshRevisit?'<span title="Rows the sheet is missing values for">Data gaps: '+fmt(q.noVisitDate)+' without visit date, '+fmt(q.noFreshRevisit)+' without Fresh/Revisit</span>':"")+'<span>Personal details are never loaded.</span>';
+}
+function drawCharts(){charts.forEach(function(c){var el=document.querySelector(c[0]);if(el)colChart(el,c[1],c[2])})}
+
+/* ---------- loading ---------- */
+function setLive(){var el=$("live"),t=$("liveTxt");if(!DATA){t.textContent=loadErr||"Loading…";return}
+  var d=new Date(DATA.asOf),age=(Date.now()-d.getTime())/6e4;el.className="live"+(age>15||loadErr?" stale":"");
+  t.textContent=(loadErr?"Offline · ":"Live · ")+"updated "+d.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
+  el.title="Data read from the sheet at "+d.toLocaleString("en-IN")+(DATA.sheetModified?"; sheet last edited "+new Date(DATA.sheetModified).toLocaleString("en-IN"):"")+". Refreshes every 5 minutes.";}
+function load(fresh){
+  var key=store("dashKey")||"";
+  return fetch("api/data"+(fresh?"?fresh=1":""),{headers:key?{"x-dashboard-key":key}:{},cache:"no-store"}).then(function(r){
+    if(r.status===401){$("loading").style.display="none";$("gate").style.display="";if(key)$("gateErr").textContent="That password did not work.";$("gatePass").focus();throw new Error("password")}
+    if(!r.ok)return r.json().catch(function(){return{}}).then(function(j){throw new Error(j.message||("Server error "+r.status))});
+    return r.json();
+  }).then(function(d){
+    loadErr="";ingest(d);lastLoad=Date.now();$("gate").style.display="none";$("loading").style.display="none";
+    if(tab==="site"&&!F.proj)F.proj=projList()[0]||"";
+    render();setLive();
+  }).catch(function(e){if(e.message==="password")return;loadErr="Could not load data";setLive();if(!DATA){$("loadMsg").textContent="Could not load the data: "+e.message+". Try Refresh in a minute."}});
+}
+
+/* ---------- events ---------- */
+function setTab(t){tab=t;focus=null;if(t==="site"&&!F.proj)F.proj=projList()[0]||"";render()}
+document.addEventListener("click",function(e){
+  var t=e.target,x;
+  if((x=t.closest("[data-tab]"))){setTab(x.getAttribute("data-tab"));return}
+  if((x=t.closest("[data-unfocus]"))){focus=null;render();return}
+  if((x=t.closest("[data-tile]"))){var id=x.getAttribute("data-tile");if(tab==="site"){tab="mgmt"}focus=focus===id?null:id;render();window.scrollTo({top:0,behavior:"smooth"});return}
+  if((x=t.closest("[data-ui]"))){ui[x.getAttribute("data-ui")]=x.getAttribute("data-uv");render();return}
+  if((x=t.closest("[data-x]"))){F[x.getAttribute("data-x")]="";render();return}
+  if((x=t.closest("[data-per]"))){F.per=x.getAttribute("data-per");render();return}
+  if((x=t.closest("tr[data-f]"))){var f=x.getAttribute("data-f"),v=x.getAttribute("data-v");if(tab==="site"&&f==="proj")return;F[f]=F[f]===v?"":v;render();return}
+});
+document.addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&e.target.matches&&e.target.matches("tr[data-f]")){e.target.click()}
+  if(e.key==="Escape"){if($("flt").classList.contains("open"))$("flt").classList.remove("open");else if(focus){focus=null;render()}}
+});
+document.addEventListener("change",function(e){var t=e.target;
+  if(t.id==="fPer")F.per=t.value;else if(t.id==="fProj")F.proj=t.value;else if(t.id==="fCm")F.cm=t.value;else if(t.id==="fSm")F.sm=t.value;else if(t.id==="fSrc")F.src=t.value;
+  else if(t.matches("[data-why]")){if(t.getAttribute("data-why")==="sWhy")ui.swhy=t.value;else ui.why=t.value}else return;
+  render();
+});
+$("freset").onclick=function(){Object.assign(F,{per:"fy",proj:tab==="site"?F.proj:"",cm:"",sm:"",src:"",cp:""});focus=null;render()};
+$("fopen").onclick=function(){$("flt").classList.add("open")};
+$("fclose").onclick=function(){$("flt").classList.remove("open")};
+$("refresh").onclick=function(){$("liveTxt").textContent="Refreshing…";load(true)};
+$("gateForm").onsubmit=function(e){e.preventDefault();store("dashKey",$("gatePass").value);$("gateErr").textContent="";$("gate").style.display="none";$("loading").style.display="";load()};
+var themes=["auto","light","dark"],th=store("dashTheme")||"auto";
+function applyTheme(){if(th==="auto")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",th);$("theme").textContent=th==="auto"?"Theme: auto":th==="light"?"Theme: light":"Theme: dark"}
+$("theme").onclick=function(){th=themes[(themes.indexOf(th)+1)%3];store("dashTheme",th);applyTheme()};applyTheme();
+var tip=$("tip");
+document.addEventListener("mousemove",function(e){var x=e.target.closest&&e.target.closest("[data-tip]");if(x&&x.getAttribute("data-tip")){tip.textContent=x.getAttribute("data-tip");tip.style.display="block";var w=tip.offsetWidth;tip.style.left=Math.min(window.innerWidth-w-8,e.clientX+12)+"px";tip.style.top=(e.clientY+14)+"px"}else tip.style.display="none"});
+var rz;window.addEventListener("resize",function(){clearTimeout(rz);rz=setTimeout(function(){if(focus)render();else drawCharts()},150)});
+setInterval(function(){if(!document.hidden)load()},REFRESH_MS);
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&Date.now()-lastLoad>REFRESH_MS)load()});
+setInterval(setLive,60000);
+window.__dash={F:F,render:render,setTab:setTab,focus:function(id){focus=id||null;render()},ui:ui,stats:function(){return stats(F,period(F.per)).tot},targets:function(){return targets(F,period(F.per))}};
+load();
+})();
+</script>
+</body>
+</html>
