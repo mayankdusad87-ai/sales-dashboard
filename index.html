@@ -227,9 +227,8 @@ svg.ch{display:block;width:100%;height:100%}
   .app{gap:12px;padding-bottom:88px}
   .hdr{padding:12px 16px;gap:8px 8px;align-items:center}
   .hdr h1{font-size:16px;flex:1}
-  .live{font-size:11.5px;order:1}
-  .live .lu{display:none}
-  .tbtn{order:2;width:38px;height:38px;padding:0;font-size:0;border-radius:12px;display:inline-flex;align-items:center;justify-content:center}
+  .live{font-size:12px;order:2;flex-basis:100%;margin-top:-6px}
+  .tbtn{order:1;width:38px;height:38px;padding:0;font-size:0;border-radius:12px;display:inline-flex;align-items:center;justify-content:center}
   #refresh::before{content:"\21BB";font-size:19px;font-weight:700}
   #theme::before{content:"\25D0";font-size:17px}
   .tabs{order:3}
@@ -719,8 +718,9 @@ function drawCharts(){charts.forEach(function(c){var el=document.querySelector(c
 /* ---------- loading ---------- */
 function setLive(){var el=$("live"),t=$("liveTxt");if(!DATA){t.textContent=loadErr||"Loading…";return}
   var d=new Date(DATA.asOf),age=(Date.now()-d.getTime())/6e4;el.className="live"+(age>15||loadErr?" stale":"");
-  t.innerHTML=(loadErr?"Offline · ":"Live · ")+'<span class="lu">updated </span>'+esc(d.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}));
-  el.title="Data read from the sheet at "+d.toLocaleString("en-IN")+(DATA.sheetModified?"; sheet last edited "+new Date(DATA.sheetModified).toLocaleString("en-IN"):"")+". Refreshes every 5 minutes.";}
+  var ed=DATA.sheetModified?new Date(DATA.sheetModified):d,o={timeZone:"Asia/Kolkata",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"};
+  t.innerHTML=(loadErr?"Offline · ":"")+'Updated <span class="lu">as on </span>'+esc(ed.toLocaleString("en-IN",o));
+  el.title="Sheet last edited "+ed.toLocaleString("en-IN",o)+" (any change to All Data.xlsx). Dashboard last checked the sheet at "+d.toLocaleString("en-IN",o)+" and checks again every 5 minutes.";}
 function load(fresh){
   var key=store("dashKey")||"";
   return fetch("api/data"+(fresh?"?fresh=1":""),{headers:key?{"x-dashboard-key":key}:{},cache:"no-store"}).then(function(r){
