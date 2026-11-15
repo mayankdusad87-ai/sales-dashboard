@@ -221,7 +221,45 @@ svg.ch{display:block;width:100%;height:100%}
 .reset,.tog{border-color:transparent;background:var(--card);box-shadow:var(--raise)}
 .reset:hover,.tog:hover{background:var(--hover)}
 .reset:active,.tog:active,.tog[aria-pressed="true"]{background:var(--well);box-shadow:var(--inset);color:var(--bar2)}
-@media (max-width:760px){.tiles,.tiles.six{padding:4px 16px 14px}}
+
+/* phone polish: 2-column KPI grid, compact header, thumb-zone filters, 40px+ tap targets */
+@media (max-width:760px){
+  .app{gap:12px;padding-bottom:88px}
+  .hdr{padding:12px 16px;gap:8px 8px;align-items:center}
+  .hdr h1{font-size:16px;flex:1}
+  .live{font-size:11.5px;order:1}
+  .live .lu{display:none}
+  .tbtn{order:2;width:38px;height:38px;padding:0;font-size:0;border-radius:12px;display:inline-flex;align-items:center;justify-content:center}
+  #refresh::before{content:"\21BB";font-size:19px;font-weight:700}
+  #theme::before{content:"\25D0";font-size:17px}
+  .tabs{order:3}
+  .tabs button{padding:8px 12px;font-size:14px}
+  .bar-m{margin:0 16px;gap:8px}
+  .fbtn{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;min-height:48px;padding:0 24px;border-radius:99px;border:0;background:linear-gradient(135deg,#5B4FE8,#3F2FC4);color:#fff;font-size:15px;font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 8px 20px rgba(63,47,196,.4);gap:8px;align-items:center}
+  .fbtn::before{content:"\2630";font-size:15px}
+  .fbtn:hover{background:linear-gradient(135deg,#5B4FE8,#3F2FC4)}
+  .chip{min-height:32px;padding:4px 12px}
+  .flt label{font-size:14px}
+  .flt select{min-height:44px;font-size:14px;width:62%}
+  .flt .reset{min-height:44px;font-size:14px}
+  .tiles,.tiles.six{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;margin:0;padding:0 16px;gap:12px}
+  .tile{min-height:0;padding:12px}
+  .tile .tl{font-size:12.5px}
+  .tile .tv{font-size:23px;margin-top:4px}
+  .tile .ts{white-space:normal;line-height:1.3;margin-top:4px}
+  .tile.hasg{grid-template-columns:minmax(0,1fr) 58px}
+  .tile.hasg .gauge{width:58px;height:34px;margin-top:4px}
+  .vis{gap:12px}
+  .card{padding:12px 16px;border-radius:16px}
+  .chd{margin-bottom:8px}
+  .chd h2{font-size:15px}
+  .tog{min-height:36px;padding:4px 12px;font-size:13px}
+  .cbd.chart{height:220px}
+  td{height:36px;font-size:13px}
+  th:first-child,td:first-child{position:sticky;left:0;background:var(--card);z-index:1}
+  th:first-child{z-index:2}
+  tr.on td:first-child{background:var(--sel)}
+}
 </style>
 </head>
 <body>
@@ -437,7 +475,7 @@ function colChart(el,items,opt){
     s+='<rect class="b" fill="url(#'+gid+')" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(0,bh).toFixed(1)+'" rx="3"/>';
     if(it.t!=null){var ty=top+h-it.t/max*h;s+='<line class="tg" x1="'+(x-3).toFixed(1)+'" x2="'+(x+w+3).toFixed(1)+'" y1="'+ty.toFixed(1)+'" y2="'+ty.toFixed(1)+'"/>'}
     if(n<=16||i%step===0)s+='<text class="vl" x="'+(x+w/2).toFixed(1)+'" y="'+Math.max(11,Math.min(y,it.t!=null?top+h-it.t/max*h:y)-4).toFixed(1)+'">'+esc(opt.fmt?opt.fmt(it.v):fmt(it.v))+'</text>';
-    if(i%step===0)s+='<text class="xl" x="'+(x+w/2).toFixed(1)+'" y="'+(H-5)+'">'+esc(it.lab)+'</text>';
+    if(i%step===0)s+='<text class="xl" x="'+(x+w/2).toFixed(1)+'" y="'+(H-5)+'">'+esc(bw*step<48?String(it.lab).replace(/^([A-Z][a-z]{2}) \d\d$/,"$1"):it.lab)+'</text>';
     s+='<rect class="hit" x="'+(l+i*bw).toFixed(1)+'" y="0" width="'+bw.toFixed(1)+'" height="'+H+'" data-tip="'+esc(it.tip||"")+'"'+(it.per?' data-per="'+it.per+'"':"")+'/>';
   });
   el.innerHTML=s+'</svg>';
@@ -681,7 +719,7 @@ function drawCharts(){charts.forEach(function(c){var el=document.querySelector(c
 /* ---------- loading ---------- */
 function setLive(){var el=$("live"),t=$("liveTxt");if(!DATA){t.textContent=loadErr||"Loading…";return}
   var d=new Date(DATA.asOf),age=(Date.now()-d.getTime())/6e4;el.className="live"+(age>15||loadErr?" stale":"");
-  t.textContent=(loadErr?"Offline · ":"Live · ")+"updated "+d.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
+  t.innerHTML=(loadErr?"Offline · ":"Live · ")+'<span class="lu">updated </span>'+esc(d.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}));
   el.title="Data read from the sheet at "+d.toLocaleString("en-IN")+(DATA.sheetModified?"; sheet last edited "+new Date(DATA.sheetModified).toLocaleString("en-IN"):"")+". Refreshes every 5 minutes.";}
 function load(fresh){
   var key=store("dashKey")||"";
