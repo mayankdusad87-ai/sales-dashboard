@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Raghav Realty · Sales Dashboard</title>
+<link rel="icon" type="image/png" href="assets/mark.png">
+<link rel="apple-touch-icon" href="assets/mark.png">
+<link rel="preload" as="image" href="assets/logo-dark.png">
 <style>
 :root{
   color-scheme:light;
@@ -174,28 +177,26 @@ svg.ch{display:block;width:100%;height:100%}
 .err{color:var(--bad);font-weight:600;min-height:18px;font-size:12.5px}
 
 /* branded loading screen */
-.ld{flex-direction:column;gap:20px;overflow:hidden;background:radial-gradient(120% 90% at 20% 0%,#5B3FD9 0%,#2E2A85 45%,#15123F 100%);color:#fff;transition:opacity .55s ease,transform .55s ease,filter .55s ease}
+.ld{flex-direction:column;gap:20px;overflow:hidden;background:radial-gradient(120% 90% at 20% 0%,#4A2326 0%,#2A1E21 45%,#141012 100%);color:#fff;transition:opacity .55s ease,transform .55s ease,filter .55s ease}
 .ld.out{opacity:0;transform:scale(1.06);filter:blur(6px);pointer-events:none}
-.orb{position:absolute;border-radius:50%;filter:blur(50px);opacity:.55;animation:drift 9s ease-in-out infinite alternate}
-.o1{width:320px;height:320px;background:#7A2FD6;top:-80px;left:-60px}
-.o2{width:260px;height:260px;background:#2268DC;bottom:-60px;right:-40px;animation-delay:-3s}
-.o3{width:180px;height:180px;background:#F0A020;top:55%;left:60%;opacity:.3;animation-delay:-6s}
+.orb{position:absolute;border-radius:50%;filter:blur(50px);opacity:.5;animation:drift 9s ease-in-out infinite alternate}
+.o1{width:320px;height:320px;background:#E8432E;top:-80px;left:-60px;opacity:.4}
+.o2{width:260px;height:260px;background:#9E1B22;bottom:-60px;right:-40px;animation-delay:-3s}
+.o3{width:180px;height:180px;background:#F08A6E;top:55%;left:60%;opacity:.22;animation-delay:-6s}
 @keyframes drift{to{transform:translate(40px,-30px) scale(1.15)}}
-.ldcard{position:relative;width:100%;max-width:340px;padding:32px 28px 24px;border-radius:24px;text-align:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 24px 60px rgba(8,6,40,.5);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);animation:rise .7s cubic-bezier(.2,.9,.3,1.2) both}
+.ldcard{position:relative;width:100%;max-width:340px;padding:32px 28px 24px;border-radius:24px;text-align:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 24px 60px rgba(10,4,6,.55);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);animation:rise .7s cubic-bezier(.2,.9,.3,1.2) both}
 @keyframes rise{from{opacity:0;transform:translateY(24px) scale(.96)}}
-.sky{width:120px;height:84px;display:block;margin:0 auto 16px;overflow:visible}
-.sky .bd{fill:rgba(255,255,255,.16);stroke:rgba(255,255,255,.55);stroke-width:1.2;transform-box:fill-box;transform-origin:bottom;animation:grow .8s cubic-bezier(.2,.9,.3,1.1) both}
-.sky .b1{animation-delay:.15s}.sky .b2{animation-delay:.3s}.sky .b3{animation-delay:.45s}
-@keyframes grow{from{transform:scaleY(0)}}
-.sky .gnd{fill:rgba(255,255,255,.6)}
-.wins rect{fill:#FFD27A;opacity:.12;animation:lit 2.4s ease-in-out infinite}
-.wins rect:nth-child(3n+1){animation-delay:.2s}.wins rect:nth-child(3n+2){animation-delay:.9s}.wins rect:nth-child(4n){animation-delay:1.5s}.wins rect:nth-child(5n){animation-delay:.6s}
-@keyframes lit{0%,100%{opacity:.12}40%,60%{opacity:1;filter:drop-shadow(0 0 3px #FFD27A)}}
-.wm{font-size:22px;font-weight:800;letter-spacing:4px;background:linear-gradient(90deg,#fff,#FFD27A,#fff);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 3s linear infinite}
-@keyframes sheen{to{background-position:-200% 0}}
-.wsub{font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.75);margin-top:4px}
-.prog{height:6px;border-radius:99px;background:rgba(0,0,0,.25);box-shadow:inset 0 1px 2px rgba(0,0,0,.35);margin:24px 0 12px;overflow:hidden}
-.prog i{display:block;height:100%;width:8%;border-radius:99px;background:linear-gradient(90deg,#FFD27A,#fff);box-shadow:0 0 10px rgba(255,210,122,.8);transition:width .6s ease}
+.lglow{position:relative;display:flex;justify-content:center;margin:4px 0 12px}
+.lglow::before{content:"";position:absolute;left:12%;top:5%;width:30%;height:90%;border-radius:50%;background:#E8432E;filter:blur(26px);opacity:.45;animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.8;transform:scale(1.15)}}
+.lgwrap{position:relative;display:block;animation:logoin .9s cubic-bezier(.2,.9,.3,1.2) .15s both}
+.ldlogo{display:block;height:64px;width:auto}
+.lgwrap::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.75) 50%,transparent 60%) 0 0/300% 100% no-repeat;-webkit-mask:url(assets/logo-dark.png) center/contain no-repeat;mask:url(assets/logo-dark.png) center/contain no-repeat;animation:sweep 2.8s ease-in-out 1s infinite}
+@keyframes logoin{from{opacity:0;transform:translateY(10px) scale(.9);filter:blur(4px)}}
+@keyframes sweep{from{background-position:100% 0}60%,to{background-position:0 0}}
+.wsub{font-size:13px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-top:4px}
+.prog{height:6px;border-radius:99px;background:rgba(0,0,0,.3);box-shadow:inset 0 1px 2px rgba(0,0,0,.4);margin:24px 0 12px;overflow:hidden}
+.prog i{display:block;height:100%;width:8%;border-radius:99px;background:linear-gradient(90deg,#9E1B22,#E8432E,#F7A08A);box-shadow:0 0 10px rgba(232,67,46,.7);transition:width .6s ease}
 .ldstep{margin:0;font-size:13px;color:rgba(255,255,255,.85);min-height:18px;transition:opacity .25s}
 .ldstep.fade{opacity:0}
 .ldstep.bad{color:#FFC2B8}
@@ -206,9 +207,11 @@ svg.ch{display:block;width:100%;height:100%}
 @keyframes pop{from{opacity:0;transform:translateY(14px) scale(.95)}}
 @media (prefers-reduced-motion:reduce){.ld *,.ld,.app.enter .tile,.app.enter .card{animation:none!important;transition:none!important}}
 .brand{display:flex;align-items:center;gap:8px;line-height:1.1}
-.brand svg{width:26px;height:22px;flex:none}
-.brand b{display:block;font-size:15px;font-weight:800;letter-spacing:2px}
-.brand small{display:block;font-size:10.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;opacity:.8}
+.brand{gap:12px}
+.brand .plate{display:flex;flex:none;background:#fff;border-radius:10px;padding:4px 10px;box-shadow:inset 0 -1px 0 rgba(0,0,0,.08),0 2px 8px rgba(20,10,60,.28)}
+.brand img{display:block;height:30px;width:auto}
+.brand small{display:block;font-size:12px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;opacity:.85;padding-left:12px;border-left:1px solid rgba(255,255,255,.35)}
+.gatelogo{display:block;height:48px;width:auto;margin:0 0 16px}
 .tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--card);padding:6px 9px;border-radius:7px;font-size:12px;font-weight:600;z-index:60;display:none;max-width:260px;line-height:1.35}
 
 /* laptop / tablet */
@@ -262,7 +265,10 @@ svg.ch{display:block;width:100%;height:100%}
 @media (max-width:760px){
   .app{gap:12px;padding-bottom:88px}
   .hdr{padding:12px 16px;gap:8px 8px;align-items:center}
-  .hdr h1{font-size:16px;flex:1}
+  .hdr h1{font-size:16px;flex:1;min-width:0}
+  .brand{gap:10px}
+  .brand img{height:28px}
+  .brand small{font-size:10px;letter-spacing:.8px;padding-left:10px;white-space:normal;line-height:1.25;max-width:84px}
   .live{font-size:12px;order:2;flex-basis:100%;margin-top:-6px}
   .tbtn{order:1;width:38px;height:38px;padding:0;font-size:0;border-radius:12px;display:inline-flex;align-items:center;justify-content:center}
   #refresh::before{content:"\21BB";font-size:19px;font-weight:700}
@@ -301,7 +307,7 @@ svg.ch{display:block;width:100%;height:100%}
 <body>
 <div class="app">
   <header class="hdr">
-    <h1 class="brand"><svg viewBox="0 0 26 22" aria-hidden="true"><rect x="1" y="9" width="7" height="12" rx="1" fill="rgba(255,255,255,.35)"/><rect x="9.5" y="2" width="8" height="19" rx="1" fill="#fff"/><rect x="19" y="6" width="6" height="15" rx="1" fill="rgba(255,255,255,.6)"/><rect x="12" y="5" width="3" height="2" fill="#7A2FD6"/><rect x="12" y="9" width="3" height="2" fill="#7A2FD6"/><rect x="12" y="13" width="3" height="2" fill="#7A2FD6"/></svg><span><b>RAGHAV REALTY</b><small>Sales Dashboard</small></span></h1>
+    <h1 class="brand"><span class="plate"><img src="assets/logo.png" alt="Raghav Realty" width="104" height="30"></span><small>Sales Dashboard</small></h1>
     <div class="tabs" role="tablist">
       <button role="tab" id="tabMgmt" aria-selected="true" data-tab="mgmt">Management</button>
       <button role="tab" id="tabSite" aria-selected="false" data-tab="site">Site Head</button>
@@ -334,7 +340,8 @@ svg.ch{display:block;width:100%;height:100%}
 <div class="tip" id="tip"></div>
 <div class="overlay" id="gate" style="display:none">
   <form class="box" id="gateForm">
-    <h2>Raghav Realty · Sales Dashboard</h2>
+    <img class="gatelogo" src="assets/logo.png" alt="Raghav Realty">
+    <h2>Sales Dashboard</h2>
     <p>Enter the dashboard password to view the sales numbers.</p>
     <input type="password" id="gatePass" autocomplete="current-password" placeholder="Password" required>
     <div class="err" id="gateErr"></div>
@@ -344,18 +351,7 @@ svg.ch{display:block;width:100%;height:100%}
 <div class="overlay ld" id="loading" role="status" aria-live="polite">
   <i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i>
   <div class="ldcard">
-    <svg class="sky" viewBox="0 0 120 84" aria-hidden="true">
-      <rect class="bd b1" x="8" y="34" width="28" height="46" rx="3"/>
-      <rect class="bd b2" x="44" y="8" width="32" height="72" rx="3"/>
-      <rect class="bd b3" x="84" y="24" width="28" height="56" rx="3"/>
-      <g class="wins">
-        <rect x="14" y="42" width="6" height="6"/><rect x="24" y="42" width="6" height="6"/><rect x="14" y="54" width="6" height="6"/><rect x="24" y="54" width="6" height="6"/><rect x="14" y="66" width="6" height="6"/><rect x="24" y="66" width="6" height="6"/>
-        <rect x="51" y="16" width="7" height="7"/><rect x="62" y="16" width="7" height="7"/><rect x="51" y="28" width="7" height="7"/><rect x="62" y="28" width="7" height="7"/><rect x="51" y="40" width="7" height="7"/><rect x="62" y="40" width="7" height="7"/><rect x="51" y="52" width="7" height="7"/><rect x="62" y="52" width="7" height="7"/><rect x="51" y="64" width="7" height="7"/><rect x="62" y="64" width="7" height="7"/>
-        <rect x="90" y="32" width="6" height="6"/><rect x="100" y="32" width="6" height="6"/><rect x="90" y="44" width="6" height="6"/><rect x="100" y="44" width="6" height="6"/><rect x="90" y="56" width="6" height="6"/><rect x="100" y="56" width="6" height="6"/><rect x="90" y="68" width="6" height="6"/><rect x="100" y="68" width="6" height="6"/>
-      </g>
-      <rect class="gnd" x="0" y="80" width="120" height="3" rx="1.5"/>
-    </svg>
-    <div class="wm">RAGHAV REALTY</div>
+    <div class="lglow"><span class="lgwrap"><img class="ldlogo" src="assets/logo-dark.png" alt="Raghav Realty"></span></div>
     <div class="wsub">Sales Dashboard</div>
     <div class="prog"><i id="ldBar"></i></div>
     <p class="ldstep" id="loadMsg">Connecting to the Google Sheet…</p>
