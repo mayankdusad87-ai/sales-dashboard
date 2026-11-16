@@ -339,6 +339,123 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 .cmd .card,.cc-hero{scroll-margin-top:72px}
 @media (prefers-reduced-motion:reduce){.cc-live,.cc-chk.bad .cc-st i,.allok .okic{animation:none!important}}
 
+/* command centre, Phase 1 */
+#cmd{grid-template-columns:minmax(0,5fr) minmax(0,7fr);grid-template-rows:none;align-items:start;gap:16px}
+@media (max-width:1279px){#cmd{grid-template-columns:minmax(0,1fr)}}
+.m2hero{grid-column:1 / -1;position:relative;overflow:hidden;border-radius:24px;padding:24px 28px;color:#fff;background:radial-gradient(110% 150% at 0% 0%,#5A2326 0%,#2A1E21 55%,#141012 100%);box-shadow:0 14px 34px rgba(40,12,14,.3)}
+.m2hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px;-webkit-mask-image:radial-gradient(80% 120% at 100% 0%,#000,transparent 70%);mask-image:radial-gradient(80% 120% at 100% 0%,#000,transparent 70%);pointer-events:none}
+.m2hero::after{content:"";position:absolute;width:380px;height:380px;right:-90px;top:-190px;border-radius:50%;filter:blur(70px);opacity:.28;pointer-events:none;background:#9CA3AF}
+.m2hero.good::after{background:#34D399}.m2hero.warn::after{background:#F59E0B}.m2hero.bad::after{background:#EF4444}
+.m2hero>*{position:relative;z-index:1}
+.m2eye{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;opacity:.8}
+.m2story{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:end;margin-top:12px}
+.m2h{margin:0;font-size:28px;line-height:1.2;letter-spacing:-.4px;font-weight:800}
+.m2h em{font-style:normal;color:#FCD34D}
+.m2hero.good .m2h em{color:#6EE7B7}
+.m2sub{margin:12px 0 0;font-size:15px;line-height:1.5;opacity:.85;max-width:560px}
+.m2day{display:flex;align-items:center;gap:12px;margin-top:16px;font-size:12px;opacity:.85}
+.m2track{flex:1;max-width:320px;height:6px;border-radius:99px;background:rgba(255,255,255,.15);overflow:hidden}
+.m2track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#fff,#FCD34D)}
+.m2chart{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:12px 16px 8px}
+.m2ct{display:flex;justify-content:space-between;font-size:12px;opacity:.85;margin-bottom:4px}
+.m2chart svg{display:block;width:100%;height:140px}
+.m2lg{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;opacity:.8;margin-top:4px}.m2lg span{display:flex;align-items:center;gap:6px}
+.m2lg i{display:inline-block;width:14px;height:3px;border-radius:2px}.m2lg i.tg{background:rgba(255,255,255,.55)}.m2lg i.ac{background:#FCD34D}.m2lg i.fc{background:repeating-linear-gradient(90deg,#FCD34D 0 4px,transparent 4px 7px)}
+.m2kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:24px}
+.m2kpi{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:16px;padding:16px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.m2kl{font-size:12px;font-weight:600;opacity:.8}
+.m2kv{font-size:32px;font-weight:800;letter-spacing:-.5px;margin-top:4px;line-height:1.1}.m2kv small{font-size:15px;font-weight:600;opacity:.7;margin-left:4px;letter-spacing:0}
+.m2pb{position:relative;height:10px;border-radius:99px;background:rgba(255,255,255,.14);margin:12px 0 8px}
+.m2pb i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#6EE7B7,#34D399)}
+.m2pb i.warn{background:linear-gradient(90deg,#FDE68A,#FBBF24)}.m2pb i.bad{background:linear-gradient(90deg,#FCA5A5,#F87171)}
+.m2pb b{position:absolute;top:-4px;bottom:-4px;width:2px;border-radius:2px;background:#fff;box-shadow:0 0 6px rgba(255,255,255,.8)}
+.m2ks{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}
+.m2ks .up{color:#6EE7B7}.m2ks .dn{color:#FCA5A5}
+.m2chip{display:inline-flex;align-items:center;padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700}
+.m2chip.ok{background:rgba(52,211,153,.18);color:#6EE7B7}.m2chip.warn{background:rgba(251,191,36,.18);color:#FCD34D}.m2chip.bad{background:rgba(248,113,113,.2);color:#FCA5A5}.m2chip.none{background:rgba(255,255,255,.1);color:rgba(255,255,255,.75)}
+.m2att,.m2proj{padding:20px}
+.m2ch{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:16px}.m2ch h2{margin:0;font-size:17px}.m2ch .sub{font-size:12px;color:var(--muted)}.m2ch .togs{margin-left:auto}
+.m2list{display:flex;flex-direction:column;gap:12px}
+.m2i{border:1px solid var(--line);border-left:4px solid var(--bad);border-radius:16px;background:var(--card)}
+.m2i.a{border-left-color:var(--warn)}.m2i[open]{box-shadow:var(--shadow)}
+.m2i summary{list-style:none;display:grid;grid-template-columns:40px minmax(0,1fr) 20px;gap:12px;align-items:center;min-height:56px;padding:12px 16px;cursor:pointer}
+.m2i summary::-webkit-details-marker{display:none}
+.m2i summary:focus-visible{outline:2px solid var(--bar1);outline-offset:-2px;border-radius:12px}
+.m2ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;background:var(--badbg);color:var(--bad)}
+.m2i.a .m2ic{background:var(--warnbg);color:var(--warn)}
+.m2st{display:flex;flex-direction:column;gap:8px;min-width:0}
+.m2t{font-weight:700;font-size:15px;line-height:1.35;color:var(--ink)}
+.m2o{display:flex;flex-wrap:wrap;gap:4px 8px}
+.m2who{font-size:12px;font-weight:600;color:var(--ink2);background:var(--well);border-radius:99px;padding:2px 10px}
+.m2i[open] .fchev{transform:rotate(90deg)}
+.m2d{padding:0 16px 16px 68px;border-top:1px dashed var(--line)}
+.m2d .fbody{padding:0}
+.m2dk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
+.m2box{background:var(--well);border-radius:12px;padding:12px}
+.m2bl{font-size:12px;color:var(--muted);font-weight:600}
+.m2bv{font-size:24px;font-weight:800;margin-top:4px;color:var(--ink)}.m2bv small{font-size:12px;color:var(--muted);font-weight:600}
+.m2mb{position:relative;height:8px;border-radius:99px;background:var(--card);margin-top:8px}
+.m2mb i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--good)}.m2mb i.r{background:var(--bad)}.m2mb i.y{background:var(--warn)}
+.m2mb b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.m2facts{margin:0;padding:0;list-style:none;font-size:13px;color:var(--ink2)}
+.m2facts li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line)}.m2facts b{color:var(--ink);text-align:right}
+.m2how{margin:12px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
+.m2go{margin-top:12px;min-height:44px;padding:0 16px;border-radius:12px;font-weight:700;color:var(--bar2)}
+.m2more{margin-top:12px;min-height:40px;padding:0 16px;border-radius:12px;font-weight:700;color:var(--bar2)}
+.m2foot{margin:12px 0 0;font-size:12px;color:var(--muted)}
+.m2tbl{width:100%;border-collapse:collapse}
+.m2tbl th{font-size:12px;color:var(--muted);font-weight:700;text-align:left;padding:0 8px 8px;background:none;position:static}
+.m2tbl td{padding:12px 8px;border-top:1px solid var(--line);vertical-align:middle;height:auto;font-size:13px;max-width:none;white-space:nowrap;position:static;background:none}
+.m2tbl td.m2pj{font-weight:700;font-size:14px;color:var(--ink)}
+.m2tbl tr.m2row{cursor:pointer}.m2tbl tr.m2row:hover td{background:var(--hover)}.m2tbl tr.on td{background:var(--sel)}
+.m2tbl tr.mute td{color:var(--muted)}.m2tbl tr.mute td.m2pj{font-weight:600;color:var(--muted)}
+.m2tbl tfoot td{font-weight:800;border-top:2px solid var(--line)}
+.m2bar{display:grid;grid-template-columns:minmax(64px,1fr) auto;gap:12px;align-items:center}
+.m2bt{position:relative;height:9px;border-radius:99px;background:var(--well)}
+.m2bt i{position:absolute;left:0;top:0;bottom:0;border-radius:99px}
+.m2bt b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.55}
+.m2bt.g i{background:linear-gradient(90deg,#22C55E,#15803D)}.m2bt.y i{background:linear-gradient(90deg,#FBBF24,#D97706)}.m2bt.r i{background:linear-gradient(90deg,#F87171,#B91C1C)}.m2bt.m i{background:var(--target2)}
+.m2bn{font-size:12px;color:var(--ink2);text-align:right;white-space:nowrap}.m2bn b{color:var(--ink);font-size:14px}
+.m2stt{font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;white-space:nowrap}
+.m2stt.g{background:var(--goodbg);color:var(--good)}.m2stt.y{background:var(--warnbg);color:var(--warn)}.m2stt.r{background:var(--badbg);color:var(--bad)}.m2stt.m{background:var(--well);color:var(--muted)}
+.m2cards{display:none}
+.m2key{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;font-size:12px;color:var(--muted)}.m2key span{display:flex;align-items:center;gap:6px}.m2key b{width:2px;height:12px;background:var(--ink);opacity:.55}
+.m2trust{grid-column:1 / -1;display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;background:var(--card);border:1px dashed var(--line);color:var(--ink2);font-size:13px;box-shadow:var(--shadow)}
+.m2trust.warn,.m2trust.bad{border-color:#E7B04B}.m2trust b{color:var(--ink)}
+.m2trust>span:nth-child(2){flex:1}
+.m2trust button{min-height:40px;padding:0 14px;border-radius:12px;font-weight:700;color:var(--bar2);white-space:nowrap}
+#cmd .cdata{grid-column:1 / -1;grid-row:auto}
+@media (max-width:760px){
+  #cmd{gap:16px}
+  .m2hero{padding:20px 16px;border-radius:20px}
+  .m2eye{font-size:12px;letter-spacing:1px}
+  .m2story{grid-template-columns:minmax(0,1fr);gap:16px}
+  .m2h{font-size:22px}
+  .m2sub{font-size:15px}
+  .m2kpis{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:16px}
+  .m2kpis .m2kpi:last-child{grid-column:1 / -1}
+  .m2kpi{padding:12px}
+  .m2kv{font-size:28px}.m2kv small{font-size:15px}
+  .m2ks{flex-direction:column;align-items:flex-start;gap:8px}
+  .m2att,.m2proj{padding:16px;border-radius:20px}
+  .m2ch h2{flex-basis:100%}.m2ch .togs{margin-left:0}.m2ch .tog{min-height:44px;padding:0 16px}
+  .m2i summary{padding:12px;grid-template-columns:40px minmax(0,1fr) 16px}
+  .m2d{padding:0 12px 16px}
+  .m2dk{grid-template-columns:minmax(0,1fr)}
+  .m2facts li{flex-direction:column;gap:2px}.m2facts b{text-align:left}
+  .m2go{width:100%}
+  .m2tbl{display:none}
+  .m2cards{display:flex;flex-direction:column;gap:12px}
+  .m2pc{border:1px solid var(--line);border-radius:16px;padding:12px 16px;background:var(--card);cursor:pointer;min-height:44px}
+  .m2pc.on{border-color:var(--bar1);box-shadow:0 0 0 1px var(--bar1) inset}
+  .m2pc.mute{cursor:default;background:var(--well)}
+  .m2ph{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.m2ph b{font-size:15px;color:var(--ink)}
+  .m2pr{display:grid;grid-template-columns:64px minmax(0,1fr);gap:8px;align-items:center;font-size:12px;color:var(--ink2);margin-top:8px}
+  .m2trust{flex-wrap:wrap;padding:12px 16px}
+  .m2trust button{width:100%}
+}
+@media (prefers-reduced-motion:reduce){.m2hero .cc-live{animation:none}}
+
 /* footer, states */
 .srcnote{margin:0 14px;font-size:11.5px;color:var(--muted);display:flex;gap:6px 14px;flex-wrap:wrap}
 .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:50;padding:16px}
@@ -656,8 +773,8 @@ function ingest(d){
   DATA=d;var f=d.fields,D=d.dict,ix={};f.forEach(function(k,i){ix[k]=i});
   ROWS=d.W.map(function(r){var o={};f.forEach(function(k,i){o[k]=D[k]?D[k][r[i]]:r[i]});o.uniq=/^unique\s*revisit$/i.test(o.awv||"");return o});
   MIN_DAY=ROWS.reduce(function(m,r){return r.vday>0&&r.vday<m?r.vday:m},today());
-  CT=d.CT.map(function(r){return{m:r[0],ym:+r[1].replace("-",""),t:r[2],w:r[3]}});
-  ST=d.ST.map(function(r){return{m:r[0],ym:+r[1].replace("-",""),b:r[2],t:r[3],w:r[4]}});
+  CT=d.CT.map(function(r){return{m:r[0],ym:+r[1].replace("-",""),t:r[2],w:r[3],p:r[4]||"All"}});
+  ST=d.ST.map(function(r){return{m:r[0],ym:+r[1].replace("-",""),b:r[2],t:r[3],w:r[4],p:r[5]||"All"}});
   INV=d.INV.map(function(r){return{proj:r[0],unit:r[1],floor:r[2],grp:r[3],st:r[4],area:r[5],type:r[6]}});
 }
 function pass(r,FF){
@@ -1205,61 +1322,150 @@ function flagHtml(f){
     '<div class="fbody"><p class="fev"><span class="ftag">'+(red?"Red":"Amber")+' · '+chk(f.t)[1]+'</span> '+esc(f.ev)+'</p>'+bars+'<h4>How it was worked out</h4><ol class="steps">'+f.steps.map(function(s){return'<li><span class="sl">'+esc(s[0])+'</span><span class="sv">'+esc(s[1])+'</span></li>'}).join("")+'</ol>'+(f.table||"")+
     '<p class="fsrc"><b>Fields used:</b> '+esc(f.src)+'</p><button class="reset fgo" data-cmdopen="'+esc(o.k||"")+'" data-p="'+esc(o.p||"")+'" data-s="'+esc(o.s||"")+'">Open in Management (last 30 days) →</button></div></details>';
 }
+/* ---------- command centre, Phase 1: month story → attention → projects ---------- */
+var MNF=["January","February","March","April","May","June","July","August","September","October","November","December"];
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function pn(s){return String(s).toLowerCase().replace(/(^|[\s.\-'])([a-z])/g,function(m,a,b){return a+b.toUpperCase()})}
+function m2Month(){var T=today(),ym=ymOf(T),ms=monStart(ym),me=monEnd(ym),days=me-ms+1,d=T-ms+1;return{T:T,ym:ym,ms:ms,me:me,days:days,d:d,pace:d/days,name:MNF[ym%100-1],sh:MN[ym%100-1]}}
+// targets for this month: bookings from Closing Targets (G), walk-ins from Sourcing Targets (I), rolled up by project (column C)
+function m2Targets(M,proj){
+  var p=proj!==undefined?proj:F.proj,b=0,w=0,bR=[],wR=[],bOk=!F.sm&&!F.src&&!F.cp,wOk=!F.cm&&!F.src&&!F.cp;
+  if(bOk)CT.forEach(function(r){if(r.ym!==M.ym||(p&&r.p!==p)||(F.cm&&r.m!==F.cm))return;b+=r.t;bR.push(r)});
+  if(wOk)ST.forEach(function(r){if(r.ym!==M.ym||(p&&r.p!==p)||(F.sm&&r.m!==F.sm))return;w+=r.t;wR.push(r)});
+  return{b:b>0?b:null,w:w>0?w:null,bR:bR,wR:wR};
+}
+function m2St(a,t,M){if(!(t>0))return{k:"none"};var e=t*M.pace;if(a>=t)return{k:"met",e:e};if(a>=e)return{k:"ok",e:e};if(a>=e*.8)return{k:"slight",e:e};return{k:"behind",e:e}}
+function m2Uniq(a){return a.filter(function(x,i){return x&&a.indexOf(x)===i})}
+function m2Owners(M,p){
+  var cm=m2Uniq(CT.filter(function(r){return r.ym===M.ym&&r.p===p&&r.t>0}).map(function(r){return r.m})),sm=m2Uniq(ST.filter(function(r){return r.ym===M.ym&&r.p===p&&r.t>0}).map(function(r){return r.m}));
+  if(!cm.length||!sm.length){var c={},s={};ROWS.forEach(function(r){if(r.proj!==p||r.vday<M.ms||r.vday>M.T)return;if(r.cm)c[r.cm]=(c[r.cm]||0)+1;if(r.sm)s[r.sm]=(s[r.sm]||0)+1});
+    var top=function(o){var k=Object.keys(o).sort(function(a,b){return o[b]-o[a]})[0];return k?[k]:[]};if(!cm.length)cm=top(c);if(!sm.length)sm=top(s)}
+  return{cm:cm,sm:sm};
+}
+function m2Proj(M){
+  var P={from:M.ms,to:M.T},FF=Object.assign({},F,{proj:""}),S=stats(FF,P,function(r){return isProj(r.proj)?r.proj:"__none"}).G,keys={};
+  Object.keys(S).forEach(function(k){var s=S[k];if(s.fresh||s.gross||s.cx||s.rev)keys[k]=1});
+  CT.concat(ST).forEach(function(r){if(r.ym===M.ym&&isProj(r.p)&&r.t>0)keys[r.p]=1});
+  delete keys.__none;
+  var list=Object.keys(keys).map(function(p){var s=S[p]||fin(blank()),tg=m2Targets(M,p),bs=m2St(s.net,tg.b,M),ws=m2St(s.fresh,tg.w,M);
+    var stall=s.gross===0&&s.fresh>=8&&M.d>=7,st=stall?["Stalled","r"]:bs.k==="met"?["Target met ✓","g"]:bs.k==="behind"?["Behind","r"]:bs.k==="slight"?["Slightly behind","y"]:ws.k==="behind"?["Walk-ins low","y"]:bs.k==="ok"?["On pace","g"]:(ws.k==="ok"||ws.k==="met")?["Walk-ins on pace","g"]:["No target","m"];
+    return{p:p,s:s,tg:tg,bs:bs,ws:ws,st:st,gb:tg.b?tg.b*M.pace-s.net:-1e9,gw:tg.w?(tg.w*M.pace-s.fresh)/tg.w:-1e9}});
+  list.sort(function(a,b){return(b.gb-a.gb)||(b.gw-a.gw)||(b.s.fresh-a.s.fresh)});
+  var unt={b:0,w:0,n:0};
+  if(!F.sm&&!F.src&&!F.cp)CT.forEach(function(r){if(r.ym===M.ym&&!isProj(r.p)&&r.t>0&&(!F.cm||r.m===F.cm)){unt.b+=r.t;unt.n++}});
+  if(!F.cm&&!F.src&&!F.cp)ST.forEach(function(r){if(r.ym===M.ym&&!isProj(r.p)&&r.t>0&&(!F.sm||r.m===F.sm)){unt.w+=r.t;unt.n++}});
+  return{list:list,none:S.__none||fin(blank()),unt:unt};
+}
+function m2Lost(p,M){var o={},n=0;ROWS.forEach(function(r){if(r.proj!==p||r.kind!==0||r.vday<M.ms||r.vday>M.T||r.bk)return;n++;if(r.lost)o[r.lost]=(o[r.lost]||0)+1});var t=topOf(o);return t?"“"+t.k+"” · "+t.n+" of "+n:"not entered (column AP)"}
+function m2LastBk(p,T){var lb=0;ROWS.forEach(function(r){if(r.proj===p&&r.bk&&r.bday<=T&&r.bday>lb)lb=r.bday});return lb}
+function m2Box(lab,a,t,e,bad){var w=t?Math.min(100,a/t*100):0;return'<div class="m2box"><div class="m2bl">'+lab+'</div><div class="m2bv">'+fmt(a)+(t?' <small>/ '+fmt(t)+' · '+n1(e)+' expected by today</small>':' <small>no target</small>')+'</div>'+(t?'<div class="m2mb"><i class="'+bad+'" style="width:'+w.toFixed(1)+'%"></i><b style="left:'+(e/t*100).toFixed(1)+'%"></b></div>':"")+'</div>'}
+function m2Drill(M,x,co){var s=x.s,tg=x.tg,lb=m2LastBk(x.p,M.T),cl=function(k){return k==="behind"?"r":k==="slight"?"y":"g"};
+  var src=function(R,sheet){return R.length?sheet+", "+M.sh+" "+String(Math.floor(M.ym/100))+" · "+R.length+" row"+(R.length>1?"s":"")+" ("+m2Uniq(R.map(function(r){return pn(r.m)})).join(", ")+")":"no target row for "+x.p};
+  return'<div class="m2dk">'+m2Box("Net bookings vs target",s.net,tg.b,x.bs.e,cl(x.bs.k))+m2Box("Fresh walk-ins vs target",s.fresh,tg.w,x.ws.e,cl(x.ws.k))+'</div>'+
+    '<ul class="m2facts"><li><span>Last booking</span><b>'+(lb?dl(lb)+" ("+(M.T-lb)+" days ago)":"none on record")+'</b></li>'+
+    '<li><span>Conversion this month</span><b>'+fp(s.conv)+' vs '+(F.proj?"":"company ")+fp(co)+'</b></li>'+
+    '<li><span>Top reason walk-ins didn’t book (column AP)</span><b>'+esc(m2Lost(x.p,M))+'</b></li>'+
+    '<li><span>Booking target from</span><b>'+esc(src(tg.bR,"Closing Targets"))+'</b></li>'+
+    '<li><span>Walk-in target from</span><b>'+esc(src(tg.wR,"Sourcing Targets"))+'</b></li></ul>'+
+    '<p class="m2how">Expected by today = target × '+M.d+' of '+M.days+' days ('+Math.round(M.pace*100)+'%). Net bookings = bookings (Booking Date, column AT) minus cancellations (column AV) this month.</p>'+
+    '<button class="reset m2go" data-cmdopen="net" data-p="'+esc(x.p)+'" data-per="mtd">Open '+esc(x.p)+' in Management →</button>';
+}
+function m2Attention(M,PR,flags){var items=[];
+  PR.list.forEach(function(x){if(F.proj&&x.p!==F.proj)return;var s=x.s,tg=x.tg,o=m2Owners(M,x.p);
+    if(x.st[0]==="Stalled")items.push({lvl:2,score:100+s.fresh,title:x.p+" hasn’t had a booking this month, despite "+s.fresh+" walk-ins.",own:o,x:x});
+    else if(tg.b&&(x.bs.k==="behind"||x.bs.k==="slight")){var g=Math.round(tg.b*M.pace-s.net);if(g>=1)items.push({lvl:x.bs.k==="behind"?2:1,score:(x.bs.k==="behind"?50:12)+g*10,title:x.p+" is "+g+" booking"+(g>1?"s":"")+" short of where it should be by today.",own:{cm:o.cm,sm:[]},x:x})}
+    if(tg.w&&x.ws.k==="behind")items.push({lvl:1,score:20+(1-s.fresh/(tg.w*M.pace))*10,title:x.p+" walk-ins are at "+Math.round(s.fresh/tg.w*100)+"% of target, with "+Math.round(M.pace*100)+"% of the month gone.",own:{cm:[],sm:o.sm},x:x});
+  });
+  flags.forEach(function(f){if(f.t!=="cx"&&f.t!=="cp")return;var t=f.title;
+    if(f.t==="cp")t=t.replace(/^(\d+) CP firms? gone quiet: (.*)$/,function(_,n,g){return n+" channel partner"+(n==="1"?"":"s")+" stopped sending walk-ins ("+g+")."});
+    else t=t.replace(/^Overall /,"").replace(/^(.*?)\s*cancellations up: (\d+) in 30 days vs usual ([\d.]+)\/month$/,function(_,w,n,u){return(w?w+" cancellations":"Cancellations")+" are up: "+n+" in the last 30 days, against a usual "+u+" a month."});
+    items.push({lvl:f.lvl,score:f.lvl===2?60:15,title:t,flag:f})});
+  items.sort(function(a,b){return b.lvl-a.lvl||b.score-a.score});return items;
+}
+function m2Item(it,M,co){var red=it.lvl===2,own="";
+  if(it.own){own=(it.own.cm||[]).map(function(n){return'<span class="m2who">Closing · '+esc(pn(n))+'</span>'}).join("")+(it.own.sm||[]).map(function(n){return'<span class="m2who">Sourcing · '+esc(pn(n))+'</span>'}).join("")}
+  var body=it.x?m2Drill(M,it.x,co):(function(){var h=flagHtml(it.flag),i=h.indexOf('<div class="fbody">');return i<0?"":h.slice(i+19,h.length-16)})();
+  return'<details class="m2i '+(red?"r":"a")+'"><summary><span class="m2ic" aria-hidden="true">'+(red?"!":"↓")+'</span><span class="m2st"><span class="sr">'+(red?"Urgent: ":"Watch: ")+'</span><span class="m2t">'+esc(it.title)+'</span>'+(own?'<span class="m2o">'+own+'</span>':"")+'</span><span class="fchev" aria-hidden="true">›</span></summary><div class="m2d">'+body+'</div></details>';
+}
+function m2Bar(a,t,M){var k=m2St(a,t,M).k,c=k==="behind"?"r":k==="slight"?"y":k==="none"?"m":"g",w=t?Math.min(100,a/t*100):0;
+  return'<div class="m2bar"><span class="m2bt '+c+'"><i style="width:'+w.toFixed(1)+'%"></i>'+(t?'<b style="left:'+(M.pace*100).toFixed(1)+'%"></b>':"")+'</span><span class="m2bn"><b>'+fmt(a)+'</b>'+(t?' / '+fmt(t):' · no target')+'</span></div>'}
+function m2Chart(M,tgt){
+  var c=new Array(M.days+1);for(var i=0;i<=M.days;i++)c[i]=0;
+  ROWS.forEach(function(r){if(!pass(r,F))return;if(r.bk&&r.bday>=M.ms&&r.bday<=M.T)c[r.bday-M.ms+1]++;if(r.cx&&r.cday>=M.ms&&r.cday<=M.T)c[r.cday-M.ms+1]--});
+  var cum=[0];for(i=1;i<=M.d;i++)cum[i]=cum[i-1]+c[i];
+  var now=cum[M.d],fc=M.d?now/M.d*M.days:0,top=Math.max(tgt||0,fc,Math.max.apply(null,cum),1)*1.12,W=320,H=140,pd=10;
+  var x=function(d){return pd+(W-2*pd)*d/M.days},y=function(v){return H-pd-(H-2*pd)*Math.max(0,v)/top},g="";
+  [.25,.5,.75,1].forEach(function(f){g+='<line x1="'+pd+'" x2="'+(W-pd)+'" y1="'+y(top*f/1.12)+'" y2="'+y(top*f/1.12)+'" stroke="rgba(255,255,255,.07)"/>'});
+  if(tgt)g+='<line x1="'+x(0)+'" y1="'+y(0)+'" x2="'+x(M.days)+'" y2="'+y(tgt)+'" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-dasharray="2 4"/>';
+  var pts=cum.map(function(v,i){return x(i).toFixed(1)+","+y(v).toFixed(1)}).join(" ");
+  g+='<polygon points="'+x(0)+","+y(0)+" "+pts+" "+x(M.d).toFixed(1)+","+y(0)+'" fill="rgba(252,211,77,.14)"/>';
+  g+='<polyline points="'+pts+'" fill="none" stroke="#FCD34D" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
+  if(M.d<M.days)g+='<line x1="'+x(M.d)+'" y1="'+y(now)+'" x2="'+x(M.days)+'" y2="'+y(fc)+'" stroke="#FCD34D" stroke-width="2.5" stroke-dasharray="5 4" opacity=".8"/>'+
+    '<text x="'+(x(M.days)-2)+'" y="'+(y(fc)+(fc>=(tgt||0)?-8:16))+'" fill="#FCD34D" font-size="11" font-weight="700" text-anchor="end">→ '+Math.round(fc)+'</text>';
+  g+='<circle cx="'+x(M.d)+'" cy="'+y(now)+'" r="5" fill="#FCD34D" stroke="#2A1E21" stroke-width="2"/><text x="'+(x(M.d)-6)+'" y="'+(y(now)-10)+'" fill="#fff" font-size="11" font-weight="700" text-anchor="end">Today '+now+'</text>';
+  return'<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Net bookings this month so far, '+now+(tgt?" of target "+tgt:"")+'">'+g+'</svg>';
+}
 function cmdHtml(){
-  var D=cmdData(),fl=cmdFlags(D),T=D.T,Y=D.Y,sum=D.sum,lag=D.lastV?T-D.lastV:-1;
-  var by={};CHECKS.forEach(function(c){by[c[0]]={n:0,r:0}});fl.forEach(function(f){by[f.t].n++;if(f.lvl===2)by[f.t].r++});
-  var nR=fl.filter(function(f){return f.lvl===2}).length,nA=fl.length-nR,cat=ui.ccat&&by[ui.ccat]?ui.ccat:"";
-  // status board
-  var nSkip=CHECKS.filter(function(c){return!by[c[0]].n&&fl.sm[c[0]].skip}).length,whoS=F.proj?(isProj(F.proj)?lab(F.proj):"“"+lab(F.proj)+"”"):"these filters";
-  var head=nR+nA?[nR?nR+" red":"",nA?nA+" amber":""].filter(Boolean).join(" · ")+" alert"+(nR+nA>1?"s":"")+" need"+(nR+nA>1?"":"s")+" attention"
-    :nSkip===CHECKS.length?"Not enough data to check "+whoS
-    :nSkip?"No alerts, but "+nSkip+" of "+CHECKS.length+" checks couldn’t run"
-    :"All clear: nothing needs attention";
-  var why=nSkip&&!(nR+nA)?'<div class="cc-s cc-why">Too few walk-ins for '+esc(whoS)+' to test '+(nSkip===1?"one check":"them")+'. Grey means not checked, not OK. Tap a grey check to see why.</div>':"";
-  var dc=dataChecks(),dR=dc.filter(function(x){return x.lvl===2}).length,dA=dc.filter(function(x){return x.lvl===1}).length;
-  var fresh='<button class="cc-fresh '+(dR?"bad":dA?"lag":"")+'" data-jump="ccData"><i></i><span>Data checks: '+(dR||dA?[dR?dR+" to fix":"",dA?dA+" to check":""].filter(Boolean).join(" · "):"all OK")+(lag>=0?' · last walk-in '+dl(D.lastV):' · no walk-ins match these filters')+'</span><b aria-hidden="true">›</b></button>';
-  var hero='<section class="cc-hero '+(nR?"bad":nA?"warn":nSkip?"skip":"good")+'" aria-label="Status board"><div class="cc-top"><div class="cc-tt"><div class="cc-k"><span class="cc-live"></span>Command Centre · live</div><div class="cc-h">'+head+'</div><div class="cc-s"><span id="ccClock">'+ccClock()+'</span> IST · 5 checks on data up to '+dl(Y)+'</div>'+why+'</div>'+fresh+'</div>'+
-    '<div class="cc-checks" role="group" aria-label="Show alerts for one check">'+CHECKS.map(function(c){var b=by[c[0]],sk=fl.sm[c[0]].skip,st=b.r?"bad":b.n?"warn":sk?"skip":"good";
-      return'<button class="cc-chk '+st+(cat===c[0]?" on":"")+'" data-ccat="'+c[0]+'" aria-pressed="'+(cat===c[0])+'"><span class="cc-ic">'+ico(c[0])+'</span><span class="cc-nm">'+c[1]+'</span><span class="cc-st"><i></i>'+(b.n?b.n+(b.n>1?" alerts":" alert"):sk?"Not checked":"All clear")+'</span></button>'}).join("")+'</div></section>';
-  var nav='<nav class="cc-nav" aria-label="Command Centre sections"><button data-jump="ccAlerts">Alerts'+(fl.length?' <b>'+fl.length+'</b>':"")+'</button><button data-jump="ccData">Data'+(dR||dA?' <b class="'+(dR?"":"a")+'">'+(dR+dA)+'</b>':"")+'</button><button data-jump="ccPulse">Today &amp; week</button></nav>';
-  // alerts
-  var list=cat?fl.filter(function(f){return f.t===cat}):fl,show=cat||ui.cmdAll?list:list.slice(0,6);
-  var lagBox=dR||dA?'<button class="lagw" data-jump="ccData"><b>⚠ '+(dR?"Data issues may make these alerts wrong":"Check the data before acting on these alerts")+'</b><span>'+dc.filter(function(x){return x.lvl}).map(function(x){return x.title}).join(" · ")+'. See Data checks ›</span></button>':"";
-  function passed(only){return CHECKS.filter(function(c){return!by[c[0]].n&&(!only||only===c[0])}).map(function(c){var s=fl.sm[c[0]];
-    return'<div class="pchk '+(s.skip?"skip":"ok")+'"><span class="pic">'+(s.skip?"–":"✓")+'</span><div class="pbody"><div class="phd"><b>'+c[1]+'</b><span class="ptag">'+(s.skip?"Not checked":"All clear")+'</span></div><p>'+esc(s.text)+'</p>'+
-      (s.list&&s.list.length?'<ul>'+s.list.map(function(x){return'<li>'+esc(x)+'</li>'}).join("")+'</ul>':"")+'</div></div>'}).join("")}
-  var pass=passed(cat),nPass=CHECKS.filter(function(c){return!by[c[0]].n}).length;
-  var body=list.length?'<div class="flags">'+show.map(flagHtml).join("")+(!cat&&list.length>6?'<button class="reset fmore" data-ui="cmdAll" data-uv="'+(ui.cmdAll?"":"1")+'">'+(ui.cmdAll?"Show fewer":"Show all "+list.length+" alerts")+'</button>':"")+'</div>'+
-      ""
-    :cat?'<div class="plist">'+pass+'</div>'
-    :nSkip?'<div class="allok skip"><span class="okic">–</span><div><b>'+(nSkip===CHECKS.length?"Nothing could be checked":"No alerts from the "+(CHECKS.length-nSkip)+" check"+(CHECKS.length-nSkip>1?"s":"")+" that ran")+'</b><span>'+nSkip+' check'+(nSkip>1?"s":"")+' had too little data. Tap a grey check above to see why.</span></div></div>'
-    :'<div class="allok"><span class="okic">✓</span><div><b>No alerts</b><span>Tap a check above to see what it looked at.</span></div></div>';
-  var rules='<details class="rules" id="ccRules"><summary>How these checks work</summary><ul>'+
-    '<li><b>Project stalled</b> (red): 15+ fresh walk-ins and 0 bookings in the last 30 days.</li>'+
-    '<li><b>Conversion dropped</b> (amber): last-30-day bookings ÷ fresh walk-ins is less than half of the previous 6 months. Only with 20+ walk-ins and 5+ earlier bookings.</li>'+
-    '<li><b>Cancellation spike</b> (red): last-30-day cancellations are more than 1.5 × the monthly average of the previous 6 months, and at least 3.</li>'+
-    '<li><b>Walk-ins slowing</b> (amber): last 7 days below 70% of the weekly average of the 4 weeks before. Only when that average is 10+.</li>'+
-    '<li><b>CP firms quiet</b> (amber): 3+ walk-ins in the 45 days before the last 30, and none in the last 30.</li>'+
-    '<li>All windows end <b>yesterday</b>, because today is still being entered. Project, manager and source filters apply; the Period filter does not. Rows with project blank or “All” count only in the overall checks.</li></ul></details>';
-  var att='<section class="card catt" id="ccAlerts"><div class="chd"><h2>Alerts</h2>'+(nR?'<span class="cnt r">'+nR+' red</span>':"")+(nA?'<span class="cnt a">'+nA+' amber</span>':"")+
-    (cat?'<span class="cfil">Showing: '+chk(cat)[1]+' <button class="reset" data-ccat="">Show all</button></span>':'<span class="sub">tap to see details</span>')+'</div><div class="cbd">'+body+rules+'</div></section>';
-  // pulse
-  var dow=(new Date(T*DAY).getUTCDay()+6)%7,mon=T-dow,lm=mon-7;
-  var cols=[["Today",T,T,"Today"],["Yesterday",Y,Y,"Yest."],["This week",mon,T,"This wk"],["Last week",lm,lm+6,"Last wk"]];
-  var rows=[["f","Fresh walk-ins",1],["r","Unique revisits",1],["b","Bookings",1],["c","Cancellations",-1]];
-  function cell(r,c){var v=sum(D.O[r[0]],c[1],c[2]),t=0;for(var k=1;k<=4;k++)t+=sum(D.O[r[0]],c[1]-7*k,c[2]-7*k);t/=4;
-    var d=t?(v-t)/t:(v>0?1:0),cl="eq",ar="≈";if(Math.abs(d)>=.1&&Math.abs(v-t)>=1){ar=d>0?"▲":"▼";cl=(d>0)===(r[2]>0)?"up":"dn"}
-    return{v:v,t:t,cl:cl,ar:ar,lab:ar==="▲"?"above":ar==="▼"?"below":"about"}}
-  var WD=["Sundays","Mondays","Tuesdays","Wednesdays","Thursdays","Fridays","Saturdays"];
-  function avgLab(c,i){return i<2?"usual "+WD[new Date(c[1]*DAY).getUTCDay()].slice(0,-1):i===2?"usual so far":"usual week"}
-  var tbl='<table class="pulse"><thead><tr><th></th>'+cols.map(function(c){return'<th>'+c[0]+'<small>'+dr(c[1],c[2])+'</small></th>'}).join("")+'</tr></thead><tbody>'+
-    rows.map(function(r){return'<tr><td>'+r[1]+'</td>'+cols.map(function(c,i){var x=cell(r,c);return'<td title="'+esc(c[0]+": "+fmt(x.v)+" vs "+avgLab(c,i)+" = "+n1(x.t))+'"><span class="pv">'+fmt(x.v)+'<i class="'+x.cl+'" aria-label="'+x.lab+' average">'+x.ar+'</i></span><span class="pt">usual '+n1(x.t)+'</span></td>'}).join("")+'</tr>'}).join("")+'</tbody></table>';
-  var pp=+ui.pp;if(!(pp>=0&&pp<4))pp=2;var pc=cols[pp];
-  var mob='<div class="pmob"><div class="pseg" role="tablist" aria-label="Pick a period">'+cols.map(function(c,i){return'<button role="tab" data-ui="pp" data-uv="'+i+'" aria-selected="'+(i===pp)+'">'+c[3]+'</button>'}).join("")+'</div>'+
-    '<div class="pdate">'+pc[0]+' · '+dr(pc[1],pc[2])+'</div><div class="pgrid">'+rows.map(function(r){var x=cell(r,pc);return'<div class="pcell"><span class="pl">'+r[1]+'</span><span class="pbig">'+fmt(x.v)+'<i class="'+x.cl+'" aria-label="'+x.lab+' typical">'+x.ar+'</i></span><span class="ptyp">'+avgLab(pc,pp).replace(/^u/,"U")+': '+n1(x.t)+'</span></div>'}).join("")+'</div></div>';
-  var pul='<section class="card cpul" id="ccPulse"><div class="chd"><h2>Today &amp; this week</h2><span class="sub">vs a usual day or week</span></div><div class="cbd">'+tbl+mob+
-    '<details class="pnote"><summary>What does “usual” mean?</summary><p><b>Usual</b> is the average of the same day over the previous 4 weeks. Example: if the last 4 Sundays had 9, 6, 4 and 5 walk-ins, a usual Sunday is (9+6+4+5) ÷ 4 = 6, so yesterday’s 2 shows ▼. “Usual week” is the average of the 4 weeks before; “usual so far” compares this week’s days with the same days of those weeks. A decimal like 0.3 means about once a month. ▲▼ show a difference of 10%+ (and at least 1); for cancellations, fewer is better. Weeks run Monday to Sunday, and today fills in as the sheet is updated.</p></details></div></section>';
-  return hero+nav+dataHtml(dc)+att+pul;
+  var M=m2Month(),D=cmdData(),fl=cmdFlags(D),dc=dataChecks();
+  var S=stats(F,{from:M.ms,to:M.T}).tot,TG=m2Targets(M),PR=m2Proj(M);
+  var lmY=ymAdd(M.ym,-1),L=stats(F,{from:monStart(lmY),to:Math.min(monStart(lmY)+M.d-1,monEnd(lmY))}).tot;
+  var bs=m2St(S.net,TG.b,M),ws=m2St(S.fresh,TG.w,M),gb=bs.e!=null?Math.round(bs.e-S.net):0,gw=ws.e!=null?Math.round(ws.e-S.fresh):0;
+  var bOK=bs.k==="ok"||bs.k==="met",wOK=ws.k==="ok"||ws.k==="met",fcB=M.d?Math.round(S.net/M.d*M.days):0,fcW=M.d?Math.round(S.fresh/M.d*M.days):0;
+  var who=F.proj?esc(lab(F.proj)):"we";
+  // ① the headline sentence
+  var bT=bs.k==="met"?"bookings have <em>hit the target</em>":bOK?"bookings are on pace":"bookings are <em>"+Math.max(1,gb)+" behind pace</em>";
+  var wT=ws.k==="met"?"walk-ins have hit the target":wOK?"walk-ins are on pace":"walk-ins are <em>"+Math.max(1,gw)+" behind pace</em>";
+  var head,mood;
+  if(bs.k==="none"&&ws.k==="none"){head=fmt(S.net)+" net booking"+(S.net===1?"":"s")+" and "+fmt(S.fresh)+" fresh walk-ins so far this month.";mood="none"}
+  else if(bs.k==="met"){head="Booking target achieved: <em>"+S.net+" of "+TG.b+"</em>, with "+(M.days-M.d)+" days still to go.";mood="good"}
+  else if(bs.k==="none"){head=cap(wT)+".";mood=wOK?"good":"warn"}
+  else if(ws.k==="none"){head=cap(bT)+".";mood=bOK?"good":bs.k==="slight"?"warn":"bad"}
+  else if(bOK&&wOK){head="Bookings and walk-ins are both on pace"+(ws.k==="met"?", and walk-ins have already hit the target":"")+".";mood="good"}
+  else if(wOK){head=(ws.k==="met"?"Walk-ins have already hit the target":"Walk-ins are on pace")+", but "+bT+".";mood=bs.k==="slight"?"warn":"bad"}
+  else if(bOK){head=(bs.k==="met"?"Bookings have already hit the target":"Bookings are on pace")+", but "+wT+".";mood="warn"}
+  else{head=cap(bT)+", and "+wT+".";mood=bs.k==="slight"?"warn":"bad"}
+  var gapP=PR.list.filter(function(x){return x.gb>=1}).slice(0,2).map(function(x){return"<b>"+esc(x.p)+"</b>"});
+  var sub=TG.b?"At this pace "+who+" close"+(F.proj?"s ":" ")+M.name+" at <b>"+fcB+" of "+TG.b+"</b> bookings."+(!bOK&&!F.proj&&gapP.length?" "+gapP.join(" and ")+(gapP.length>1?" explain":" explains")+" most of the gap.":""):"No booking target is set for "+(F.proj?esc(lab(F.proj))+" in ":"")+M.name+" yet"+(F.proj?" (Closing Targets, column C).":".");
+  var ctx=[F.proj?lab(F.proj):"",F.cm,F.sm,F.src?(F.src==="Indirect"?"Indirect (CP)":F.src):""].filter(Boolean).map(esc).join(" · ");
+  // KPI cards
+  function chip(st,g){return st.k==="met"?'<span class="m2chip ok">Target met ✓</span>':st.k==="ok"?'<span class="m2chip ok">On pace</span>':st.k==="slight"?'<span class="m2chip warn">Slightly behind</span>':st.k==="behind"?'<span class="m2chip bad">'+Math.max(1,g)+' behind pace</span>':'<span class="m2chip none">No target set</span>'}
+  function vs(a,b,pts){var d=a-b;if(a==null||b==null)return"";return'<span class="'+(d>=0?"up":"dn")+'">'+(d>=0?"▲":"▼")+(pts?Math.abs(d).toFixed(1)+" pts":fmt(Math.abs(d)))+' vs '+MN[lmY%100-1]+'</span>'}
+  function kpi(lab2,a,t,st,g,fc,vsTxt){var w=t?Math.min(100,a/t*100):0,c=st.k==="behind"?"bad":st.k==="slight"?"warn":"ok";
+    return'<div class="m2kpi"><div class="m2kl">'+lab2+'</div><div class="m2kv">'+fmt(a)+(t?'<small>/ '+fmt(t)+'</small>':"")+'</div>'+
+      (t?'<div class="m2pb"><i class="'+c+'" style="width:'+w.toFixed(1)+'%"></i><b style="left:'+(M.pace*100).toFixed(1)+'%" title="Where you should be by today"></b></div>':'<div class="m2pb"></div>')+
+      '<div class="m2ks">'+chip(st,g)+'<span>'+(t?'Pace → <b>'+fmt(fc)+'</b> by '+M.days+' '+M.sh+' · ':"")+vsTxt+'</span></div></div>'}
+  var hero='<section class="m2hero '+mood+'" aria-label="This month"><div class="m2eye"><span class="cc-live"></span>'+M.name+' · day '+M.d+' of '+M.days+(ctx?' · '+ctx:"")+'</div>'+
+    '<div class="m2story"><div><h2 class="m2h">'+head+'</h2><p class="m2sub">'+sub+'</p><div class="m2day">Month gone<span class="m2track"><i style="width:'+(M.pace*100).toFixed(1)+'%"></i></span><b>'+Math.round(M.pace*100)+'%</b></div></div>'+
+    '<div class="m2chart"><div class="m2ct"><span>Net bookings, day by day</span><span>'+(TG.b?"target "+TG.b:"no target")+'</span></div>'+m2Chart(M,TG.b)+
+    '<div class="m2lg">'+(TG.b?'<span><i class="tg"></i>Target pace</span>':"")+'<span><i class="ac"></i>Actual</span><span><i class="fc"></i>At current pace</span></div></div></div>'+
+    '<div class="m2kpis">'+kpi("Net bookings",S.net,TG.b,bs,gb,fcB,vs(S.net,L.net))+kpi("Fresh walk-ins",S.fresh,TG.w,ws,gw,fcW,vs(S.fresh,L.fresh))+
+    '<div class="m2kpi"><div class="m2kl">Walk-in to booking</div><div class="m2kv">'+fp(S.conv)+'</div><div class="m2pb"><i class="ok" style="width:'+Math.min(100,(S.conv||0)*5).toFixed(1)+'%;background:linear-gradient(90deg,#FDE68A,#FCD34D)"></i></div><div class="m2ks"><span>'+fmt(S.gross)+' bookings ÷ '+fmt(S.fresh)+' fresh walk-ins</span>'+(S.conv!=null&&L.conv!=null?vs(S.conv,L.conv,1):"")+'</div></div></div></section>';
+  // ② needs your attention
+  var items=m2Attention(M,PR,fl),nR=items.filter(function(i){return i.lvl===2}).length,nA=items.length-nR,show=ui.attAll?items:items.slice(0,3);
+  var att='<section class="card m2att" id="ccAlerts"><div class="m2ch"><h2>Needs your attention</h2>'+(nR?'<span class="cnt r">'+nR+' urgent</span>':"")+(nA?'<span class="cnt a">'+nA+' to watch</span>':"")+'</div>'+
+    (items.length?'<div class="m2list">'+show.map(function(it){return m2Item(it,M,S.conv)}).join("")+'</div>'+(items.length>3?'<button class="reset m2more" data-ui="attAll" data-uv="'+(ui.attAll?"":"1")+'">'+(ui.attAll?"Show fewer":"+ "+(items.length-3)+" more")+'</button>':"")
+      :'<div class="allok"><span class="okic">✓</span><div><b>Nothing needs your attention</b><span>Every project with a target is on pace, and no other checks raised a flag.</span></div></div>')+
+    '<p class="m2foot">Tap an item to see the numbers behind it.</p></section>';
+  // ③ projects scoreboard
+  var sel=F.proj,all=ui.pcmp==="all",rows=PR.list.filter(function(x){return!sel||all||x.p===sel});
+  if(sel&&all)rows.sort(function(a,b){return(b.p===sel)-(a.p===sel)});
+  var mute=[];if(!sel&&(PR.none.fresh||PR.none.net))mute.push({p:"Project not entered",s:PR.none,tg:{b:null,w:null},st:["Tag project","m"],mute:1});
+  if(!sel&&PR.unt.n)mute.push({p:"Targets not yet tagged (“All”)",s:{net:0,fresh:0,conv:null},tg:{b:PR.unt.b||null,w:PR.unt.w||null},st:["Tag target","m"],mute:1});
+  var all2=rows.concat(mute);
+  var tbl='<table class="m2tbl"><thead><tr><th>Project</th><th>Net bookings vs target</th><th>Fresh walk-ins vs target</th><th>Conv.</th><th></th></tr></thead><tbody>'+
+    all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'" tabindex="0"';return'<tr class="'+(x.mute?"mute":"m2row")+(sel===x.p?" on":"")+'"'+at+'><td class="m2pj">'+esc(x.p)+'</td><td>'+m2Bar(x.s.net,x.tg.b,M)+'</td><td>'+m2Bar(x.s.fresh,x.tg.w,M)+'</td><td>'+fp(x.s.conv)+'</td><td><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></td></tr>'}).join("")+'</tbody>'+
+    (!sel?'<tfoot><tr><td class="m2pj">Total</td><td>'+m2Bar(S.net,TG.b,M)+'</td><td>'+m2Bar(S.fresh,TG.w,M)+'</td><td>'+fp(S.conv)+'</td><td></td></tr></tfoot>':"")+'</table>';
+  var cards='<div class="m2cards">'+all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'"';return'<div class="m2pc'+(x.mute?" mute":"")+(sel===x.p?" on":"")+'"'+at+'><div class="m2ph"><b>'+esc(x.p)+'</b><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></div><div class="m2pr"><span>Bookings</span>'+m2Bar(x.s.net,x.tg.b,M)+'</div><div class="m2pr"><span>Walk-ins</span>'+m2Bar(x.s.fresh,x.tg.w,M)+'</div></div>'}).join("")+'</div>';
+  var proj='<section class="card m2proj" id="ccProj"><div class="m2ch"><h2>Projects this month</h2><span class="sub">'+(sel?esc(lab(sel))+" selected":"vs target · biggest gap first · tap a project to focus the page")+'</span>'+
+    (sel?togs("pcmp",[["one",esc(lab(sel))+" only"],["all","All projects"]],all?"all":"one"):"")+'</div>'+(all2.length?tbl+cards:empty("No walk-ins, bookings or targets for "+M.name+" yet"))+
+    '<div class="m2key"><span><b></b>where you should be by today ('+Math.round(M.pace*100)+'%)</span><span>Targets: Closing Targets (bookings) and Sourcing Targets (walk-ins), rolled up by project</span></div></section>';
+  // ④ one quiet line about data trust
+  var dR=dc.filter(function(x){return x.lvl===2}).length,dA=dc.filter(function(x){return x.lvl===1}).length,lag=D.lastV?M.T-D.lastV:-1,bits=[];
+  if(PR.none.fresh)bits.push("<b>"+fmt(PR.none.fresh)+" of "+fmt(S.fresh)+"</b> walk-ins this month have no project");
+  if(PR.unt.n)bits.push("<b>"+PR.unt.n+"</b> target row"+(PR.unt.n>1?"s":"")+" still say “All”");
+  bits.push(lag<0?"no walk-ins match these filters":"last walk-in entered "+dl(D.lastV)+(lag>2?" ("+lag+" days ago)":""));
+  var trust='<div class="m2trust '+(dR?"bad":dA?"warn":"ok")+'"><span aria-hidden="true">'+(dR||dA?"⚠":"✓")+'</span><span>'+bits.join(" · ")+'</span><button class="reset" data-ui="m2data" data-uv="'+(ui.m2data?"":"1")+'">'+(ui.m2data?"Hide data checks":"Data checks"+(dR||dA?" ("+(dR+dA)+")":"")+" ›")+'</button></div>';
+  return hero+att+proj+trust+(ui.m2data?dataHtml(dc):"");
 }
 setInterval(function(){var c=document.getElementById("ccClock");if(c)c.textContent=ccClock()},30000);
 
@@ -1359,8 +1565,9 @@ document.addEventListener("click",function(e){
   if((x=t.closest("[data-ccat]"))){var cv=x.getAttribute("data-ccat");ui.ccat=ui.ccat===cv?"":cv;render();
     if(isPhone()&&ui.ccat){var al=$("ccAlerts");if(al)al.scrollIntoView({behavior:NOMO.matches?"auto":"smooth",block:"start"})}return}
   if((x=t.closest("[data-jump]"))){var je=$(x.getAttribute("data-jump"));if(je){if(je.tagName==="DETAILS")je.open=true;je.scrollIntoView({behavior:NOMO.matches?"auto":"smooth",block:"start"})}return}
+  if((x=t.closest("[data-cproj]"))){F.proj=x.getAttribute("data-cproj");ui.fdimPicked=0;ui.pcmp="";render();window.scrollTo({top:0,behavior:NOMO.matches?"auto":"smooth"});return}
   if((x=t.closest("[data-cmdopen]"))){var k=x.getAttribute("data-cmdopen"),pp=x.getAttribute("data-p"),ss=x.getAttribute("data-s");
-    tab="mgmt";F.per="l30";if(pp)F.proj=pp;if(ss)F.src=ss;
+    tab="mgmt";F.per=x.getAttribute("data-per")||"l30";ui.fdimPicked=0;if(pp)F.proj=pp;if(ss)F.src=ss;
     if(isPhone()&&k){openDetail(k)}else{focus=k||null;render();window.scrollTo(0,0)}return}
   if((x=t.closest("[data-unfocus]"))){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}return}
   if((x=t.closest("[data-tile]"))&&isPhone()){openDetail(x.getAttribute("data-tile"));return}
@@ -1371,7 +1578,7 @@ document.addEventListener("click",function(e){
   if((x=t.closest("tr[data-f]"))){var f=x.getAttribute("data-f"),v=x.getAttribute("data-v");if(tab==="site"&&f==="proj")return;F[f]=F[f]===v?"":v;render();return}
 });
 document.addEventListener("keydown",function(e){
-  if(e.key==="Enter"&&e.target.matches&&e.target.matches("tr[data-f]")){e.target.click()}
+  if(e.key==="Enter"&&e.target.matches&&e.target.matches("tr[data-f],tr[data-cproj]")){e.target.click()}
   if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("div[data-tile]")){e.preventDefault();e.target.click()}
   if(e.key==="Escape"&&kpBtn){kpClose(true);return}
   if(e.key==="Tab"&&kpPinned&&isPhone()){e.preventDefault();$("kclose").focus()}
