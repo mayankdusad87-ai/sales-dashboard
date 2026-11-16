@@ -336,7 +336,7 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 .pt{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;margin-top:4px}
 .pmob{display:none}
 .cpul .note{margin-top:12px;line-height:1.5}
-.cmd .card,.cc-hero{scroll-margin-top:72px}
+.cmd .card,.cc-hero,.m2hero{scroll-margin-top:72px}
 @media (prefers-reduced-motion:reduce){.cc-live,.cc-chk.bad .cc-st i,.allok .okic{animation:none!important}}
 
 /* command centre, Phase 1 */
@@ -586,8 +586,7 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
   .tile:last-child:nth-child(odd){grid-column:1 / -1}
   .tile .tl{font-size:12.5px;align-items:flex-start}
   .tile .tl>span{white-space:normal;line-height:1.25;padding-top:2px}
-  .tl2{display:none}
-  .tabs button{flex:1}
+  .tabs button{flex:1 1 auto;padding:8px 8px;font-size:13.5px;white-space:nowrap;min-height:40px}
   /* command centre on phones: thumb-friendly, 8-pt spacing, 44px targets */
   .cmd{display:flex;flex-direction:column;gap:16px;margin:0 16px}
   .cmd .card{padding:16px;border-radius:20px}
@@ -1334,7 +1333,23 @@ function flagHtml(f){
 var MNF=["January","February","March","April","May","June","July","August","September","October","November","December"];
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
 function pn(s){return String(s).toLowerCase().replace(/(^|[\s.\-'])([a-z])/g,function(m,a,b){return a+b.toUpperCase()})}
-function m2Month(){var T=today(),ym=ymOf(T),ms=monStart(ym),me=monEnd(ym),days=me-ms+1,d=T-ms+1;return{T:T,ym:ym,ms:ms,me:me,days:days,d:d,pace:d/days,name:MNF[ym%100-1],sh:MN[ym%100-1]}}
+// month context: only completed days count (data up to yesterday), so half-entered "today" never skews pace
+function m2Month(){var T=today(),ym=ymOf(T),ms=monStart(ym),me=monEnd(ym),days=me-ms+1,d=T-ms;return{T:T-1,today:T,ym:ym,ms:ms,me:me,days:days,d:d,pace:d/days,name:MNF[ym%100-1],sh:MN[ym%100-1]}}
+// usual month shape: share of a month's bookings / walk-ins normally in by a given point of the month, from the last 3 complete months
+function m2Curve(M,FF){
+  var mons=[1,2,3].map(function(k){var ym=ymAdd(M.ym,-k),s=monStart(ym),e=monEnd(ym),L=e-s+1,b=[],w=[];for(var i=0;i<=L;i++){b[i]=0;w[i]=0}return{s:s,e:e,L:L,b:b,w:w,tb:0,tw:0}});
+  ROWS.forEach(function(r){if(!pass(r,FF))return;mons.forEach(function(m){if(r.bk&&r.bday>=m.s&&r.bday<=m.e){m.b[r.bday-m.s+1]++;m.tb++}if(r.kind===0&&r.vday>=m.s&&r.vday<=m.e){m.w[r.vday-m.s+1]++;m.tw++}})});
+  mons.forEach(function(m){for(var i=1;i<=m.L;i++){m.b[i]+=m.b[i-1];m.w[i]+=m.w[i-1]}});
+  function mk(key,tot,min){var ms=mons.filter(function(m){return m[tot]>0}),sum=ms.reduce(function(a,m){return a+m[tot]},0);if(sum<min)return null;
+    return function(f){if(f<=0)return 0;if(f>=1)return 1;var acc=0;ms.forEach(function(m){var x=f*m.L,i=Math.floor(x),v=m[key][i]+(i<m.L?(m[key][i+1]-m[key][i])*(x-i):0);acc+=v/m[tot]});return acc/ms.length}}
+  return{b:mk("b","tb",10),w:mk("w","tw",30)};
+}
+function m2Pace(M){var lin=function(f){return f},f=M.d/M.days,cF=m2Curve(M,F),cA=F.proj?m2Curve(M,Object.assign({},F,{proj:""})):cF;
+  M.sB=cF.b||cA.b||lin;M.sW=cF.w||cA.w||lin;M.patB=!!(cF.b||cA.b);M.patW=!!(cF.w||cA.w);M.coPat=F.proj&&(!cF.b||!cF.w)&&!!(cA.b||cA.w);
+  M.pB=M.sB(f);M.pW=M.sW(f);M.cB=(cA.b||lin)(f);M.cW=(cA.w||lin)(f);
+  // month-end forecast: actual ÷ usual share by now (straight line if the share is still tiny)
+  M.fc=function(a,share){if(!M.d)return null;var v=share>=.05?a/share:a/M.d*M.days;return Math.max(0,Math.round(v))};
+}
 // targets for this month: bookings from Closing Targets (G), walk-ins from Sourcing Targets (I), rolled up by project (column C)
 function m2Targets(M,proj){
   var p=proj!==undefined?proj:F.proj,b=0,w=0,bR=[],wR=[],bOk=!F.sm&&!F.src&&!F.cp,wOk=!F.cm&&!F.src&&!F.cp;
@@ -1342,7 +1357,7 @@ function m2Targets(M,proj){
   if(wOk)ST.forEach(function(r){if(r.ym!==M.ym||(p&&r.p!==p)||(F.sm&&r.m!==F.sm))return;w+=r.t;wR.push(r)});
   return{b:b>0?b:null,w:w>0?w:null,bR:bR,wR:wR};
 }
-function m2St(a,t,M){if(!(t>0))return{k:"none"};var e=t*M.pace;if(a>=t)return{k:"met",e:e};if(a>=e)return{k:"ok",e:e};if(a>=e*.8)return{k:"slight",e:e};return{k:"behind",e:e}}
+function m2St(a,t,p){if(!(t>0))return{k:"none"};var e=t*p;if(a>=t)return{k:"met",e:e};if(a>=e)return{k:"ok",e:e};if(a>=e*.8)return{k:"slight",e:e};return{k:"behind",e:e}}
 function m2Uniq(a){return a.filter(function(x,i){return x&&a.indexOf(x)===i})}
 function m2Owners(M,p){
   var cm=m2Uniq(CT.filter(function(r){return r.ym===M.ym&&r.p===p&&r.t>0}).map(function(r){return r.m})),sm=m2Uniq(ST.filter(function(r){return r.ym===M.ym&&r.p===p&&r.t>0}).map(function(r){return r.m}));
@@ -1355,9 +1370,9 @@ function m2Proj(M){
   Object.keys(S).forEach(function(k){var s=S[k];if(s.fresh||s.gross||s.cx||s.rev)keys[k]=1});
   CT.concat(ST).forEach(function(r){if(r.ym===M.ym&&isProj(r.p)&&r.t>0)keys[r.p]=1});
   delete keys.__none;
-  var list=Object.keys(keys).map(function(p){var s=S[p]||fin(blank()),tg=m2Targets(M,p),bs=m2St(s.net,tg.b,M),ws=m2St(s.fresh,tg.w,M);
+  var list=Object.keys(keys).map(function(p){var s=S[p]||fin(blank()),tg=m2Targets(M,p),bs=m2St(s.net,tg.b,M.cB),ws=m2St(s.fresh,tg.w,M.cW);
     var stall=s.gross===0&&s.fresh>=8&&M.d>=7,st=stall?["Stalled","r"]:bs.k==="met"?["Target met ✓","g"]:bs.k==="behind"?["Behind","r"]:bs.k==="slight"?["Slightly behind","y"]:ws.k==="behind"?["Walk-ins low","y"]:bs.k==="ok"?["On pace","g"]:(ws.k==="ok"||ws.k==="met")?["Walk-ins on pace","g"]:["No target","m"];
-    return{p:p,s:s,tg:tg,bs:bs,ws:ws,st:st,gb:tg.b?tg.b*M.pace-s.net:-1e9,gw:tg.w?(tg.w*M.pace-s.fresh)/tg.w:-1e9}});
+    return{p:p,s:s,tg:tg,bs:bs,ws:ws,st:st,gb:tg.b?tg.b*M.cB-s.net:-1e9,gw:tg.w?(tg.w*M.cW-s.fresh)/tg.w:-1e9}});
   list.sort(function(a,b){return(b.gb-a.gb)||(b.gw-a.gw)||(b.s.fresh-a.s.fresh)});
   var unt={b:0,w:0,n:0};
   if(!F.sm&&!F.src&&!F.cp)CT.forEach(function(r){if(r.ym===M.ym&&!isProj(r.p)&&r.t>0&&(!F.cm||r.m===F.cm)){unt.b+=r.t;unt.n++}});
@@ -1367,23 +1382,23 @@ function m2Proj(M){
 function m2Lost(p,M){var o={},n=0;ROWS.forEach(function(r){if(r.proj!==p||r.kind!==0||r.vday<M.ms||r.vday>M.T||r.bk)return;n++;if(r.lost)o[r.lost]=(o[r.lost]||0)+1});var t=topOf(o);return t?"“"+t.k+"” · "+t.n+" of "+n:"not entered (column AP)"}
 function m2Recent(p,M){for(var i=0;i<ROWS.length;i++){var r=ROWS[i];if(r.proj===p&&r.kind===0&&r.vday>=M.ms-90&&r.vday<M.ms)return true}return false}
 function m2LastBk(p,T){var lb=0;ROWS.forEach(function(r){if(r.proj===p&&r.bk&&r.bday<=T&&r.bday>lb)lb=r.bday});return lb}
-function m2Box(lab,a,t,e,bad){var w=t?Math.min(100,a/t*100):0;return'<div class="m2box"><div class="m2bl">'+lab+'</div><div class="m2bv">'+fmt(a)+(t?' <small>/ '+fmt(t)+' · '+n1(e)+' expected by today</small>':' <small>no target</small>')+'</div>'+(t?'<div class="m2mb"><i class="'+bad+'" style="width:'+w.toFixed(1)+'%"></i><b style="left:'+(e/t*100).toFixed(1)+'%"></b></div>':"")+'</div>'}
+function m2Box(lab,a,t,e,bad){var w=t?Math.min(100,a/t*100):0;return'<div class="m2box"><div class="m2bl">'+lab+'</div><div class="m2bv">'+fmt(a)+(t?' <small>/ '+fmt(t)+' · '+n1(e)+' expected by now</small>':' <small>no target</small>')+'</div>'+(t?'<div class="m2mb"><i class="'+bad+'" style="width:'+w.toFixed(1)+'%"></i><b style="left:'+(e/t*100).toFixed(1)+'%"></b></div>':"")+'</div>'}
 function m2Drill(M,x,co){var s=x.s,tg=x.tg,lb=m2LastBk(x.p,M.T),cl=function(k){return k==="behind"?"r":k==="slight"?"y":"g"};
   var src=function(R,sheet){return R.length?sheet+", "+M.sh+" "+String(Math.floor(M.ym/100))+" · "+R.length+" row"+(R.length>1?"s":"")+" ("+m2Uniq(R.map(function(r){return pn(r.m)})).join(", ")+")":"no target row for "+x.p};
   return'<div class="m2dk">'+m2Box("Net bookings vs target",s.net,tg.b,x.bs.e,cl(x.bs.k))+m2Box("Fresh walk-ins vs target",s.fresh,tg.w,x.ws.e,cl(x.ws.k))+'</div>'+
-    '<ul class="m2facts"><li><span>Last booking</span><b>'+(lb?dl(lb)+(ymd(lb)[0]!==ymd(M.T)[0]?" "+ymd(lb)[0]:"")+" ("+(M.T-lb)+" days ago)":"none on record")+'</b></li>'+
+    '<ul class="m2facts"><li><span>Last booking</span><b>'+(lb?dl(lb)+(ymd(lb)[0]!==ymd(M.T)[0]?" "+ymd(lb)[0]:"")+" ("+(M.today-lb)+" days ago)":"none on record")+'</b></li>'+
     '<li><span>Conversion this month</span><b>'+(s.conv==null?"no fresh walk-ins this month":fp(s.conv)+(F.proj||co==null?"":" vs company "+fp(co)))+'</b></li>'+
     '<li><span>Top reason walk-ins didn’t book (column AP)</span><b>'+esc(m2Lost(x.p,M))+'</b></li>'+
     '<li><span>Booking target from</span><b>'+esc(src(tg.bR,"Closing Targets"))+'</b></li>'+
     '<li><span>Walk-in target from</span><b>'+esc(src(tg.wR,"Sourcing Targets"))+'</b></li></ul>'+
-    '<p class="m2how">Expected by today = target × '+M.d+' of '+M.days+' days ('+Math.round(M.pace*100)+'%). Net bookings = bookings (Booking Date, column AT) minus cancellations (column AV) this month.</p>'+
+    '<p class="m2how">Expected by now = target × the share you usually have after '+M.d+' of '+M.days+' days: '+Math.round(M.cB*100)+'% of bookings'+(M.patB?"":" (straight line, too little history)")+' and '+Math.round(M.cW*100)+'% of walk-ins'+(M.patW?"":" (straight line)")+', from the last 3 months. Counts run to the end of '+dl(M.T)+'. Net bookings = bookings (Booking Date, column AT) minus cancellations (column AV).</p>'+
     '<button class="reset m2go" data-cmdopen="net" data-p="'+esc(x.p)+'" data-per="mtd">Open '+esc(x.p)+' in Management →</button>';
 }
 function m2Attention(M,PR,flags){var items=[];
   PR.list.forEach(function(x){if(F.proj&&x.p!==F.proj)return;var s=x.s,tg=x.tg,o=m2Owners(M,x.p);
     if(x.st[0]==="Stalled")items.push({lvl:2,score:100+s.fresh,title:x.p+" hasn’t had a booking this month, despite "+s.fresh+" walk-ins.",own:o,x:x});
-    else if(tg.b&&(x.bs.k==="behind"||x.bs.k==="slight")){var g=Math.round(tg.b*M.pace-s.net);if(g>=1)items.push({lvl:x.bs.k==="behind"?2:1,score:(x.bs.k==="behind"?50:12)+g*10,title:x.p+" is "+g+" booking"+(g>1?"s":"")+" short of where it should be by today.",own:{cm:o.cm,sm:[]},x:x})}
-    if(tg.w&&x.ws.k==="behind")items.push({lvl:1,score:20+(1-s.fresh/(tg.w*M.pace))*10,title:x.p+" walk-ins are at "+Math.round(s.fresh/tg.w*100)+"% of target, with "+Math.round(M.pace*100)+"% of the month gone.",own:{cm:[],sm:o.sm},x:x});
+    else if(tg.b&&(x.bs.k==="behind"||x.bs.k==="slight")){var g=Math.round(tg.b*M.cB-s.net);if(g>=1)items.push({lvl:x.bs.k==="behind"?2:1,score:(x.bs.k==="behind"?50:12)+g*10,title:x.p+" is "+g+" booking"+(g>1?"s":"")+" short of where it would usually be by now.",own:{cm:o.cm,sm:[]},x:x})}
+    if(tg.w&&x.ws.k==="behind")items.push({lvl:1,score:20+(1-s.fresh/Math.max(.01,tg.w*M.cW))*10,title:x.p+" walk-ins are at "+Math.round(s.fresh/tg.w*100)+"% of target; by now you’d usually have "+Math.round(M.cW*100)+"%.",own:{cm:[],sm:o.sm},x:x});
   });
   // activity problems that need no target: more cancellations than bookings, walk-ins dried up
   PR.list.forEach(function(x){if(F.proj&&x.p!==F.proj)return;var s=x.s,o=m2Owners(M,x.p);
@@ -1407,34 +1422,37 @@ function m2Item(it,M,co){var red=it.lvl===2,own="";
   var body=it.note?'<p class="m2how m2note">'+esc(it.note)+'</p>':it.x?m2Drill(M,it.x,co):(function(){var h=flagHtml(it.flag),i=h.indexOf('<div class="fbody">');return i<0?"":h.slice(i+19,h.length-16)})();
   return'<details class="m2i '+(red?"r":"a")+'"><summary><span class="m2ic" aria-hidden="true">'+(red?"!":"↓")+'</span><span class="m2st"><span class="sr">'+(red?"Urgent: ":"Watch: ")+'</span><span class="m2t">'+esc(it.title)+'</span>'+(own?'<span class="m2o">'+own+'</span>':"")+'</span><span class="fchev" aria-hidden="true">›</span></summary><div class="m2d">'+body+'</div></details>';
 }
-function m2Bar(a,t,M){var k=m2St(a,t,M).k,c=k==="behind"?"r":k==="slight"?"y":k==="none"?"m":"g",w=t?Math.min(100,a/t*100):0;
-  return'<div class="m2bar"><span class="m2bt '+c+'"><i style="width:'+w.toFixed(1)+'%"></i>'+(t?'<b style="left:'+(M.pace*100).toFixed(1)+'%"></b>':"")+'</span><span class="m2bn"><b>'+fmt(a)+'</b>'+(t?' / '+fmt(t):' · no target')+'</span></div>'}
+function m2Bar(a,t,p){var k=m2St(a,t,p).k,c=k==="behind"?"r":k==="slight"?"y":k==="none"?"m":"g",w=t?Math.min(100,a/t*100):0;
+  return'<div class="m2bar"><span class="m2bt '+c+'"><i style="width:'+w.toFixed(1)+'%"></i>'+(t?'<b style="left:'+(p*100).toFixed(1)+'%"></b>':"")+'</span><span class="m2bn"><b>'+fmt(a)+'</b>'+(t?' / '+fmt(t):' · no target')+'</span></div>'}
 function m2Chart(M,tgt){
   var c=new Array(M.days+1);for(var i=0;i<=M.days;i++)c[i]=0;
   ROWS.forEach(function(r){if(!pass(r,F))return;if(r.bk&&r.bday>=M.ms&&r.bday<=M.T)c[r.bday-M.ms+1]++;if(r.cx&&r.cday>=M.ms&&r.cday<=M.T)c[r.cday-M.ms+1]--});
   var cum=[0];for(i=1;i<=M.d;i++)cum[i]=cum[i-1]+c[i];
-  var now=cum[M.d],fc=M.d?Math.max(0,now/M.d*M.days):0,mx=Math.max(tgt||0,fc,Math.max.apply(null,cum),1),top=mx<=4?4:Math.ceil(mx*1.1/2)*2,W=320,H=140;
+  var now=cum[M.d],fc=M.fc(now,M.pB)||0,mx=Math.max(tgt||0,fc,Math.max.apply(null,cum),1),top=mx<=4?4:Math.ceil(mx*1.1/2)*2,W=320,H=140;
   // lines are drawn in a stretchable SVG; text and the "today" dot are HTML so they never get distorted
   var x=function(d){return W*d/M.days},y=function(v){return H-H*Math.max(0,v)/top},g="";
   [0,.5,1].forEach(function(f){g+='<line x1="0" x2="'+W+'" y1="'+y(top*f)+'" y2="'+y(top*f)+'" stroke="rgba(255,255,255,'+(f?.08:.25)+')" vector-effect="non-scaling-stroke"/>'});
-  if(tgt)g+='<line x1="'+x(0)+'" y1="'+y(0)+'" x2="'+x(M.days)+'" y2="'+y(tgt)+'" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-dasharray="2 4" vector-effect="non-scaling-stroke"/>';
+  // target path follows the usual month shape (straight line when there is little history)
+  var path=function(fn){var a=[];for(var k=0;k<=M.days;k++)a.push(x(k).toFixed(1)+","+y(fn(k)).toFixed(1));return a.join(" ")};
+  if(tgt)g+='<polyline points="'+path(function(k){return tgt*M.sB(k/M.days)})+'" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-dasharray="2 4" vector-effect="non-scaling-stroke"/>';
   var pts=cum.map(function(v,i){return x(i).toFixed(1)+","+y(v).toFixed(1)}).join(" ");
   g+='<polygon points="'+x(0)+","+y(0)+" "+pts+" "+x(M.d).toFixed(1)+","+y(0)+'" fill="rgba(252,211,77,.14)"/>';
   g+='<polyline points="'+pts+'" fill="none" stroke="#FCD34D" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>';
-  if(M.d<M.days)g+='<line x1="'+x(M.d)+'" y1="'+y(now)+'" x2="'+x(M.days)+'" y2="'+y(fc)+'" stroke="#FCD34D" stroke-width="2.5" stroke-dasharray="5 4" opacity=".8" vector-effect="non-scaling-stroke"/>';
+  if(M.d<M.days){var s0=M.sB(M.d/M.days),fa=[];for(var k=M.d;k<=M.days;k++){var sk=M.sB(k/M.days),v=s0<1?now+(fc-now)*(sk-s0)/(1-s0):fc;fa.push(x(k).toFixed(1)+","+y(v).toFixed(1))}
+    g+='<polyline points="'+fa.join(" ")+'" fill="none" stroke="#FCD34D" stroke-width="2.5" stroke-dasharray="5 4" opacity=".8" vector-effect="non-scaling-stroke"/>'}
   var px=function(d){return(d/M.days*100).toFixed(2)+"%"},py=function(v){return((1-Math.max(0,v)/top)*100).toFixed(2)+"%"};
   var lab='<span class="m2y" style="top:0">'+top+'</span><span class="m2y" style="top:50%">'+(top/2)+'</span><span class="m2y" style="top:100%">0</span>'+
-    '<span class="m2dot" style="left:'+px(M.d)+';top:'+py(now)+'"></span><span class="m2lab now" style="left:'+px(M.d)+';top:'+py(now)+'">Today '+now+'</span>'+
+    '<span class="m2dot" style="left:'+px(M.d)+';top:'+py(now)+'"></span><span class="m2lab now" style="left:'+px(M.d)+';top:'+py(now)+'">To '+dl(M.T)+': '+now+'</span>'+
     (M.d<M.days?'<span class="m2lab fc" style="left:100%;top:'+py(fc)+'">→ '+Math.round(fc)+'</span>':"");
   var xs=[[0,"1 "+M.sh,"s"],[10,"10",""],[20,"20",""],[M.days,M.days+" "+M.sh,"e"]].map(function(t){return'<span class="'+t[2]+'" style="left:'+px(t[0])+'">'+t[1]+'</span>'}).join("");
   return'<div class="m2plot"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Net bookings added up day by day this month: '+now+' so far'+(tgt?", target "+tgt:"")+'">'+g+'</svg>'+lab+'</div><div class="m2x">'+xs+'</div>';
 }
 function cmdHtml(){
-  var M=m2Month(),D=cmdData(),fl=cmdFlags(D),dc=dataChecks();
+  var M=m2Month();m2Pace(M);var D=cmdData(),fl=cmdFlags(D),dc=dataChecks();
   var S=stats(F,{from:M.ms,to:M.T}).tot,TG=m2Targets(M),PR=m2Proj(M);
   var lmY=ymAdd(M.ym,-1),L=stats(F,{from:monStart(lmY),to:Math.min(monStart(lmY)+M.d-1,monEnd(lmY))}).tot;
-  var bs=m2St(S.net,TG.b,M),ws=m2St(S.fresh,TG.w,M),gb=bs.e!=null?Math.round(bs.e-S.net):0,gw=ws.e!=null?Math.round(ws.e-S.fresh):0;
-  var bOK=bs.k==="ok"||bs.k==="met",wOK=ws.k==="ok"||ws.k==="met",fcB=M.d?Math.max(0,Math.round(S.net/M.d*M.days)):0,fcW=M.d?Math.max(0,Math.round(S.fresh/M.d*M.days)):0;
+  var bs=m2St(S.net,TG.b,M.pB),ws=m2St(S.fresh,TG.w,M.pW),gb=bs.e!=null?Math.round(bs.e-S.net):0,gw=ws.e!=null?Math.round(ws.e-S.fresh):0;
+  var bOK=bs.k==="ok"||bs.k==="met",wOK=ws.k==="ok"||ws.k==="met",fcB=M.fc(S.net,M.pB),fcW=M.fc(S.fresh,M.pW);
   var who=F.proj?esc(lab(F.proj)):"we";
   // ① the headline sentence
   var bT=bs.k==="met"?"bookings have <em>hit the target</em>":bOK?"bookings are on pace":"bookings are <em>"+Math.max(1,gb)+" behind pace</em>";
@@ -1452,17 +1470,17 @@ function cmdHtml(){
   var sub=TG.b?"At this pace "+who+" close"+(F.proj?"s ":" ")+M.name+" at <b>"+fcB+" of "+TG.b+"</b> bookings."+(!bOK&&!F.proj&&gapP.length?" "+gapP.join(" and ")+(gapP.length>1?" explain":" explains")+" most of the gap.":""):"No booking target is set for "+(F.proj?esc(lab(F.proj))+" in ":"")+M.name+" yet"+(F.proj?" (Closing Targets, column C).":".");
   var ctx=[F.proj?lab(F.proj):"",F.cm,F.sm,F.src?(F.src==="Indirect"?"Indirect (CP)":F.src):""].filter(Boolean).map(esc).join(" · ");
   // KPI cards
-  function chip(st,g){return st.k==="met"?'<span class="m2chip ok">Target met ✓</span>':st.k==="ok"?'<span class="m2chip ok">On pace</span>':st.k==="slight"?'<span class="m2chip warn">Slightly behind</span>':st.k==="behind"?'<span class="m2chip bad">'+Math.max(1,g)+' behind pace</span>':'<span class="m2chip none">No target set</span>'}
+  function chip(st,g){if(!M.d&&st.k!=="none"&&st.k!=="met")return'<span class="m2chip none">Month just started</span>';return st.k==="met"?'<span class="m2chip ok">Target met ✓</span>':st.k==="ok"?'<span class="m2chip ok">On pace</span>':st.k==="slight"?'<span class="m2chip warn">Slightly behind</span>':st.k==="behind"?'<span class="m2chip bad">'+Math.max(1,g)+' behind pace</span>':'<span class="m2chip none">No target set</span>'}
   function vs(a,b,pts){var d=a-b;if(a==null||b==null)return"";return'<span class="'+(d>=0?"up":"dn")+'">'+(d>=0?"▲":"▼")+(pts?Math.abs(d).toFixed(1)+" pts":fmt(Math.abs(d)))+' vs '+MN[lmY%100-1]+'</span>'}
-  function kpi(lab2,a,t,st,g,fc,vsTxt){var w=t?Math.min(100,a/t*100):0,c=st.k==="behind"?"bad":st.k==="slight"?"warn":"ok";
+  function kpi(lab2,a,t,st,g,fc,vsTxt,p){var w=t?Math.min(100,a/t*100):0,c=st.k==="behind"?"bad":st.k==="slight"?"warn":"ok";
     return'<div class="m2kpi"><div class="m2kl">'+lab2+'</div><div class="m2kv">'+fmt(a)+(t?'<small>/ '+fmt(t)+'</small>':"")+'</div>'+
-      (t?'<div class="m2pb"><i class="'+c+'" style="width:'+w.toFixed(1)+'%"></i><b style="left:'+(M.pace*100).toFixed(1)+'%" title="Where you should be by today"></b></div>':'<div class="m2pb"></div>')+
+      (t?'<div class="m2pb"><i class="'+c+'" style="width:'+w.toFixed(1)+'%"></i><b style="left:'+(p*100).toFixed(1)+'%" title="Where you would usually be by now"></b></div>':'<div class="m2pb"></div>')+
       '<div class="m2ks">'+chip(st,g)+'<span>'+(t?'Pace → <b>'+fmt(fc)+'</b> by '+M.days+' '+M.sh+' · ':"")+vsTxt+'</span></div></div>'}
-  var hero='<section class="m2hero '+mood+'" aria-label="This month"><div class="m2eye"><span class="cc-live"></span>'+M.name+' · day '+M.d+' of '+M.days+(ctx?' · '+ctx:"")+'</div>'+
-    '<div class="m2story"><div><h2 class="m2h">'+head+'</h2><p class="m2sub">'+sub+'</p><div class="m2day">Month gone<span class="m2track"><i style="width:'+(M.pace*100).toFixed(1)+'%"></i></span><b>'+Math.round(M.pace*100)+'%</b></div></div>'+
+  var hero='<section class="m2hero '+mood+'" id="ccMonth" aria-label="This month"><div class="m2eye"><span class="cc-live"></span>'+M.name+' · '+M.d+' of '+M.days+' days complete'+(ctx?' · '+ctx:"")+'</div>'+
+    '<div class="m2story"><div><h2 class="m2h">'+head+'</h2><p class="m2sub">'+sub+'</p><div class="m2day"><span>'+(M.d?'By day '+M.d+' you usually have <b>'+Math.round(M.pB*100)+'%</b> of a month’s bookings and <b>'+Math.round(M.pW*100)+'%</b> of its walk-ins'+(M.patB&&M.patW?(M.coPat?" (whole-company pattern, last 3 months; too little "+esc(lab(F.proj))+" history)":" (last 3 months)"):M.patB||M.patW?" (partly straight-line: little history)":" (straight-line: little history)"):"First day of the month: pace starts tomorrow")+'.</span></div></div>'+
     '<div class="m2chart"><div class="m2ct"><span>Net bookings so far, added up day by day'+(ctx?' · '+ctx:"")+'</span><span>'+(TG.b?"target "+TG.b:"no target")+'</span></div>'+m2Chart(M,TG.b)+
     '<div class="m2lg">'+(TG.b?'<span><i class="tg"></i>Target pace</span>':"")+'<span><i class="ac"></i>Actual</span><span><i class="fc"></i>At current pace</span></div></div></div>'+
-    '<div class="m2kpis">'+kpi("Net bookings",S.net,TG.b,bs,gb,fcB,vs(S.net,L.net))+kpi("Fresh walk-ins",S.fresh,TG.w,ws,gw,fcW,vs(S.fresh,L.fresh))+
+    '<div class="m2kpis">'+kpi("Net bookings",S.net,TG.b,bs,gb,fcB,vs(S.net,L.net),M.pB)+kpi("Fresh walk-ins",S.fresh,TG.w,ws,gw,fcW,vs(S.fresh,L.fresh),M.pW)+
     '<div class="m2kpi"><div class="m2kl">Walk-in to booking</div><div class="m2kv">'+fp(S.conv)+'</div><div class="m2pb"><i class="ok" style="width:'+Math.min(100,(S.conv||0)*5).toFixed(1)+'%;background:linear-gradient(90deg,#FDE68A,#FCD34D)"></i></div><div class="m2ks"><span>'+fmt(S.gross)+' bookings ÷ '+fmt(S.fresh)+' fresh walk-ins</span>'+(S.conv!=null&&L.conv!=null?vs(S.conv,L.conv,1):"")+'</div></div></div></section>';
   // ② needs your attention
   var items=m2Attention(M,PR,fl),nR=items.filter(function(i){return i.lvl===2}).length,nA=items.length-nR,show=ui.attAll?items:items.slice(0,3);
@@ -1478,19 +1496,21 @@ function cmdHtml(){
   if(!sel&&PR.unt.n)mute.push({p:"Targets not yet tagged (“All”)",s:{net:0,fresh:0,conv:null},tg:{b:PR.unt.b||null,w:PR.unt.w||null},st:["Tag target","m"],mute:1});
   var all2=rows.concat(mute);
   var tbl='<table class="m2tbl"><thead><tr><th>Project</th><th>Net bookings vs target</th><th>Fresh walk-ins vs target</th><th>Conv.</th><th></th></tr></thead><tbody>'+
-    all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'" tabindex="0"';return'<tr class="'+(x.mute?"mute":"m2row")+(sel===x.p?" on":"")+'"'+at+'><td class="m2pj">'+esc(x.p)+'</td><td>'+m2Bar(x.s.net,x.tg.b,M)+'</td><td>'+m2Bar(x.s.fresh,x.tg.w,M)+'</td><td>'+fp(x.s.conv)+'</td><td><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></td></tr>'}).join("")+'</tbody>'+
-    (!sel?'<tfoot><tr><td class="m2pj">Total</td><td>'+m2Bar(S.net,TG.b,M)+'</td><td>'+m2Bar(S.fresh,TG.w,M)+'</td><td>'+fp(S.conv)+'</td><td></td></tr></tfoot>':"")+'</table>';
-  var cards='<div class="m2cards">'+all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'"';return'<div class="m2pc'+(x.mute?" mute":"")+(sel===x.p?" on":"")+'"'+at+'><div class="m2ph"><b>'+esc(x.p)+'</b><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></div><div class="m2pr"><span>Bookings</span>'+m2Bar(x.s.net,x.tg.b,M)+'</div><div class="m2pr"><span>Walk-ins</span>'+m2Bar(x.s.fresh,x.tg.w,M)+'</div></div>'}).join("")+'</div>';
+    all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'" tabindex="0"';return'<tr class="'+(x.mute?"mute":"m2row")+(sel===x.p?" on":"")+'"'+at+'><td class="m2pj">'+esc(x.p)+'</td><td>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</td><td>'+m2Bar(x.s.fresh,x.tg.w,M.cW)+'</td><td>'+fp(x.s.conv)+'</td><td><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></td></tr>'}).join("")+'</tbody>'+
+    (!sel?'<tfoot><tr><td class="m2pj">Total</td><td>'+m2Bar(S.net,TG.b,M.pB)+'</td><td>'+m2Bar(S.fresh,TG.w,M.pW)+'</td><td>'+fp(S.conv)+'</td><td></td></tr></tfoot>':"")+'</table>';
+  var cards='<div class="m2cards">'+all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'"';return'<div class="m2pc'+(x.mute?" mute":"")+(sel===x.p?" on":"")+'"'+at+'><div class="m2ph"><b>'+esc(x.p)+'</b><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></div><div class="m2pr"><span>Bookings</span>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</div><div class="m2pr"><span>Walk-ins</span>'+m2Bar(x.s.fresh,x.tg.w,M.cW)+'</div></div>'}).join("")+'</div>';
   var proj='<section class="card m2proj" id="ccProj"><div class="m2ch"><h2>Projects this month</h2><span class="sub">'+(sel?esc(lab(sel))+" selected":"vs target · biggest gap first · tap a project to focus the page")+'</span>'+
     (sel?togs("pcmp",[["one",esc(lab(sel))+" only"],["all","All projects"]],all?"all":"one"):"")+'</div>'+(all2.length?tbl+cards:empty("No walk-ins, bookings or targets for "+M.name+" yet"))+
-    '<div class="m2key"><span><b></b>where you should be by today ('+Math.round(M.pace*100)+'%)</span><span>Targets: Closing Targets (bookings) and Sourcing Targets (walk-ins), rolled up by project</span></div></section>';
+    '<div class="m2key"><span><b></b>where you’d usually be by now (bookings '+Math.round(M.cB*100)+'%, walk-ins '+Math.round(M.cW*100)+'%)</span><span>Targets: Closing Targets (bookings) and Sourcing Targets (walk-ins), rolled up by project</span></div></section>';
   // ④ one quiet line about data trust
   var dR=dc.filter(function(x){return x.lvl===2}).length,dA=dc.filter(function(x){return x.lvl===1}).length,lag=D.lastV?M.T-D.lastV:-1,bits=[];
   if(PR.none.fresh)bits.push("<b>"+fmt(PR.none.fresh)+" of "+fmt(S.fresh)+"</b> walk-ins this month have no project");
   if(PR.unt.n)bits.push("<b>"+PR.unt.n+"</b> target row"+(PR.unt.n>1?"s":"")+" still say “All”");
   bits.push(lag<0?"no walk-ins match these filters":"last walk-in entered "+dl(D.lastV)+(lag>2?" ("+lag+" days ago)":""));
   var trust='<div class="m2trust '+(dR?"bad":dA?"warn":"ok")+'"><span aria-hidden="true">'+(dR||dA?"⚠":"✓")+'</span><span>'+bits.join(" · ")+'</span><button class="reset" data-ui="m2data" data-uv="'+(ui.m2data?"":"1")+'">'+(ui.m2data?"Hide data checks":"Data checks"+(dR||dA?" ("+(dR+dA)+")":"")+" ›")+'</button></div>';
-  return hero+att+proj+trust+(ui.m2data?dataHtml(dc):"");
+  // phone: section bar that sticks to the top while scrolling
+  var nav='<nav class="cc-nav" aria-label="Command Centre sections"><button data-jump="ccMonth">Month</button><button data-jump="ccAlerts">Attention'+(items.length?' <b class="'+(nR?"":"a")+'">'+items.length+'</b>':"")+'</button><button data-jump="ccProj">Projects</button></nav>';
+  return hero+nav+att+proj+trust+(ui.m2data?dataHtml(dc):"");
 }
 setInterval(function(){var c=document.getElementById("ccClock");if(c)c.textContent=ccClock()},30000);
 
