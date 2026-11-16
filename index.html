@@ -776,7 +776,9 @@ function colChart(el,items,opt){
 /* ---------- filter bar ---------- */
 function uniq(key){var c={};ROWS.forEach(function(r){var v=r[key];if(v)c[v]=(c[v]||0)+1});return Object.keys(c).sort(function(a,b){return c[b]-c[a]})}
 function setOpts(sel,opts,cur){sel.innerHTML=opts.map(function(o){return'<option value="'+esc(o[0])+'"'+(o[0]===cur?" selected":"")+'>'+esc(o[1])+'</option>'}).join("")}
-function recentMonths(n){var out=[],ym=ymOf(today());for(var i=0;i<n;i++){out.push(["m"+ym,ymLab(ym)]);ym=ymAdd(ym,-1)}return out}
+// current and last month are already "This month" / "Last month", so the list starts two months back
+function normPer(k){var cur=ymOf(today());return k==="m"+cur?"mtd":k==="m"+ymAdd(cur,-1)?"lm":k}
+function recentMonths(n){var out=[],ym=ymAdd(ymOf(today()),-2);for(var i=0;i<n;i++){out.push(["m"+ym,ymLab(ym)]);ym=ymAdd(ym,-1)}return out}
 function projList(){var c={};ROWS.forEach(function(r){if(r.proj&&r.vday>=today()-730)c[r.proj]=(c[r.proj]||0)+1});INV.forEach(function(u){c[u.proj]=(c[u.proj]||0)+.001});return Object.keys(c).sort(function(a,b){return c[b]-c[a]})}
 function personList(key,T){var c={},t=today()-400;ROWS.forEach(function(r){if(r[key]&&r.vday>=t)c[r[key]]=(c[r[key]]||0)+1});T.forEach(function(x){c[x.m]=(c[x.m]||0)+1e6});return Object.keys(c).sort()}
 function renderFilters(){
@@ -1365,7 +1367,7 @@ document.addEventListener("click",function(e){
   if(x){var id=x.getAttribute("data-tile");if(tab==="site"){tab="mgmt"}focus=focus===id?null:id;render();window.scrollTo({top:0,behavior:"smooth"});return}
   if((x=t.closest("[data-ui]"))){ui[x.getAttribute("data-ui")]=x.getAttribute("data-uv");if(x.getAttribute("data-ui")==="fdim")ui.fdimPicked=1;render();return}
   if((x=t.closest("[data-x]"))){F[x.getAttribute("data-x")]="";ui.fdimPicked=0;render();return}
-  if((x=t.closest("[data-per]"))){F.per=x.getAttribute("data-per");render();return}
+  if((x=t.closest("[data-per]"))){F.per=normPer(x.getAttribute("data-per"));render();return}
   if((x=t.closest("tr[data-f]"))){var f=x.getAttribute("data-f"),v=x.getAttribute("data-v");if(tab==="site"&&f==="proj")return;F[f]=F[f]===v?"":v;render();return}
 });
 document.addEventListener("keydown",function(e){
