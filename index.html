@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Sales Dashboard</title>
+<title>Raghav Realty · Sales Dashboard</title>
 <style>
 :root{
   color-scheme:light;
@@ -66,8 +66,7 @@ select:hover{border-color:var(--bar1)}
 .sheet-h{display:none}
 
 /* tiles */
-.tiles{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin:0 14px}
-.tiles.six{grid-template-columns:repeat(6,minmax(0,1fr))}
+.tiles,.tiles.six{display:grid;grid-template-columns:repeat(var(--n,7),minmax(0,1fr));gap:8px;margin:0 14px}
 .tile{position:relative;min-width:0;min-height:104px;border-radius:16px;padding:10px 12px;color:#fff;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.35),inset 0 -3px 6px rgba(0,0,0,.22),var(--shadow);transition:transform .18s,box-shadow .18s;overflow:hidden;cursor:pointer;border:0;text-align:left;font:inherit}
 .tile::after{content:"";position:absolute;inset:0 0 55% 0;border-radius:16px 16px 50% 50%/16px 16px 22px 22px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,0));pointer-events:none}
 .tile:hover{transform:translateY(-2px);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.22),var(--shadow2)}
@@ -173,6 +172,43 @@ svg.ch{display:block;width:100%;height:100%}
 .box input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);margin-bottom:10px}
 .box button{width:100%;padding:9px;border:0;border-radius:8px;background:var(--bar2);color:#fff;font-weight:700;cursor:pointer}
 .err{color:var(--bad);font-weight:600;min-height:18px;font-size:12.5px}
+
+/* branded loading screen */
+.ld{flex-direction:column;gap:20px;overflow:hidden;background:radial-gradient(120% 90% at 20% 0%,#5B3FD9 0%,#2E2A85 45%,#15123F 100%);color:#fff;transition:opacity .55s ease,transform .55s ease,filter .55s ease}
+.ld.out{opacity:0;transform:scale(1.06);filter:blur(6px);pointer-events:none}
+.orb{position:absolute;border-radius:50%;filter:blur(50px);opacity:.55;animation:drift 9s ease-in-out infinite alternate}
+.o1{width:320px;height:320px;background:#7A2FD6;top:-80px;left:-60px}
+.o2{width:260px;height:260px;background:#2268DC;bottom:-60px;right:-40px;animation-delay:-3s}
+.o3{width:180px;height:180px;background:#F0A020;top:55%;left:60%;opacity:.3;animation-delay:-6s}
+@keyframes drift{to{transform:translate(40px,-30px) scale(1.15)}}
+.ldcard{position:relative;width:100%;max-width:340px;padding:32px 28px 24px;border-radius:24px;text-align:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 24px 60px rgba(8,6,40,.5);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);animation:rise .7s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.96)}}
+.sky{width:120px;height:84px;display:block;margin:0 auto 16px;overflow:visible}
+.sky .bd{fill:rgba(255,255,255,.16);stroke:rgba(255,255,255,.55);stroke-width:1.2;transform-box:fill-box;transform-origin:bottom;animation:grow .8s cubic-bezier(.2,.9,.3,1.1) both}
+.sky .b1{animation-delay:.15s}.sky .b2{animation-delay:.3s}.sky .b3{animation-delay:.45s}
+@keyframes grow{from{transform:scaleY(0)}}
+.sky .gnd{fill:rgba(255,255,255,.6)}
+.wins rect{fill:#FFD27A;opacity:.12;animation:lit 2.4s ease-in-out infinite}
+.wins rect:nth-child(3n+1){animation-delay:.2s}.wins rect:nth-child(3n+2){animation-delay:.9s}.wins rect:nth-child(4n){animation-delay:1.5s}.wins rect:nth-child(5n){animation-delay:.6s}
+@keyframes lit{0%,100%{opacity:.12}40%,60%{opacity:1;filter:drop-shadow(0 0 3px #FFD27A)}}
+.wm{font-size:22px;font-weight:800;letter-spacing:4px;background:linear-gradient(90deg,#fff,#FFD27A,#fff);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 3s linear infinite}
+@keyframes sheen{to{background-position:-200% 0}}
+.wsub{font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.75);margin-top:4px}
+.prog{height:6px;border-radius:99px;background:rgba(0,0,0,.25);box-shadow:inset 0 1px 2px rgba(0,0,0,.35);margin:24px 0 12px;overflow:hidden}
+.prog i{display:block;height:100%;width:8%;border-radius:99px;background:linear-gradient(90deg,#FFD27A,#fff);box-shadow:0 0 10px rgba(255,210,122,.8);transition:width .6s ease}
+.ldstep{margin:0;font-size:13px;color:rgba(255,255,255,.85);min-height:18px;transition:opacity .25s}
+.ldstep.fade{opacity:0}
+.ldstep.bad{color:#FFC2B8}
+.ldfoot{position:relative;font-size:11.5px;color:rgba(255,255,255,.55);letter-spacing:.3px}
+.app.enter .tile{animation:pop .5s cubic-bezier(.2,.9,.3,1.2) both}
+.app.enter .card{animation:rise .6s ease both;animation-delay:.25s}
+.app.enter .tile:nth-child(2){animation-delay:.05s}.app.enter .tile:nth-child(3){animation-delay:.1s}.app.enter .tile:nth-child(4){animation-delay:.15s}.app.enter .tile:nth-child(5){animation-delay:.2s}.app.enter .tile:nth-child(6){animation-delay:.25s}.app.enter .tile:nth-child(7){animation-delay:.3s}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.95)}}
+@media (prefers-reduced-motion:reduce){.ld *,.ld,.app.enter .tile,.app.enter .card{animation:none!important;transition:none!important}}
+.brand{display:flex;align-items:center;gap:8px;line-height:1.1}
+.brand svg{width:26px;height:22px;flex:none}
+.brand b{display:block;font-size:15px;font-weight:800;letter-spacing:2px}
+.brand small{display:block;font-size:10.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;opacity:.8}
 .tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--card);padding:6px 9px;border-radius:7px;font-size:12px;font-weight:600;z-index:60;display:none;max-width:260px;line-height:1.35}
 
 /* laptop / tablet */
@@ -243,6 +279,7 @@ svg.ch{display:block;width:100%;height:100%}
   .flt .reset{min-height:44px;font-size:14px}
   .tiles,.tiles.six{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;margin:0;padding:0 16px;gap:12px}
   .tile{min-height:0;padding:12px}
+  .tile:last-child:nth-child(odd){grid-column:1 / -1}
   .tile .tl{font-size:12.5px}
   .tile .tv{font-size:23px;margin-top:4px}
   .tile .ts{white-space:normal;line-height:1.3;margin-top:4px}
@@ -264,7 +301,7 @@ svg.ch{display:block;width:100%;height:100%}
 <body>
 <div class="app">
   <header class="hdr">
-    <h1>Sales Dashboard</h1>
+    <h1 class="brand"><svg viewBox="0 0 26 22" aria-hidden="true"><rect x="1" y="9" width="7" height="12" rx="1" fill="rgba(255,255,255,.35)"/><rect x="9.5" y="2" width="8" height="19" rx="1" fill="#fff"/><rect x="19" y="6" width="6" height="15" rx="1" fill="rgba(255,255,255,.6)"/><rect x="12" y="5" width="3" height="2" fill="#7A2FD6"/><rect x="12" y="9" width="3" height="2" fill="#7A2FD6"/><rect x="12" y="13" width="3" height="2" fill="#7A2FD6"/></svg><span><b>RAGHAV REALTY</b><small>Sales Dashboard</small></span></h1>
     <div class="tabs" role="tablist">
       <button role="tab" id="tabMgmt" aria-selected="true" data-tab="mgmt">Management</button>
       <button role="tab" id="tabSite" aria-selected="false" data-tab="site">Site Head</button>
@@ -297,14 +334,34 @@ svg.ch{display:block;width:100%;height:100%}
 <div class="tip" id="tip"></div>
 <div class="overlay" id="gate" style="display:none">
   <form class="box" id="gateForm">
-    <h2>Sales Dashboard</h2>
+    <h2>Raghav Realty · Sales Dashboard</h2>
     <p>Enter the dashboard password to view the sales numbers.</p>
     <input type="password" id="gatePass" autocomplete="current-password" placeholder="Password" required>
     <div class="err" id="gateErr"></div>
     <button type="submit">Open dashboard</button>
   </form>
 </div>
-<div class="overlay" id="loading"><div class="box"><h2>Loading sales data…</h2><p id="loadMsg">Reading the Google Sheet.</p></div></div>
+<div class="overlay ld" id="loading" role="status" aria-live="polite">
+  <i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i>
+  <div class="ldcard">
+    <svg class="sky" viewBox="0 0 120 84" aria-hidden="true">
+      <rect class="bd b1" x="8" y="34" width="28" height="46" rx="3"/>
+      <rect class="bd b2" x="44" y="8" width="32" height="72" rx="3"/>
+      <rect class="bd b3" x="84" y="24" width="28" height="56" rx="3"/>
+      <g class="wins">
+        <rect x="14" y="42" width="6" height="6"/><rect x="24" y="42" width="6" height="6"/><rect x="14" y="54" width="6" height="6"/><rect x="24" y="54" width="6" height="6"/><rect x="14" y="66" width="6" height="6"/><rect x="24" y="66" width="6" height="6"/>
+        <rect x="51" y="16" width="7" height="7"/><rect x="62" y="16" width="7" height="7"/><rect x="51" y="28" width="7" height="7"/><rect x="62" y="28" width="7" height="7"/><rect x="51" y="40" width="7" height="7"/><rect x="62" y="40" width="7" height="7"/><rect x="51" y="52" width="7" height="7"/><rect x="62" y="52" width="7" height="7"/><rect x="51" y="64" width="7" height="7"/><rect x="62" y="64" width="7" height="7"/>
+        <rect x="90" y="32" width="6" height="6"/><rect x="100" y="32" width="6" height="6"/><rect x="90" y="44" width="6" height="6"/><rect x="100" y="44" width="6" height="6"/><rect x="90" y="56" width="6" height="6"/><rect x="100" y="56" width="6" height="6"/><rect x="90" y="68" width="6" height="6"/><rect x="100" y="68" width="6" height="6"/>
+      </g>
+      <rect class="gnd" x="0" y="80" width="120" height="3" rx="1.5"/>
+    </svg>
+    <div class="wm">RAGHAV REALTY</div>
+    <div class="wsub">Sales Dashboard</div>
+    <div class="prog"><i id="ldBar"></i></div>
+    <p class="ldstep" id="loadMsg">Connecting to the Google Sheet…</p>
+  </div>
+  <div class="ldfoot">Live from All Data · personal details never loaded</div>
+</div>
 
 <script>
 (function(){
@@ -447,7 +504,8 @@ var METRICS=[
   {id:"cpf",label:"Active CP Firms",v:function(s){return s.ncp},f:fmt,up:1,def:"Distinct Channel Partner Company names (column AA) that brought at least one walk-in (fresh or revisit) in the period, where Source = Channel Partner."},
   {id:"inv",label:"Unsold Inventory",inv:true,def:"From the Inventory Status tab, as of now (not affected by the period). Sold = Sold + Booked + Overdue · On hold = Reserved + Blocked · Unsold = Available."}
 ];
-var SITE_TILES=["net","fresh","conv","rev","hot","inv"];
+var SITE_TILES=["net","fresh","conv","rev","inv"];
+var MGMT_TILES=["net","fresh","conv","rev","cx","cpf","inv"];
 function M(id){for(var i=0;i<METRICS.length;i++)if(METRICS[i].id===id)return METRICS[i]}
 
 /* ---------- small renderers ---------- */
@@ -525,7 +583,7 @@ function tileData(id,P,S,PS,TG,ser){
   return o;
 }
 function renderTiles(ids,P,S,PS,TG,ser){
-  var el=$("tiles");el.className="tiles"+(ids.length===6?" six":"");
+  var el=$("tiles");el.className="tiles"+(ids.length<=6?" six":"");el.style.setProperty("--n",ids.length);
   el.innerHTML=ids.map(function(id,i){var o=tileData(id,P,S,PS,TG,ser);var c=METRICS.indexOf(o.m);
     return'<button class="tile t'+c+(o.bar?" hasg":"")+(focus===id?" sel":"")+'" data-tile="'+id+'" aria-pressed="'+(focus===id)+'" title="Open '+esc(o.m.label)+' in focus">'+si(o.st)+'<div class="tl">'+esc(o.m.label)+'</div><div class="tv">'+o.val+'</div><div class="ts">'+esc(o.sub)+'</div>'+(o.bar?gauge(o.bar.pc,o.bar.pace):'<div class="ts">'+esc(o.sub2)+'</div>')+'</button>'}).join("");
 }
@@ -694,7 +752,7 @@ function render(){
   $("tabMgmt").setAttribute("aria-selected",tab==="mgmt");$("tabSite").setAttribute("aria-selected",tab==="site");
   charts=[];
   if(tab==="mgmt"){
-    renderTiles(METRICS.map(function(m){return m.id}),P,S,PS,TG,serM);
+    renderTiles(MGMT_TILES,P,S,PS,TG,serM);
     if(focus){$("vis").style.display="none";$("focus").style.display="";renderFocus(P,S,PS,TG,ser,weekly,serM)}
     else{
       $("focus").style.display="none";$("vis").style.display="";
@@ -721,6 +779,12 @@ function setLive(){var el=$("live"),t=$("liveTxt");if(!DATA){t.textContent=loadE
   var ed=DATA.sheetModified?new Date(DATA.sheetModified):d,o={timeZone:"Asia/Kolkata",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"};
   t.innerHTML=(loadErr?"Offline · ":"")+'Updated <span class="lu">as on </span>'+esc(ed.toLocaleString("en-IN",o));
   el.title="Sheet last edited "+ed.toLocaleString("en-IN",o)+" (any change to All Data.xlsx). Dashboard last checked the sheet at "+d.toLocaleString("en-IN",o)+" and checks again every 5 minutes.";}
+var LD_STEPS=["Connecting to the Google Sheet…","Reading walk-ins…","Matching bookings and cancellations…","Lining up targets and inventory…","Building your dashboard…"],ldI=0,ldT=null;
+function ldStart(){var el=$("loading");el.classList.remove("out");el.style.display="";ldI=0;$("loadMsg").className="ldstep";$("loadMsg").textContent=LD_STEPS[0];$("ldBar").style.width="8%";
+  clearInterval(ldT);ldT=setInterval(function(){if(ldI>=LD_STEPS.length-1)return;ldI++;var m=$("loadMsg");m.classList.add("fade");setTimeout(function(){m.textContent=LD_STEPS[ldI];m.classList.remove("fade")},250);$("ldBar").style.width=(8+ldI*20)+"%"},1100)}
+function ldDone(){clearInterval(ldT);var el=$("loading");if(el.style.display==="none")return;$("ldBar").style.width="100%";$("loadMsg").textContent="Ready";
+  setTimeout(function(){el.classList.add("out");var a=document.querySelector(".app");a.classList.add("enter");setTimeout(function(){el.style.display="none";a.classList.remove("enter")},1100)},250)}
+function ldFail(msg){clearInterval(ldT);var m=$("loadMsg");m.className="ldstep bad";m.textContent=msg}
 function load(fresh){
   var key=store("dashKey")||"";
   return fetch("api/data"+(fresh?"?fresh=1":""),{headers:key?{"x-dashboard-key":key}:{},cache:"no-store"}).then(function(r){
@@ -728,10 +792,10 @@ function load(fresh){
     if(!r.ok)return r.json().catch(function(){return{}}).then(function(j){throw new Error(j.message||("Server error "+r.status))});
     return r.json();
   }).then(function(d){
-    loadErr="";ingest(d);lastLoad=Date.now();$("gate").style.display="none";$("loading").style.display="none";
+    loadErr="";ingest(d);lastLoad=Date.now();$("gate").style.display="none";
     if(tab==="site"&&!F.proj)F.proj=projList()[0]||"";
-    render();setLive();
-  }).catch(function(e){if(e.message==="password")return;loadErr="Could not load data";setLive();if(!DATA){$("loadMsg").textContent="Could not load the data: "+e.message+". Try Refresh in a minute."}});
+    render();setLive();ldDone();
+  }).catch(function(e){if(e.message==="password")return;loadErr="Could not load data";setLive();if(!DATA){ldFail("Could not load the data: "+e.message+". Try again in a minute.")}});
 }
 
 /* ---------- events ---------- */
@@ -759,7 +823,7 @@ $("freset").onclick=function(){Object.assign(F,{per:"fy",proj:tab==="site"?F.pro
 $("fopen").onclick=function(){$("flt").classList.add("open")};
 $("fclose").onclick=function(){$("flt").classList.remove("open")};
 $("refresh").onclick=function(){$("liveTxt").textContent="Refreshing…";load(true)};
-$("gateForm").onsubmit=function(e){e.preventDefault();store("dashKey",$("gatePass").value);$("gateErr").textContent="";$("gate").style.display="none";$("loading").style.display="";load()};
+$("gateForm").onsubmit=function(e){e.preventDefault();store("dashKey",$("gatePass").value);$("gateErr").textContent="";$("gate").style.display="none";ldStart();load()};
 var themes=["auto","light","dark"],th=store("dashTheme")||"auto";
 function applyTheme(){if(th==="auto")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",th);$("theme").textContent=th==="auto"?"Theme: auto":th==="light"?"Theme: light":"Theme: dark"}
 $("theme").onclick=function(){th=themes[(themes.indexOf(th)+1)%3];store("dashTheme",th);applyTheme()};applyTheme();
@@ -770,7 +834,7 @@ setInterval(function(){if(!document.hidden)load()},REFRESH_MS);
 document.addEventListener("visibilitychange",function(){if(!document.hidden&&Date.now()-lastLoad>REFRESH_MS)load()});
 setInterval(setLive,60000);
 window.__dash={F:F,render:render,setTab:setTab,focus:function(id){focus=id||null;render()},ui:ui,stats:function(){return stats(F,period(F.per)).tot},targets:function(){return targets(F,period(F.per))}};
-load();
+ldStart();load();
 })();
 </script>
 </body>
