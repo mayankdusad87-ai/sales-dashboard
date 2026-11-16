@@ -301,7 +301,22 @@ svg.ch{display:block;width:100%;height:100%}
   th:first-child,td:first-child{position:sticky;left:0;background:var(--card);z-index:1}
   th:first-child{z-index:2}
   tr.on td:first-child{background:var(--sel)}
+  /* full-screen KPI detail page */
+  .app.detail .hdr,.app.detail .tiles,.app.detail .srcnote,.app.detail .fa-x{display:none}
+  .app.detail .dbar{display:flex}
+  .app.detail .focus{animation:dIn .32s cubic-bezier(.2,.8,.2,1) both}
+  .app.leaving .focus,.app.leaving .dbar{animation:dOut .22s ease-in both}
+  .app.back .tiles,.app.back .vis{animation:dBack .3s ease both}
 }
+.dbar{display:none;position:sticky;top:0;z-index:25;align-items:center;gap:8px;min-height:56px;padding:calc(8px + env(safe-area-inset-top)) 16px 8px 8px;color:#fff;background:linear-gradient(100deg,#2E2A85 0%,#4F2FBF 55%,#7A2FD6 100%);box-shadow:inset 0 -2px 0 rgba(0,0,0,.18),0 4px 12px rgba(46,42,133,.25)}
+.dback{display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 12px 0 8px;border:0;border-radius:12px;background:transparent;color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer}
+.dback span{font-size:28px;line-height:1;margin-top:-3px}
+.dback:active{background:rgba(255,255,255,.15)}
+.dtitle{flex:1;min-width:0;font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@keyframes dIn{from{opacity:.4;transform:translateX(40%)}}
+@keyframes dOut{to{opacity:0;transform:translateX(30%)}}
+@keyframes dBack{from{opacity:0;transform:translateX(-12%)}}
+@media (prefers-reduced-motion:reduce){.app.detail .focus,.app.leaving .focus,.app.leaving .dbar,.app.back .tiles,.app.back .vis{animation:none!important}}
 </style>
 </head>
 <body>
@@ -318,6 +333,7 @@ svg.ch{display:block;width:100%;height:100%}
     <button class="tbtn" id="theme" title="Switch light / dark">Theme</button>
   </header>
 
+  <div class="dbar" id="dbar"><button class="dback" id="dback" aria-label="Back to dashboard"><span aria-hidden="true">‹</span> Back</button><span class="dtitle" id="dtitle"></span></div>
   <div class="bar-m">
     <button class="reset fbtn" id="fopen">Filters</button>
     <div class="chips" id="chips"></div>
@@ -763,6 +779,8 @@ function render(){
     $("vis").innerHTML=st.html+peopleCard(P,"cm","sCm","Closing managers")+peopleCard(P,"sm","sSm","Sourcing managers")+siteSrcCard(P,ui.ssrc)+whyCard(P,ui.swhy||"lost","sWhy")+invCard(F.proj,"sInv");
     charts.push(["#sTrend .plot",st.items,{alt:ui.strend==="walk",aria:"trend"}]);
   }
+  var det=isPhone()&&tab==="mgmt"&&!!focus;APP.classList.toggle("detail",det);
+  if(det)$("dtitle").textContent=M(focus).label;
   drawCharts();
   var q=DATA.Q;
   $("srcnote").innerHTML='<span>Source: '+esc(DATA.file||"All Data.xlsx")+' — Walk-in, Closing Targets, Sourcing Targets, Inventory Status</span><span>'+fmt(q.rows)+' walk-in rows · '+fmt(INV.length)+' units</span>'+(q.noVisitDate||q.noFreshRevisit?'<span title="Rows the sheet is missing values for">Data gaps: '+fmt(q.noVisitDate)+' without visit date, '+fmt(q.noFreshRevisit)+' without Fresh/Revisit</span>':"")+'<span>Personal details are never loaded.</span>';
@@ -795,12 +813,24 @@ function load(fresh){
 }
 
 /* ---------- events ---------- */
+/* phone: a tile opens a full-screen detail page with its own history entry, so Back / swipe-back return to the dashboard */
+var APP=document.querySelector(".app"),detY=0,NOMO=matchMedia("(prefers-reduced-motion:reduce)");
+function isPhone(){return matchMedia("(max-width:760px)").matches}
+function openDetail(id){detY=window.scrollY;if(tab==="site")tab="mgmt";focus=id;
+  if(!(history.state&&history.state.d))history.pushState({d:id},"");else history.replaceState({d:id},"");
+  render();window.scrollTo(0,0)}
+function closeDetail(){var was=APP.classList.contains("detail");focus=null;APP.classList.remove("leaving");render();
+  if(was){window.scrollTo(0,detY);if(!NOMO.matches){APP.classList.add("back");setTimeout(function(){APP.classList.remove("back")},320)}}}
+function goBack(){if(history.state&&history.state.d){if(NOMO.matches){history.back();return}APP.classList.add("leaving");setTimeout(function(){history.back()},200)}else closeDetail()}
+window.addEventListener("popstate",function(){if(focus)closeDetail()});
+$("dback").onclick=goBack;
 function setTab(t){tab=t;focus=null;if(t==="site"&&!F.proj)F.proj=projList()[0]||"";render()}
 document.addEventListener("click",function(e){
   var t=e.target,x;
   if((x=t.closest("[data-tab]"))){setTab(x.getAttribute("data-tab"));return}
-  if((x=t.closest("[data-unfocus]"))){focus=null;render();return}
-  if((x=t.closest("[data-tile]"))){var id=x.getAttribute("data-tile");if(tab==="site"){tab="mgmt"}focus=focus===id?null:id;render();window.scrollTo({top:0,behavior:"smooth"});return}
+  if((x=t.closest("[data-unfocus]"))){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}return}
+  if((x=t.closest("[data-tile]"))&&isPhone()){openDetail(x.getAttribute("data-tile"));return}
+  if(x){var id=x.getAttribute("data-tile");if(tab==="site"){tab="mgmt"}focus=focus===id?null:id;render();window.scrollTo({top:0,behavior:"smooth"});return}
   if((x=t.closest("[data-ui]"))){ui[x.getAttribute("data-ui")]=x.getAttribute("data-uv");render();return}
   if((x=t.closest("[data-x]"))){F[x.getAttribute("data-x")]="";render();return}
   if((x=t.closest("[data-per]"))){F.per=x.getAttribute("data-per");render();return}
@@ -808,7 +838,7 @@ document.addEventListener("click",function(e){
 });
 document.addEventListener("keydown",function(e){
   if(e.key==="Enter"&&e.target.matches&&e.target.matches("tr[data-f]")){e.target.click()}
-  if(e.key==="Escape"){if($("flt").classList.contains("open"))$("flt").classList.remove("open");else if(focus){focus=null;render()}}
+  if(e.key==="Escape"){if($("flt").classList.contains("open"))$("flt").classList.remove("open");else if(focus){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}}}
 });
 document.addEventListener("change",function(e){var t=e.target;
   if(t.id==="fPer")F.per=t.value;else if(t.id==="fProj")F.proj=t.value;else if(t.id==="fCm")F.cm=t.value;else if(t.id==="fSm")F.sm=t.value;else if(t.id==="fSrc")F.src=t.value;
