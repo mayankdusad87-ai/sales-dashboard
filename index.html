@@ -75,7 +75,30 @@ select:hover{border-color:var(--bar1)}
 .tile:hover{transform:translateY(-2px);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.22),var(--shadow2)}
 .tile:active{transform:translateY(1px);box-shadow:inset 0 3px 8px rgba(0,0,0,.3)}
 .tile.sel{outline:3px solid var(--ink);outline-offset:3px}
-.tile .tl{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:20px}
+.tile .tl{display:flex;align-items:center;gap:2px;font-size:12px;font-weight:600;padding-right:20px;min-width:0}
+.tile .tl>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+/* (i) info button: 28px hit area, 16px visual */
+.tinfo{position:relative;z-index:2;flex:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin:-6px -4px -6px 0;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;cursor:help;font:inherit}
+.tinfo::before{content:"i";display:flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1.5px solid currentColor;font:italic 700 10.5px/1 Georgia,"Times New Roman",serif;opacity:.8;transition:opacity .15s,background .15s,color .15s}
+.tinfo:hover::before,.tinfo[aria-expanded="true"]::before{opacity:1;background:#fff;color:#1B1C33;border-color:#fff}
+.tinfo:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+/* formula popover (desktop) / bottom sheet (phone) */
+.kpop{position:fixed;z-index:46;width:340px;max-width:calc(100vw - 32px);background:var(--card);color:var(--ink);border-radius:14px;box-shadow:var(--shadow2),0 0 0 1px var(--line);padding:16px;font-size:13px;line-height:1.45;animation:kIn .16s ease-out}
+.kpop[hidden],.kscrim[hidden]{display:none}
+@keyframes kIn{from{opacity:0;transform:translateY(4px)}}
+.kpop h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.kpop h3 i{width:10px;height:10px;border-radius:3px;flex:none}
+.kfx{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;font-weight:600;background:var(--well);border-radius:8px;padding:8px 10px;margin-bottom:12px;color:var(--ink)}
+.kpop dl{margin:0;display:grid;gap:10px}
+.kpop dt{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.kpop dd{margin:0;color:var(--ink2)}
+.kpop dd b{color:var(--ink)}
+.kpop .kst{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;align-items:center}
+.kpop .kst .si.good{background:var(--goodbg);color:var(--good)}.kpop .kst .si.warn{background:var(--warnbg);color:var(--warn)}.kpop .kst .si.bad{background:var(--badbg);color:var(--bad)}
+.kclose{display:none;width:100%;min-height:44px;margin-top:16px;border:0;border-radius:12px;background:var(--bar2);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.kpop.pinned .kclose{display:block}
+.kscrim{position:fixed;inset:0;z-index:45;background:rgba(10,8,30,.45);animation:fade .2s}
+@keyframes fade{from{opacity:0}}
 .tile .tv{font-size:25px;font-weight:700;line-height:1.15;margin-top:5px;white-space:nowrap;letter-spacing:-.3px;text-shadow:0 1px 2px rgba(0,0,0,.25)}
 .tile .tv small{font-size:13px;font-weight:600;letter-spacing:0;margin-left:3px}
 .tile .ts{font-size:11.5px;font-weight:500;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
@@ -287,6 +310,10 @@ svg.ch{display:block;width:100%;height:100%}
   .tile{min-height:0;padding:12px}
   .tile:last-child:nth-child(odd){grid-column:1 / -1}
   .tile .tl{font-size:12.5px}
+  .tinfo{width:36px;height:36px;margin:-10px -8px -10px -2px}
+  .kpop{left:0!important;right:0;top:auto!important;bottom:0;width:auto;max-width:none;max-height:80vh;overflow:auto;border-radius:20px 20px 0 0;padding:20px 16px calc(16px + env(safe-area-inset-bottom));font-size:14px;animation:kUp .24s cubic-bezier(.2,.8,.2,1)}
+  .kpop::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--line);margin:-8px auto 12px}
+  .kfx{font-size:13px}
   .tile .tv{font-size:23px;margin-top:4px}
   .tile .ts{white-space:normal;line-height:1.3;margin-top:4px}
   .tile.hasg{grid-template-columns:minmax(0,1fr) 58px}
@@ -313,6 +340,8 @@ svg.ch{display:block;width:100%;height:100%}
 .dback span{font-size:28px;line-height:1;margin-top:-3px}
 .dback:active{background:rgba(255,255,255,.15)}
 .dtitle{flex:1;min-width:0;font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@keyframes kUp{from{transform:translateY(100%)}}
+@media (prefers-reduced-motion:reduce){.kpop,.kscrim{animation:none!important}}
 @keyframes dIn{from{opacity:.4;transform:translateX(40%)}}
 @keyframes dOut{to{opacity:0;transform:translateX(30%)}}
 @keyframes dBack{from{opacity:0;transform:translateX(-12%)}}
@@ -354,6 +383,8 @@ svg.ch{display:block;width:100%;height:100%}
   <footer class="srcnote" id="srcnote"></footer>
 </div>
 <div class="tip" id="tip"></div>
+<div class="kscrim" id="kscrim" hidden></div>
+<div class="kpop" id="kpop" role="dialog" aria-labelledby="kpopT" hidden></div>
 <div class="overlay" id="gate" style="display:none">
   <form class="box" id="gateForm">
     <img class="gatelogo" src="assets/logo.png" alt="Raghav Realty">
@@ -507,14 +538,14 @@ function invBy(proj,key){var G={};INV.forEach(function(u){if(proj&&u.proj!==proj
 
 /* ---------- metric catalogue ---------- */
 var METRICS=[
-  {id:"net",label:"Net Bookings",v:function(s){return s.net},f:fmt,tgt:"book",up:1,def:"Bookings (row has a Booking Date or Booking Done = Y) minus cancellations (Booking Cancellation = Yes) in the period. Booking month from Booking Date; cancellation month from Cancellation Date. Target: Closing Targets (Sourcing Targets when a sourcing manager is picked)."},
-  {id:"fresh",label:"Fresh Walk-ins",v:function(s){return s.fresh},f:fmt,tgt:"walk",up:1,def:"Rows where Customer Fresh/Revisit (column AW) = Fresh, by Date of Visit. Target: Sourcing Targets → Walk-ins."},
-  {id:"conv",label:"Walk-in to Booking",v:function(s){return s.conv},f:function(v){return fp(v)},up:1,min:5,def:"Bookings in the period ÷ fresh walk-ins in the period. No target is set for this."},
-  {id:"rev",label:"Unique Revisits",v:function(s){return s.rev},f:fmt,up:1,def:"Rows where Customer Fresh/Revisit (column AW) = Unique Revisit, by Date of Visit. Second, third and later revisits are not counted."},
-  {id:"cx",label:"Cancellations",v:function(s){return s.cx},f:fmt,up:-1,def:"Rows with Booking Cancellation = Yes, by Cancellation Date (Booking Date when that is empty)."},
+  {id:"net",label:"Net Bookings",fx:"Net Bookings = Bookings − Cancellations",v:function(s){return s.net},f:fmt,tgt:"book",up:1,def:"Bookings (row has a Booking Date or Booking Done = Y) minus cancellations (Booking Cancellation = Yes) in the period. Booking month from Booking Date; cancellation month from Cancellation Date. Target: Closing Targets (Sourcing Targets when a sourcing manager is picked)."},
+  {id:"fresh",label:"Fresh Walk-ins",fx:"Fresh Walk-ins = count of visits marked Fresh",v:function(s){return s.fresh},f:fmt,tgt:"walk",up:1,def:"Rows where Customer Fresh/Revisit (column AW) = Fresh, by Date of Visit. Target: Sourcing Targets → Walk-ins."},
+  {id:"conv",label:"Walk-in to Booking",fx:"Conversion % = Bookings ÷ Fresh walk-ins × 100",v:function(s){return s.conv},f:function(v){return fp(v)},up:1,min:5,def:"Bookings in the period ÷ fresh walk-ins in the period. No target is set for this."},
+  {id:"rev",label:"Unique Revisits",fx:"Unique Revisits = count of visits marked Unique Revisit",v:function(s){return s.rev},f:fmt,up:1,def:"Rows where Customer Fresh/Revisit (column AW) = Unique Revisit, by Date of Visit. Second, third and later revisits are not counted."},
+  {id:"cx",label:"Cancellations",fx:"Cancellations = count of bookings marked cancelled",v:function(s){return s.cx},f:fmt,up:-1,def:"Rows with Booking Cancellation = Yes, by Cancellation Date (Booking Date when that is empty)."},
   {id:"hot",label:"Hot Leads Open",v:function(s){return s.hot},f:fmt,up:1,def:"Fresh walk-ins in the period with Customer Affinity = Hot that have not booked yet."},
-  {id:"cpf",label:"Active CP Firms",v:function(s){return s.ncp},f:fmt,up:1,def:"Distinct Channel Partner Company names (column AA) that brought at least one walk-in (fresh or revisit) in the period, where Source = Channel Partner."},
-  {id:"inv",label:"Unsold Inventory",inv:true,def:"From the Inventory Status tab, as of now (not affected by the period). Sold = Sold + Booked + Overdue · On hold = Reserved + Blocked · Unsold = Available."}
+  {id:"cpf",label:"Active CP Firms",fx:"Active CP Firms = number of different CP companies with 1+ walk-in",v:function(s){return s.ncp},f:fmt,up:1,def:"Distinct Channel Partner Company names (column AA) that brought at least one walk-in (fresh or revisit) in the period, where Source = Channel Partner."},
+  {id:"inv",label:"Unsold Inventory",fx:"Unsold = units with status Available",inv:true,def:"From the Inventory Status tab, as of now (not affected by the period). Sold = Sold + Booked + Overdue · On hold = Reserved + Blocked · Unsold = Available."}
 ];
 var SITE_TILES=["net","fresh","conv","rev","inv"];
 var MGMT_TILES=["net","fresh","conv","rev","cx","cpf","inv"];
@@ -594,11 +625,47 @@ function tileData(id,P,S,PS,TG,ser){
   o.dt=dt;o.pv=pv;o.v=v;
   return o;
 }
+var TILEC={};
 function renderTiles(ids,P,S,PS,TG,ser){
   var el=$("tiles");el.className="tiles"+(ids.length<=6?" six":"");el.style.setProperty("--n",ids.length);
-  el.innerHTML=ids.map(function(id,i){var o=tileData(id,P,S,PS,TG,ser);var c=METRICS.indexOf(o.m);
-    return'<button class="tile t'+c+(o.bar?" hasg":"")+(focus===id?" sel":"")+'" data-tile="'+id+'" aria-pressed="'+(focus===id)+'" title="Open '+esc(o.m.label)+' in focus">'+si(o.st)+'<div class="tl">'+esc(o.m.label)+'</div><div class="tv">'+o.val+'</div><div class="ts">'+esc(o.sub)+'</div>'+(o.bar?gauge(o.bar.pc,o.bar.pace):'<div class="ts">'+esc(o.sub2)+'</div>')+'</button>'}).join("");
+  TILEC={P:P,S:S,PS:PS,o:{}};kpClose(false);
+  el.innerHTML=ids.map(function(id,i){var o=tileData(id,P,S,PS,TG,ser);var c=METRICS.indexOf(o.m);TILEC.o[id]=o;
+    return'<div class="tile t'+c+(o.bar?" hasg":"")+(focus===id?" sel":"")+'" role="button" tabindex="0" data-tile="'+id+'" aria-pressed="'+(focus===id)+'" aria-label="'+esc(o.m.label)+': open details">'+si(o.st)+'<div class="tl"><span>'+esc(o.m.label)+'</span><button type="button" class="tinfo" data-info="'+id+'" aria-label="How '+esc(o.m.label)+' is calculated" aria-haspopup="dialog" aria-expanded="false" aria-controls="kpop"></button></div><div class="tv">'+o.val+'</div><div class="ts">'+esc(o.sub)+'</div>'+(o.bar?gauge(o.bar.pc,o.bar.pace):'<div class="ts">'+esc(o.sub2)+'</div>')+'</div>'}).join("");
 }
+/* ---------- (i) formula popover ---------- */
+var kpBtn=null,kpPinned=false,kpT=null,CAN_HOVER=matchMedia("(hover:hover) and (pointer:fine)");
+function kpHtml(id){
+  var o=TILEC.o[id],m=o.m,S=TILEC.S.tot,P=TILEC.P,PS=TILEC.PS,c=METRICS.indexOf(m),cols=["#4F46E5","#C94532","#0E7F75","#F39C12","#2268DC","#7C3AED","#C71E68","#27356F"];
+  var now="";
+  if(id==="net")now='<b>'+fmt(S.gross)+'</b> booked − <b>'+fmt(S.cx)+'</b> cancelled = <b>'+fmt(S.net)+'</b>';
+  else if(id==="fresh")now='<b>'+fmt(S.fresh)+'</b> fresh walk-ins';
+  else if(id==="conv")now='<b>'+fmt(S.gross)+'</b> bookings ÷ <b>'+fmt(S.fresh)+'</b> fresh walk-ins = <b>'+m.f(S.conv)+'</b>';
+  else if(id==="rev")now='<b>'+fmt(S.rev)+'</b> unique revisits'+(S.fresh?' — '+fp(pct(S.rev,S.fresh),0)+' of '+fmt(S.fresh)+' fresh walk-ins':"");
+  else if(id==="cx")now='<b>'+fmt(S.cx)+'</b> cancelled'+(S.gross?' — '+fp(pct(S.cx,S.gross),0)+' of '+fmt(S.gross)+' bookings':"");
+  else if(id==="cpf")now='<b>'+fmt(S.ncp)+'</b> firms brought <b>'+fmt(S.cpWalk)+'</b> CP walk-ins';
+  else if(id==="inv"){var iv=inv(F.proj);now='<b>'+fmt(iv.Unsold)+'</b> unsold of <b>'+fmt(iv.tot)+'</b> units ('+fp(pct(iv.Unsold,iv.tot),0)+') · '+fmt(iv["On hold"])+' on hold · '+fmt(iv.Sold)+' sold'}
+  var st="";
+  if(o.a){st='<div class="kst">'+si("good")+'<span>At or ahead of where you should be today</span>'+si("warn")+'<span>At 80–99% of that pace</span>'+si("bad")+'<span>Below 80% of that pace</span></div>'+
+    '<div style="margin-top:6px">Now: <b>'+fmt(o.a.got)+' of '+fmt(o.a.tgt)+'</b> target = <b>'+fp(o.a.pc,0)+'</b>, against <b>'+fp(o.a.pace,0)+'</b> of the target period gone. On the gauge, the white arc is achieved and the dark tick is where you should be today.</div>'}
+  else if(!m.inv&&PS){st='Compared with <b>'+esc(PS.P.label)+'</b>: '+si("good")+' better, '+si("bad")+' worse. '+(m.up<0?"For cancellations, <b>lower is better</b>.":"Higher is better.")+(m.tgt&&o.noT?" ("+esc(o.noT)+")":"")}
+  var flt=m.inv?"Only the Project filter applies; the period does not.":"Uses the Period, Project, Closing manager, Sourcing manager and Source filters.";
+  return'<h3 id="kpopT"><i style="background:'+cols[c]+'"></i>'+esc(m.label)+'</h3><div class="kfx">'+esc(m.fx)+'</div><dl>'+
+    (now?'<div><dt>Right now'+(m.inv?"":" ("+esc(P.label)+")")+'</dt><dd>'+now+'</dd></div>':"")+
+    '<div><dt>What is counted</dt><dd>'+esc(m.def)+'</dd></div>'+
+    (st?'<div><dt>Status icon</dt><dd>'+st+'</dd></div>':"")+
+    '<div><dt>Filters</dt><dd>'+flt+'</dd></div></dl><button type="button" class="kclose" id="kclose">Got it</button>';
+}
+function kpOpen(btn,pin){
+  clearTimeout(kpT);var pop=$("kpop"),id=btn.getAttribute("data-info"),sheet=isPhone()||!CAN_HOVER.matches;
+  if(kpBtn&&kpBtn!==btn)kpBtn.setAttribute("aria-expanded","false");
+  kpBtn=btn;kpPinned=pin||sheet;btn.setAttribute("aria-expanded","true");
+  pop.innerHTML=kpHtml(id);pop.classList.toggle("pinned",kpPinned);pop.setAttribute("aria-modal",sheet?"true":"false");pop.hidden=false;$("kscrim").hidden=!sheet;
+  if(!sheet){var r=btn.getBoundingClientRect(),w=pop.offsetWidth,h=pop.offsetHeight,x=Math.max(16,Math.min(window.innerWidth-w-16,r.left-16)),y=r.bottom+8;
+    if(y+h>window.innerHeight-8&&r.top-h-8>8)y=r.top-h-8;pop.style.left=x+"px";pop.style.top=Math.max(8,y)+"px"}
+  if(kpPinned)$("kclose").focus({preventScroll:true});
+}
+function kpClose(ret){clearTimeout(kpT);var pop=$("kpop");if(!pop||pop.hidden)return;pop.hidden=true;$("kscrim").hidden=true;
+  if(kpBtn){kpBtn.setAttribute("aria-expanded","false");if(ret&&kpPinned&&document.body.contains(kpBtn))kpBtn.focus({preventScroll:true})}kpBtn=null;kpPinned=false}
 
 function gauge(pc,pace){
   function pt(p,r){var a=Math.PI*(1-Math.max(0,Math.min(100,p))/100);return[(37+r*Math.cos(a)).toFixed(1),(38-r*Math.sin(a)).toFixed(1)]}
@@ -728,7 +795,7 @@ function renderFocus(P,S,PS,TG,ser,weekly,serM){
   var m=M(focus),el=$("focus"),o=tileData(focus,P,S,PS,TG,serM||ser),c=METRICS.indexOf(m);
   var colors=["#4F46E5","#C94532","#0E7F75","#F39C12","#2268DC","#7C3AED","#C71E68","#27356F"];
   var stTxt=o.a?(o.a.pc>=100?"Target achieved":o.a.st==="good"?"On pace for target":o.a.st==="warn"?"Slightly behind pace":"Behind pace"):(o.st==="good"?"Better than "+(PS?PS.P.label:"before"):o.st==="bad"?"Worse than "+(PS?PS.P.label:"before"):"");
-  var ans='<section class="card fa" style="--fc:'+colors[c]+'"><div><div class="fa-label">'+esc(m.label)+' · '+esc(P.label)+'</div><div class="fa-num">'+o.big+(o.unit?'<small>'+esc(o.unit)+'</small>':"")+'</div>'+(stTxt?'<div class="fa-state">'+si(o.st)+esc(stTxt)+'</div>':"")+'<div class="fa-line">'+esc(o.sub)+(o.sub2&&o.sub2!==o.sub?'<br>'+esc(o.sub2):"")+(o.dt&&o.sub2!==o.dt?'<br>'+esc(o.dt):"")+'</div><div class="fa-def">'+esc(m.def)+'</div></div><button class="reset fa-x" data-unfocus>Close focus ✕</button></section>';
+  var ans='<section class="card fa" style="--fc:'+colors[c]+'"><div><div class="fa-label">'+esc(m.label)+' · '+esc(P.label)+'</div><div class="fa-num">'+o.big+(o.unit?'<small>'+esc(o.unit)+'</small>':"")+'</div>'+(stTxt?'<div class="fa-state">'+si(o.st)+esc(stTxt)+'</div>':"")+'<div class="fa-line">'+esc(o.sub)+(o.sub2&&o.sub2!==o.sub?'<br>'+esc(o.sub2):"")+(o.dt&&o.sub2!==o.dt?'<br>'+esc(o.dt):"")+'</div><div class="fa-def"><b>'+esc(m.fx)+'</b><br>'+esc(m.def)+'</div></div><button class="reset fa-x" data-unfocus>Close focus ✕</button></section>';
   var mid,right;
   if(m.inv){
     var G=invBy(F.proj,"proj"),ks=Object.keys(G).sort(function(a,b){return G[b].Unsold-G[a].Unsold});
@@ -822,11 +889,23 @@ function openDetail(id){detY=window.scrollY;if(tab==="site")tab="mgmt";focus=id;
 function closeDetail(){var was=APP.classList.contains("detail");focus=null;APP.classList.remove("leaving");render();
   if(was){window.scrollTo(0,detY);if(!NOMO.matches){APP.classList.add("back");setTimeout(function(){APP.classList.remove("back")},320)}}}
 function goBack(){if(history.state&&history.state.d){if(NOMO.matches){history.back();return}APP.classList.add("leaving");setTimeout(function(){history.back()},200)}else closeDetail()}
+/* hover preview of the (i) card on mouse devices; a click pins it */
+document.addEventListener("mouseover",function(e){if(!CAN_HOVER.matches||isPhone())return;var b=e.target.closest&&e.target.closest("[data-info]");
+  if(b){clearTimeout(kpT);if(kpBtn!==b&&!kpPinned)kpT=setTimeout(function(){kpOpen(b,false)},150)}
+  else if(e.target.closest&&e.target.closest("#kpop"))clearTimeout(kpT)});
+document.addEventListener("mouseout",function(e){if(!kpBtn||kpPinned)return;var to=e.relatedTarget;
+  if(to&&to.closest&&(to.closest("#kpop")||to.closest("[data-info]")===kpBtn))return;
+  clearTimeout(kpT);kpT=setTimeout(function(){if(!kpPinned)kpClose(false)},200)});
+window.addEventListener("scroll",function(){if(kpBtn&&!isPhone()&&CAN_HOVER.matches)kpClose(false)},{passive:true});
 window.addEventListener("popstate",function(){if(focus)closeDetail()});
 $("dback").onclick=goBack;
 function setTab(t){tab=t;focus=null;if(t==="site"&&!F.proj)F.proj=projList()[0]||"";render()}
 document.addEventListener("click",function(e){
   var t=e.target,x;
+  if(t.closest("#kclose")||t.id==="kscrim"){kpClose(true);return}
+  if((x=t.closest("[data-info]"))){if(kpBtn===x&&kpPinned)kpClose(true);else kpOpen(x,true);return}
+  if(t.closest("#kpop"))return;
+  if(kpBtn)kpClose(false);
   if((x=t.closest("[data-tab]"))){setTab(x.getAttribute("data-tab"));return}
   if((x=t.closest("[data-unfocus]"))){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}return}
   if((x=t.closest("[data-tile]"))&&isPhone()){openDetail(x.getAttribute("data-tile"));return}
@@ -838,6 +917,9 @@ document.addEventListener("click",function(e){
 });
 document.addEventListener("keydown",function(e){
   if(e.key==="Enter"&&e.target.matches&&e.target.matches("tr[data-f]")){e.target.click()}
+  if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("div[data-tile]")){e.preventDefault();e.target.click()}
+  if(e.key==="Escape"&&kpBtn){kpClose(true);return}
+  if(e.key==="Tab"&&kpPinned&&isPhone()){e.preventDefault();$("kclose").focus()}
   if(e.key==="Escape"){if($("flt").classList.contains("open"))$("flt").classList.remove("open");else if(focus){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}}}
 });
 document.addEventListener("change",function(e){var t=e.target;
