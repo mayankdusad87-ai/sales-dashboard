@@ -269,6 +269,27 @@ svg.ch{display:block;width:100%;height:100%}
 .allok{display:flex;gap:12px;align-items:center;padding:16px;border-radius:14px;background:var(--goodbg)}
 .allok .okic{flex:none;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--good);color:#fff;font-weight:800;font-size:18px;animation:pop .5s cubic-bezier(.2,.9,.3,1.4)}
 .allok b{display:block;color:var(--good);font-size:14px}.allok span{color:var(--ink2);font-size:13px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.flag summary{align-items:center}
+.flag .fchev{line-height:1}
+.fev{margin:0 0 12px;font-size:13px;line-height:1.5;color:var(--ink2)}
+.fev .ftag{margin-right:6px}
+.dlist{display:flex;flex-direction:column;gap:8px}
+.drow{border-radius:12px;border:1px solid var(--line);background:var(--card)}
+.drow.bad{border-left:4px solid var(--bad)}.drow.warn{border-left:4px solid var(--warn)}.drow.ok{border-left:4px solid var(--good)}
+.drow summary{list-style:none;display:grid;grid-template-columns:28px minmax(0,1fr) 16px;gap:12px;align-items:center;min-height:48px;padding:8px 12px;cursor:pointer}
+.drow summary::-webkit-details-marker{display:none}
+.drow summary b{font-size:13.5px;color:var(--ink);line-height:1.35}
+.drow .pic{width:28px;height:28px;font-size:13px}
+.drow.bad .pic{background:var(--badbg);color:var(--bad)}.drow.warn .pic{background:var(--warnbg);color:var(--warn)}.drow.ok .pic{background:var(--goodbg);color:var(--good)}
+.drow[open] .fchev{transform:rotate(90deg)}
+.dbody{padding:0 12px 12px 52px;font-size:13px;line-height:1.5;color:var(--ink2)}
+.dbody p{margin:0 0 6px}.dbody ul{margin:0 0 6px;padding-left:18px}
+.oklist{list-style:none;padding:0!important;display:grid;gap:6px}
+.pnote{margin-top:12px;font-size:12.5px;color:var(--ink2)}
+.pnote summary{cursor:pointer;color:var(--bar2);font-weight:700;min-height:40px;display:flex;align-items:center}
+.pnote p{margin:0;line-height:1.55}
+@media (max-width:760px){.dbody{padding-left:12px}}
 button.cc-fresh{font:inherit;color:#fff;cursor:pointer;text-align:left;min-height:40px}
 button.cc-fresh:hover{background:rgba(255,255,255,.14)}
 button.cc-fresh b{font-size:18px;line-height:1;opacity:.8;margin-left:2px}
@@ -1144,18 +1165,19 @@ function dataChecks(){
 }
 function dataHtml(dc){
   var nR=dc.filter(function(x){return x.lvl===2}).length,nA=dc.filter(function(x){return x.lvl===1}).length;
-  var order=dc.slice().sort(function(a,b){return b.lvl-a.lvl});
-  return'<section class="card cdata" id="ccData"><div class="chd"><h2>Data checks</h2>'+(nR?'<span class="cnt r">'+nR+' red</span>':"")+(nA?'<span class="cnt a">'+nA+' amber</span>':"")+(!nR&&!nA?'<span class="cnt g">all OK</span>':"")+'<span class="sub">whole sheet · filters don’t apply</span></div><div class="cbd"><div class="plist">'+
-    order.map(function(x){var cl=x.lvl===2?"bad":x.lvl===1?"warn":"ok";
-      return'<div class="pchk dchk '+cl+'"><span class="pic">'+(x.lvl===2?"✕":x.lvl===1?"!":"✓")+'</span><div class="pbody"><div class="phd"><b>'+esc(x.title)+'</b>'+(x.lvl?'<span class="ptag">'+(x.lvl===2?"Fix needed":"Check")+'</span>':"")+'</div>'+
-        (x.text?'<p>'+esc(x.text)+'</p>':"")+(x.lines&&x.lines.length?'<ul>'+x.lines.map(function(l){return'<li>'+esc(l)+'</li>'}).join("")+'</ul>':"")+(x.fix?'<p class="dfix"><b>Fix:</b> '+esc(x.fix)+'</p>':"")+'</div></div>'}).join("")+'</div></div></section>';
+  var issues=dc.filter(function(x){return x.lvl}).sort(function(a,b){return b.lvl-a.lvl}),oks=dc.filter(function(x){return!x.lvl});
+  function det(x){return(x.text?'<p>'+esc(x.text)+'</p>':"")+(x.lines&&x.lines.length?'<ul>'+x.lines.map(function(l){return'<li>'+esc(l)+'</li>'}).join("")+'</ul>':"")+(x.fix?'<p class="dfix"><b>Fix:</b> '+esc(x.fix)+'</p>':"")}
+  var rows=issues.map(function(x){var cl=x.lvl===2?"bad":"warn";
+    return'<details class="drow '+cl+'"><summary><span class="pic">'+(x.lvl===2?"✕":"!")+'</span><b><span class="sr">'+(x.lvl===2?"Fix needed: ":"Check: ")+'</span>'+esc(x.title)+'</b><span class="fchev" aria-hidden="true">›</span></summary><div class="dbody">'+det(x)+'</div></details>'}).join("");
+  if(oks.length)rows+='<details class="drow ok"><summary><span class="pic">✓</span><b>'+oks.length+' check'+(oks.length>1?"s":"")+' OK</b><span class="fchev" aria-hidden="true">›</span></summary><div class="dbody"><ul class="oklist">'+oks.map(function(x){return'<li><b>'+esc(x.title)+'</b>'+(x.text?' — '+esc(x.text):"")+(x.lines&&x.lines.length?' '+esc(x.lines.join(" ")):"")+'</li>'}).join("")+'</ul></div></details>';
+  return'<section class="card cdata" id="ccData"><div class="chd"><h2>Data checks</h2>'+(nR?'<span class="cnt r">'+nR+' to fix</span>':"")+(nA?'<span class="cnt a">'+nA+' to check</span>':"")+(!nR&&!nA?'<span class="cnt g">all OK</span>':"")+'<span class="sub">tap to see details</span></div><div class="cbd"><div class="dlist">'+rows+'</div></div></section>';
 }
 function ccClock(){return new Date().toLocaleString("en-IN",{timeZone:"Asia/Kolkata",weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})}
 function flagHtml(f){
   var o=f.open||{},red=f.lvl===2,mx=0;f.bars.forEach(function(b){mx=Math.max(mx,b[1])});
   var bars='<div class="cbars">'+f.bars.map(function(b,i){return'<div class="cb"><span class="cbl">'+esc(b[0])+'</span><span class="cbt"><i class="'+(i===0&&f.t!=="cp"?(red?"r":"a"):"")+'" style="width:'+(mx?Math.max(b[1]?2:0,b[1]/mx*100):0).toFixed(1)+'%"></i></span><b>'+esc(b[2])+'</b></div>'}).join("")+'</div>';
-  return'<details class="flag '+(red?"r":"a")+'"><summary><span class="fic">'+ico(f.t)+'</span><span class="fmain"><span class="ftag">'+(red?"Red":"Amber")+' · '+chk(f.t)[1]+'</span><span class="ft">'+esc(f.title)+'</span><span class="fe">'+esc(f.ev)+'</span></span><span class="fchev" aria-hidden="true">›</span></summary>'+
-    '<div class="fbody">'+bars+'<h4>How it was worked out</h4><ol class="steps">'+f.steps.map(function(s){return'<li><span class="sl">'+esc(s[0])+'</span><span class="sv">'+esc(s[1])+'</span></li>'}).join("")+'</ol>'+(f.table||"")+
+  return'<details class="flag '+(red?"r":"a")+'"><summary><span class="fic">'+ico(f.t)+'</span><span class="fmain"><span class="ft"><span class="sr">'+(red?"Red":"Amber")+' alert: </span>'+esc(f.title)+'</span></span><span class="fchev" aria-hidden="true">›</span></summary>'+
+    '<div class="fbody"><p class="fev"><span class="ftag">'+(red?"Red":"Amber")+' · '+chk(f.t)[1]+'</span> '+esc(f.ev)+'</p>'+bars+'<h4>How it was worked out</h4><ol class="steps">'+f.steps.map(function(s){return'<li><span class="sl">'+esc(s[0])+'</span><span class="sv">'+esc(s[1])+'</span></li>'}).join("")+'</ol>'+(f.table||"")+
     '<p class="fsrc"><b>Fields used:</b> '+esc(f.src)+'</p><button class="reset fgo" data-cmdopen="'+esc(o.k||"")+'" data-p="'+esc(o.p||"")+'" data-s="'+esc(o.s||"")+'">Open in Management (last 30 days) →</button></div></details>';
 }
 function cmdHtml(){
@@ -1178,9 +1200,9 @@ function cmdHtml(){
       (s.list&&s.list.length?'<ul>'+s.list.map(function(x){return'<li>'+esc(x)+'</li>'}).join("")+'</ul>':"")+'</div></div>'}).join("")}
   var pass=passed(cat),nPass=CHECKS.filter(function(c){return!by[c[0]].n}).length;
   var body=list.length?'<div class="flags">'+show.map(flagHtml).join("")+(!cat&&list.length>6?'<button class="reset fmore" data-ui="cmdAll" data-uv="'+(ui.cmdAll?"":"1")+'">'+(ui.cmdAll?"Show fewer":"Show all "+list.length+" alerts")+'</button>':"")+'</div>'+
-      (!cat&&nPass?'<h3 class="psec">Checks with no alert ('+nPass+') · data up to '+dl(Y)+'</h3><div class="plist">'+pass+'</div>':"")
+      ""
     :cat?'<div class="plist">'+pass+'</div>'
-    :'<div class="allok"><span class="okic">✓</span><div><b>No alerts from any of the five checks</b><span>Here is what each check looked at, for data up to '+dl(Y)+'.</span></div></div><div class="plist">'+pass+'</div>';
+    :'<div class="allok"><span class="okic">✓</span><div><b>No alerts</b><span>Tap a check above to see what it looked at.</span></div></div>';
   var rules='<details class="rules" id="ccRules"><summary>How these checks work</summary><ul>'+
     '<li><b>Project stalled</b> (red): 15+ fresh walk-ins and 0 bookings in the last 30 days.</li>'+
     '<li><b>Conversion dropped</b> (amber): last-30-day bookings ÷ fresh walk-ins is less than half of the previous 6 months. Only with 20+ walk-ins and 5+ earlier bookings.</li>'+
@@ -1189,7 +1211,7 @@ function cmdHtml(){
     '<li><b>CP firms quiet</b> (amber): 3+ walk-ins in the 45 days before the last 30, and none in the last 30.</li>'+
     '<li>All windows end <b>yesterday</b>, because today is still being entered. Project, manager and source filters apply; the Period filter does not. Rows with project blank or “All” count only in the overall checks.</li></ul></details>';
   var att='<section class="card catt" id="ccAlerts"><div class="chd"><h2>Alerts</h2>'+(nR?'<span class="cnt r">'+nR+' red</span>':"")+(nA?'<span class="cnt a">'+nA+' amber</span>':"")+
-    (cat?'<span class="cfil">Showing: '+chk(cat)[1]+' <button class="reset" data-ccat="">Show all</button></span>':'<span class="sub">tap an alert to see the working</span>')+'</div><div class="cbd">'+lagBox+body+rules+'</div></section>';
+    (cat?'<span class="cfil">Showing: '+chk(cat)[1]+' <button class="reset" data-ccat="">Show all</button></span>':'<span class="sub">tap to see details</span>')+'</div><div class="cbd">'+body+rules+'</div></section>';
   // pulse
   var dow=(new Date(T*DAY).getUTCDay()+6)%7,mon=T-dow,lm=mon-7;
   var cols=[["Today",T,T,"Today"],["Yesterday",Y,Y,"Yest."],["This week",mon,T,"This wk"],["Last week",lm,lm+6,"Last wk"]];
@@ -1198,14 +1220,14 @@ function cmdHtml(){
     var d=t?(v-t)/t:(v>0?1:0),cl="eq",ar="≈";if(Math.abs(d)>=.1&&Math.abs(v-t)>=1){ar=d>0?"▲":"▼";cl=(d>0)===(r[2]>0)?"up":"dn"}
     return{v:v,t:t,cl:cl,ar:ar,lab:ar==="▲"?"above":ar==="▼"?"below":"about"}}
   var WD=["Sundays","Mondays","Tuesdays","Wednesdays","Thursdays","Fridays","Saturdays"];
-  function avgLab(c,i){return i<2?"avg of last 4 "+WD[new Date(c[1]*DAY).getUTCDay()]:i===2?"avg of the same days, last 4 weeks":"avg of the 4 weeks before"}
+  function avgLab(c,i){return i<2?"usual "+WD[new Date(c[1]*DAY).getUTCDay()].slice(0,-1):i===2?"usual so far":"usual week"}
   var tbl='<table class="pulse"><thead><tr><th></th>'+cols.map(function(c){return'<th>'+c[0]+'<small>'+dr(c[1],c[2])+'</small></th>'}).join("")+'</tr></thead><tbody>'+
-    rows.map(function(r){return'<tr><td>'+r[1]+'</td>'+cols.map(function(c,i){var x=cell(r,c);return'<td title="'+esc(c[0]+": "+fmt(x.v)+" vs "+avgLab(c,i)+" = "+n1(x.t))+'"><span class="pv">'+fmt(x.v)+'<i class="'+x.cl+'" aria-label="'+x.lab+' average">'+x.ar+'</i></span><span class="pt">4-wk avg '+n1(x.t)+'</span></td>'}).join("")+'</tr>'}).join("")+'</tbody></table>';
+    rows.map(function(r){return'<tr><td>'+r[1]+'</td>'+cols.map(function(c,i){var x=cell(r,c);return'<td title="'+esc(c[0]+": "+fmt(x.v)+" vs "+avgLab(c,i)+" = "+n1(x.t))+'"><span class="pv">'+fmt(x.v)+'<i class="'+x.cl+'" aria-label="'+x.lab+' average">'+x.ar+'</i></span><span class="pt">usual '+n1(x.t)+'</span></td>'}).join("")+'</tr>'}).join("")+'</tbody></table>';
   var pp=+ui.pp;if(!(pp>=0&&pp<4))pp=2;var pc=cols[pp];
   var mob='<div class="pmob"><div class="pseg" role="tablist" aria-label="Pick a period">'+cols.map(function(c,i){return'<button role="tab" data-ui="pp" data-uv="'+i+'" aria-selected="'+(i===pp)+'">'+c[3]+'</button>'}).join("")+'</div>'+
-    '<div class="pdate">'+pc[0]+' · '+dr(pc[1],pc[2])+'</div><div class="pgrid">'+rows.map(function(r){var x=cell(r,pc);return'<div class="pcell"><span class="pl">'+r[1]+'</span><span class="pbig">'+fmt(x.v)+'<i class="'+x.cl+'" aria-label="'+x.lab+' typical">'+x.ar+'</i></span><span class="ptyp">'+avgLab(pc,pp).replace(/^a/,"A")+': '+n1(x.t)+'</span></div>'}).join("")+'</div></div>';
-  var pul='<section class="card cpul" id="ccPulse"><div class="chd"><h2>Today &amp; this week</h2><span class="sub">vs the average of the previous 4 weeks</span></div><div class="cbd">'+tbl+mob+
-    '<div class="note"><b>4-wk avg</b> = the average for the same days over the previous 4 weeks. Yesterday ('+WD[new Date(Y*DAY).getUTCDay()].slice(0,-1)+') is compared with the 4 '+WD[new Date(Y*DAY).getUTCDay()]+' before it; Last week with the 4 weeks before it; This week with the same days of the last 4 weeks. A decimal like 0.3 means about 1 in 4 weeks. Weeks run Monday to Sunday. Today fills in as the sheet is updated. ▲▼ show a difference of 10%+ (and at least 1); for cancellations, fewer is better.</div></div></section>';
+    '<div class="pdate">'+pc[0]+' · '+dr(pc[1],pc[2])+'</div><div class="pgrid">'+rows.map(function(r){var x=cell(r,pc);return'<div class="pcell"><span class="pl">'+r[1]+'</span><span class="pbig">'+fmt(x.v)+'<i class="'+x.cl+'" aria-label="'+x.lab+' typical">'+x.ar+'</i></span><span class="ptyp">'+avgLab(pc,pp).replace(/^u/,"U")+': '+n1(x.t)+'</span></div>'}).join("")+'</div></div>';
+  var pul='<section class="card cpul" id="ccPulse"><div class="chd"><h2>Today &amp; this week</h2><span class="sub">vs a usual day or week</span></div><div class="cbd">'+tbl+mob+
+    '<details class="pnote"><summary>What does “usual” mean?</summary><p><b>Usual</b> is the average of the same day over the previous 4 weeks. Example: if the last 4 Sundays had 9, 6, 4 and 5 walk-ins, a usual Sunday is (9+6+4+5) ÷ 4 = 6, so yesterday’s 2 shows ▼. “Usual week” is the average of the 4 weeks before; “usual so far” compares this week’s days with the same days of those weeks. A decimal like 0.3 means about once a month. ▲▼ show a difference of 10%+ (and at least 1); for cancellations, fewer is better. Weeks run Monday to Sunday, and today fills in as the sheet is updated.</p></details></div></section>';
   return hero+nav+dataHtml(dc)+att+pul;
 }
 setInterval(function(){var c=document.getElementById("ccClock");if(c)c.textContent=ccClock()},30000);
