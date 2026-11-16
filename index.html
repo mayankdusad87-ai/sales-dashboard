@@ -199,7 +199,8 @@ svg.ch{display:block;width:100%;height:100%}
 .cc-hero{grid-column:1 / -1;position:relative;overflow:hidden;border-radius:20px;padding:20px 24px;color:#fff;background:radial-gradient(120% 160% at 0% 0%,#5A2326 0%,#2A1E21 55%,#141012 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 12px 28px rgba(40,12,14,.3)}
 .cc-hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px;-webkit-mask-image:radial-gradient(90% 120% at 100% 0%,#000,transparent 70%);mask-image:radial-gradient(90% 120% at 100% 0%,#000,transparent 70%);pointer-events:none}
 .cc-hero::after{content:"";position:absolute;width:320px;height:320px;right:-80px;top:-160px;border-radius:50%;filter:blur(60px);opacity:.35;pointer-events:none;background:#34D399}
-.cc-hero.warn::after{background:#F59E0B}.cc-hero.bad::after{background:#EF4444}
+.cc-hero.warn::after{background:#F59E0B}.cc-hero.skip::after{background:#9CA3AF;opacity:.25}
+.cc-why{margin-top:8px;max-width:640px;opacity:.85}.cc-hero.bad::after{background:#EF4444}
 .cc-top{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .cc-k{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.75}
 .cc-live{width:8px;height:8px;border-radius:50%;background:#34D399;box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:ping 2s ease-out infinite}
@@ -269,7 +270,8 @@ svg.ch{display:block;width:100%;height:100%}
 .fmore{align-self:flex-start;min-height:40px;padding:0 16px;border-radius:12px}
 .allok{display:flex;gap:12px;align-items:center;padding:16px;border-radius:14px;background:var(--goodbg)}
 .allok .okic{flex:none;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--good);color:#fff;font-weight:800;font-size:18px;animation:pop .5s cubic-bezier(.2,.9,.3,1.4)}
-.allok b{display:block;color:var(--good);font-size:14px}.allok span{color:var(--ink2);font-size:13px}
+.allok b{display:block;color:var(--good);font-size:14px}
+.allok.skip{background:var(--well)}.allok.skip .okic{background:var(--muted);animation:none}.allok.skip b{color:var(--ink)}.allok span{color:var(--ink2);font-size:13px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .flag summary{align-items:center}
 .flag .fchev{line-height:1}
@@ -303,7 +305,7 @@ button.cc-fresh b{font-size:18px;line-height:1;opacity:.8;margin-left:2px}
 .dfix{color:var(--ink)!important}
 button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 .cc-nav button b.a{background:var(--warn)}
-@media (min-width:1280px){.app.cmdtab{height:auto;min-height:100vh}.cmd{flex:none;grid-template-rows:auto auto 1fr;align-items:start}.catt{grid-column:1;grid-row:2 / 4}.cdata{grid-column:2;grid-row:2}.cpul{grid-column:2;grid-row:3}}
+@media (min-width:1280px){.app.cmdtab{height:auto;min-height:100vh}.cmd{flex:none;grid-template-rows:auto auto 1fr;align-items:start}.catt{grid-column:1;grid-row:2}.cpul{grid-column:1;grid-row:3}.cdata{grid-column:2;grid-row:2 / 4}}
 .cc-chk.skip .cc-ic{color:#D6CBC9}.cc-chk.skip .cc-st i{background:#A8A0A2}
 .psec{margin:20px 0 4px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
 .plist{display:flex;flex-direction:column}
@@ -434,7 +436,7 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 
 /* phone polish: 2-column KPI grid, compact header, thumb-zone filters, 40px+ tap targets */
 @media (max-width:760px){
-  .app{gap:12px;padding-bottom:88px}
+  .app{gap:12px;padding-bottom:88px;overflow-x:clip}
   .hdr{padding:12px 16px;gap:8px 8px;align-items:center}
   .hdr h1{font-size:16px;flex:1;min-width:0}
   .brand{gap:10px}
@@ -1002,13 +1004,20 @@ function renderFocus(P,S,PS,TG,ser,weekly,serM){
   if(!weekly&&items.length>24)items=items.slice(-24);
   mid=card("fMid",m.label+(weekly?" by week":" by month"),m.tgt&&(m.tgt==="book"?TG.book!=null:TG.walk!=null)?"▬ target":"","",'<div class="plot" style="position:absolute;inset:0"></div>',"chart");
   // breakdown
-  var dim=ui.fdim,keyFn=dim==="chan"?function(r){return isCP(r.src)?"Indirect":"Direct"}:function(r){return r[dim]};
-  var FF=Object.assign({},F);if(dim==="chan")FF.src="";else FF[dim]="";
-  var G2=stats(FF,P,keyFn).G,ks2=Object.keys(G2).filter(function(k){var s=G2[k];return(s.fresh+s.gross+s.cx+s.rev)>0&&m.v(s)!=null&&(!m.min||(m.id==="conv"?s.fresh>=m.min:s.tat.length>=m.min))});
+  // breakdown respects the filters: a filtered dimension shows only the picked value (with an "All" switch to compare)
+  var DK={proj:"proj",cm:"cm",sm:"sm",chan:"src"},isF=function(d){return!!F[DK[d]]};
+  var dim=ui.fdim;if(isF(dim)&&!ui.fdimPicked){var alt=FDIMS.map(function(x){return x[0]}).filter(function(d){return!isF(d)})[0];if(alt)dim=alt}
+  var keyFn=dim==="chan"?function(r){return isCP(r.src)?"Indirect":"Direct"}:function(r){return r[dim]};
+  var selV=F[DK[dim]],cmpAll=ui.fcmp==="all",single=!!selV&&!cmpAll;
+  var FF=Object.assign({},F);if(!single){if(dim==="chan")FF.src="";else FF[dim]=""}
+  var G2=stats(FF,P,keyFn).G,ks2=Object.keys(G2).filter(function(k){var s=G2[k];return(s.fresh+s.gross+s.cx+s.rev)>0&&m.v(s)!=null&&(single||!m.min||(m.id==="conv"?s.fresh>=m.min:s.tat.length>=m.min))});
   ks2.sort(function(a,b){var x=m.v(G2[a]),y=m.v(G2[b]);return m.up>0?x-y:y-x});
+  if(selV&&cmpAll&&ks2.indexOf(selV)>0){ks2.splice(ks2.indexOf(selV),1);ks2.unshift(selV)}
   var mx=0;ks2.forEach(function(k){mx=Math.max(mx,m.v(G2[k])||0)});
   var f=dim==="chan"?"src":dim;
-  right=card("fRight","Worst first","",togs("fdim",FDIMS,dim),ks2.length?'<table><tbody>'+ks2.map(function(k){var v=m.v(G2[k]);return drow(f,k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td class="bar">'+hbar(v,mx,m.up>0?"":"alt")+'</td><td><b>'+m.f(v)+'</b></td>',F[f]===k)}).join("")+'</tbody></table>'+(m.min?'<div class="note">Rows with fewer than '+m.min+(m.id==="conv"?" fresh walk-ins":" bookings")+' are left out.</div>':""):empty("Nothing to compare in this period"));
+  var ctx=[F.proj?lab(F.proj):"",F.cm?F.cm:"",F.sm?F.sm:"",F.src?(F.src==="Indirect"?"Indirect (CP)":F.src):""].filter(Boolean).join(" · ");
+  var tg=togs("fdim",FDIMS,dim)+(selV?togs("fcmp",[["one",esc(lab(selV))+" only"],["all","All"]],cmpAll?"all":"one"):"");
+  right=card("fRight","Worst first",esc(ctx),tg,ks2.length?'<table><tbody>'+ks2.map(function(k){var v=m.v(G2[k]);return drow(f,k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td class="bar">'+hbar(v,mx,m.up>0?"":"alt")+'</td><td><b>'+m.f(v)+'</b></td>',F[f]===k)}).join("")+'</tbody></table>'+(single?'<div class="note">Showing '+esc(lab(selV))+' only. Tap “All” to compare, or pick another breakdown.</div>':m.min?'<div class="note">Rows with fewer than '+m.min+(m.id==="conv"?" fresh walk-ins":" bookings")+' are left out.</div>':""):empty("Nothing to compare in this period"));
   el.innerHTML=ans+mid+right;
   colChart(el.querySelector("#fMid .plot"),items,{fmt:function(v){return m.f(v)},aria:m.label+" trend",alt:m.up<0});
 }
@@ -1118,7 +1127,8 @@ function cmdFlags(D){
   sm.conv=el.conv.length?{text:pl(el.conv.length,"project")+" had enough data (20+ fresh walk-ins in the last 30 days and 5+ bookings in the 6 months before). None fell below half of its normal conversion.",list:el.conv.map(function(x){return x.p+": "+fp(x.c)+" now vs normal "+fp(x.n)+" (alert below "+fp(x.n/2)+")"})}
     :{skip:1,text:"No project had 20+ fresh walk-ins in the last 30 days ("+W30+") together with 5+ bookings in the 6 months before ("+B180+"), so conversion could not be compared fairly."};
   var oc30=sum(D.O.c,w30,Y),oc180=sum(D.O.c,bA,bB),on=oc180/6;
-  sm.cx={text:who+": "+pl(oc30,"cancellation")+" in the last 30 days ("+W30+") vs usual "+n1(on)+"/month ("+fmt(oc180)+" in "+B180+" ÷ 6). An alert needs more than "+n1(1.5*on)+" and at least 3."+(F.proj?"":" Each project was also checked the same way; none spiked.")};
+  var obk=sum(D.O.b,bA,Y);
+  sm.cx=!obk&&!oc30&&!oc180?{skip:1,text:who+" had no bookings in "+dr(bA,Y)+", so there was nothing that could be cancelled."}:{text:who+": "+pl(oc30,"cancellation")+" in the last 30 days ("+W30+") vs usual "+n1(on)+"/month ("+fmt(oc180)+" in "+B180+" ÷ 6). An alert needs more than "+n1(1.5*on)+" and at least 3."+(F.proj?"":" Each project was also checked the same way; none spiked.")};
   var of7=sum(D.O.f,Y-6,Y),of28=sum(D.O.f,Y-34,Y-7),ob=of28/4;
   sm.walk=ob>=10?{text:who+": "+pl(of7,"fresh walk-in")+" in the last 7 days ("+W7+") vs usual "+n1(ob)+"/week ("+fmt(of28)+" in "+B28+" ÷ 4), which is "+Math.round(of7/ob*100)+"% of usual. An alert needs below 70% ("+n1(.7*ob)+")."+(F.proj?"":" Projects with 10+ walk-ins a week were also checked; none dropped below 70%.")}
     :{skip:1,text:"Usual fresh walk-ins for these filters are only "+n1(ob)+" a week ("+fmt(of28)+" in "+B28+" ÷ 4). The check needs a usual of 10+ a week, so small swings are not flagged."};
@@ -1133,6 +1143,13 @@ var COLN={visit:"Date of Visit (column C)",booking:"Booking Date (column AT)",ca
 function rowList(a,n){return a&&a.length?"Rows "+a.join(", ")+(n>a.length?" … and "+(n-a.length)+" more":""):""}
 function dataChecks(){
   var Q=DATA.Q||{},T=today(),Y=T-1,out=[];
+  // 0. the picked project itself (only the Project filter applies here)
+  if(F.proj){var lp=0,p30=0;ROWS.forEach(function(r){if(r.proj!==F.proj)return;if(r.vday>lp&&r.vday<=T)lp=r.vday;if(r.kind===0&&r.vday>=Y-29&&r.vday<=Y)p30++});
+    var pl=lp?T-lp:-1,nm=lab(F.proj),ago=pl===0?"today":pl===1?"yesterday":pl+" days ago";
+    if(!isProj(F.proj))out.push({pin:1,lvl:1,title:"“"+nm+"” is not a single project",text:p30+" fresh walk-ins in "+dr(Y-29,Y)+" are tagged “"+nm+"” in column B. They cannot be checked per project, so most checks show “Not checked”.",fix:"Tag each walk-in with its actual project in column B."});else
+    out.push({pin:1,lvl:pl<0||pl>2?1:0,title:nm+": "+(lp?"last walk-in "+dl(lp)+" ("+ago+")":"no walk-ins recorded"),
+      text:p30+" fresh walk-in"+(p30===1?"":"s")+" in "+dr(Y-29,Y)+"."+(p30<15?" That is below the 15 a month the project checks need, so they show “Not checked”.":""),
+      fix:pl<0?"Check that walk-ins for "+nm+" have Project (column B) filled in.":pl>2?"Enter "+nm+"’s walk-ins since "+dl(lp)+", with Project (column B) filled in.":""})}
   // 1. dates after today
   var fu=Q.future;
   if(fu){var tot=fu.visit.n+fu.booking.n+fu.cancellation.n;
@@ -1171,10 +1188,10 @@ function dataChecks(){
 }
 function dataHtml(dc){
   var nR=dc.filter(function(x){return x.lvl===2}).length,nA=dc.filter(function(x){return x.lvl===1}).length;
-  var issues=dc.filter(function(x){return x.lvl}).sort(function(a,b){return b.lvl-a.lvl}),oks=dc.filter(function(x){return!x.lvl});
+  var issues=dc.filter(function(x){return x.lvl||x.pin}).sort(function(a,b){return(b.pin||0)-(a.pin||0)||b.lvl-a.lvl}),oks=dc.filter(function(x){return!x.lvl&&!x.pin});
   function det(x){return(x.text?'<p>'+esc(x.text)+'</p>':"")+(x.lines&&x.lines.length?'<ul>'+x.lines.map(function(l){return'<li>'+esc(l)+'</li>'}).join("")+'</ul>':"")+(x.fix?'<p class="dfix"><b>Fix:</b> '+esc(x.fix)+'</p>':"")}
-  var rows=issues.map(function(x){var cl=x.lvl===2?"bad":"warn";
-    return'<details class="drow '+cl+'"><summary><span class="pic">'+(x.lvl===2?"✕":"!")+'</span><b><span class="sr">'+(x.lvl===2?"Fix needed: ":"Check: ")+'</span>'+esc(x.title)+'</b><span class="fchev" aria-hidden="true">›</span></summary><div class="dbody">'+det(x)+'</div></details>'}).join("");
+  var rows=issues.map(function(x){var cl=x.lvl===2?"bad":x.lvl===1?"warn":"ok";
+    return'<details class="drow '+cl+(x.pin?" pin":"")+'"><summary><span class="pic">'+(x.lvl===2?"✕":x.lvl===1?"!":"✓")+'</span><b><span class="sr">'+(x.lvl===2?"Fix needed: ":x.lvl===1?"Check: ":"OK: ")+'</span>'+esc(x.title)+'</b><span class="fchev" aria-hidden="true">›</span></summary><div class="dbody">'+det(x)+'</div></details>'}).join("");
   if(oks.length)rows+='<details class="drow ok"><summary><span class="pic">✓</span><b>'+oks.length+' check'+(oks.length>1?"s":"")+' OK</b><span class="fchev" aria-hidden="true">›</span></summary><div class="dbody"><ul class="oklist">'+oks.map(function(x){return'<li><b>'+esc(x.title)+'</b>'+(x.text?' — '+esc(x.text):"")+(x.lines&&x.lines.length?' '+esc(x.lines.join(" ")):"")+'</li>'}).join("")+'</ul></div></details>';
   return'<section class="card cdata" id="ccData"><div class="chd"><h2>Data checks</h2>'+(nR?'<span class="cnt r">'+nR+' to fix</span>':"")+(nA?'<span class="cnt a">'+nA+' to check</span>':"")+(!nR&&!nA?'<span class="cnt g">all OK</span>':"")+'<span class="sub">tap to see details</span></div><div class="cbd"><div class="dlist">'+rows+'</div></div></section>';
 }
@@ -1191,10 +1208,15 @@ function cmdHtml(){
   var by={};CHECKS.forEach(function(c){by[c[0]]={n:0,r:0}});fl.forEach(function(f){by[f.t].n++;if(f.lvl===2)by[f.t].r++});
   var nR=fl.filter(function(f){return f.lvl===2}).length,nA=fl.length-nR,cat=ui.ccat&&by[ui.ccat]?ui.ccat:"";
   // status board
-  var head=nR+nA?[nR?nR+" red":"",nA?nA+" amber":""].filter(Boolean).join(" · ")+" alert"+(nR+nA>1?"s":"")+" need"+(nR+nA>1?"":"s")+" attention":"All clear: nothing needs attention";
+  var nSkip=CHECKS.filter(function(c){return!by[c[0]].n&&fl.sm[c[0]].skip}).length,whoS=F.proj?(isProj(F.proj)?lab(F.proj):"“"+lab(F.proj)+"”"):"these filters";
+  var head=nR+nA?[nR?nR+" red":"",nA?nA+" amber":""].filter(Boolean).join(" · ")+" alert"+(nR+nA>1?"s":"")+" need"+(nR+nA>1?"":"s")+" attention"
+    :nSkip===CHECKS.length?"Not enough data to check "+whoS
+    :nSkip?"No alerts, but "+nSkip+" of "+CHECKS.length+" checks couldn’t run"
+    :"All clear: nothing needs attention";
+  var why=nSkip&&!(nR+nA)?'<div class="cc-s cc-why">Too few walk-ins for '+esc(whoS)+' to test '+(nSkip===1?"one check":"them")+'. Grey means not checked, not OK. Tap a grey check to see why.</div>':"";
   var dc=dataChecks(),dR=dc.filter(function(x){return x.lvl===2}).length,dA=dc.filter(function(x){return x.lvl===1}).length;
   var fresh='<button class="cc-fresh '+(dR?"bad":dA?"lag":"")+'" data-jump="ccData"><i></i><span>Data checks: '+(dR||dA?[dR?dR+" to fix":"",dA?dA+" to check":""].filter(Boolean).join(" · "):"all OK")+(lag>=0?' · last walk-in '+dl(D.lastV):' · no walk-ins match these filters')+'</span><b aria-hidden="true">›</b></button>';
-  var hero='<section class="cc-hero '+(nR?"bad":nA?"warn":"good")+'" aria-label="Status board"><div class="cc-top"><div class="cc-tt"><div class="cc-k"><span class="cc-live"></span>Command Centre · live</div><div class="cc-h">'+head+'</div><div class="cc-s"><span id="ccClock">'+ccClock()+'</span> IST · 5 checks on data up to '+dl(Y)+'</div></div>'+fresh+'</div>'+
+  var hero='<section class="cc-hero '+(nR?"bad":nA?"warn":nSkip?"skip":"good")+'" aria-label="Status board"><div class="cc-top"><div class="cc-tt"><div class="cc-k"><span class="cc-live"></span>Command Centre · live</div><div class="cc-h">'+head+'</div><div class="cc-s"><span id="ccClock">'+ccClock()+'</span> IST · 5 checks on data up to '+dl(Y)+'</div>'+why+'</div>'+fresh+'</div>'+
     '<div class="cc-checks" role="group" aria-label="Show alerts for one check">'+CHECKS.map(function(c){var b=by[c[0]],sk=fl.sm[c[0]].skip,st=b.r?"bad":b.n?"warn":sk?"skip":"good";
       return'<button class="cc-chk '+st+(cat===c[0]?" on":"")+'" data-ccat="'+c[0]+'" aria-pressed="'+(cat===c[0])+'"><span class="cc-ic">'+ico(c[0])+'</span><span class="cc-nm">'+c[1]+'</span><span class="cc-st"><i></i>'+(b.n?b.n+(b.n>1?" alerts":" alert"):sk?"Not checked":"All clear")+'</span></button>'}).join("")+'</div></section>';
   var nav='<nav class="cc-nav" aria-label="Command Centre sections"><button data-jump="ccAlerts">Alerts'+(fl.length?' <b>'+fl.length+'</b>':"")+'</button><button data-jump="ccData">Data'+(dR||dA?' <b class="'+(dR?"":"a")+'">'+(dR+dA)+'</b>':"")+'</button><button data-jump="ccPulse">Today &amp; week</button></nav>';
@@ -1208,6 +1230,7 @@ function cmdHtml(){
   var body=list.length?'<div class="flags">'+show.map(flagHtml).join("")+(!cat&&list.length>6?'<button class="reset fmore" data-ui="cmdAll" data-uv="'+(ui.cmdAll?"":"1")+'">'+(ui.cmdAll?"Show fewer":"Show all "+list.length+" alerts")+'</button>':"")+'</div>'+
       ""
     :cat?'<div class="plist">'+pass+'</div>'
+    :nSkip?'<div class="allok skip"><span class="okic">–</span><div><b>'+(nSkip===CHECKS.length?"Nothing could be checked":"No alerts from the "+(CHECKS.length-nSkip)+" check"+(CHECKS.length-nSkip>1?"s":"")+" that ran")+'</b><span>'+nSkip+' check'+(nSkip>1?"s":"")+' had too little data. Tap a grey check above to see why.</span></div></div>'
     :'<div class="allok"><span class="okic">✓</span><div><b>No alerts</b><span>Tap a check above to see what it looked at.</span></div></div>';
   var rules='<details class="rules" id="ccRules"><summary>How these checks work</summary><ul>'+
     '<li><b>Project stalled</b> (red): 15+ fresh walk-ins and 0 bookings in the last 30 days.</li>'+
@@ -1340,8 +1363,8 @@ document.addEventListener("click",function(e){
   if((x=t.closest("[data-unfocus]"))){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}return}
   if((x=t.closest("[data-tile]"))&&isPhone()){openDetail(x.getAttribute("data-tile"));return}
   if(x){var id=x.getAttribute("data-tile");if(tab==="site"){tab="mgmt"}focus=focus===id?null:id;render();window.scrollTo({top:0,behavior:"smooth"});return}
-  if((x=t.closest("[data-ui]"))){ui[x.getAttribute("data-ui")]=x.getAttribute("data-uv");render();return}
-  if((x=t.closest("[data-x]"))){F[x.getAttribute("data-x")]="";render();return}
+  if((x=t.closest("[data-ui]"))){ui[x.getAttribute("data-ui")]=x.getAttribute("data-uv");if(x.getAttribute("data-ui")==="fdim")ui.fdimPicked=1;render();return}
+  if((x=t.closest("[data-x]"))){F[x.getAttribute("data-x")]="";ui.fdimPicked=0;render();return}
   if((x=t.closest("[data-per]"))){F.per=x.getAttribute("data-per");render();return}
   if((x=t.closest("tr[data-f]"))){var f=x.getAttribute("data-f"),v=x.getAttribute("data-v");if(tab==="site"&&f==="proj")return;F[f]=F[f]===v?"":v;render();return}
 });
@@ -1353,11 +1376,12 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Escape"){if($("flt").classList.contains("open"))$("flt").classList.remove("open");else if(focus){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}}}
 });
 document.addEventListener("change",function(e){var t=e.target;
+  if(/^f(Proj|Cm|Sm|Src)$/.test(t.id))ui.fdimPicked=0;
   if(t.id==="fPer")F.per=t.value;else if(t.id==="fProj")F.proj=t.value;else if(t.id==="fCm")F.cm=t.value;else if(t.id==="fSm")F.sm=t.value;else if(t.id==="fSrc")F.src=t.value;
   else if(t.matches("[data-why]")){if(t.getAttribute("data-why")==="sWhy")ui.swhy=t.value;else ui.why=t.value}else return;
   render();
 });
-$("freset").onclick=function(){Object.assign(F,{per:"mtd",proj:tab==="site"?F.proj:"",cm:"",sm:"",src:"",cp:""});focus=null;render()};
+$("freset").onclick=function(){ui.fdimPicked=0;ui.ccat="";Object.assign(F,{per:"mtd",proj:tab==="site"?F.proj:"",cm:"",sm:"",src:"",cp:""});focus=null;render()};
 $("fopen").onclick=function(){$("flt").classList.add("open")};
 $("fclose").onclick=function(){$("flt").classList.remove("open")};
 $("refresh").onclick=function(){$("liveTxt").textContent="Refreshing…";load(true)};
