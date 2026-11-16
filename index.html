@@ -357,8 +357,16 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 .m2track{flex:1;max-width:320px;height:6px;border-radius:99px;background:rgba(255,255,255,.15);overflow:hidden}
 .m2track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#fff,#FCD34D)}
 .m2chart{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:12px 16px 8px}
-.m2ct{display:flex;justify-content:space-between;font-size:12px;opacity:.85;margin-bottom:4px}
-.m2chart svg{display:block;width:100%;height:140px}
+.m2ct{display:flex;justify-content:space-between;gap:12px;font-size:12px;opacity:.85;margin-bottom:4px}.m2ct span:last-child{white-space:nowrap}
+.m2plot{position:relative;height:140px;margin:16px 8px 0 32px}
+.m2plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.m2y{position:absolute;left:-32px;width:24px;text-align:right;transform:translateY(-50%);font-size:11px;opacity:.6}
+.m2dot{position:absolute;width:12px;height:12px;border-radius:50%;background:#FCD34D;border:2px solid #2A1E21;transform:translate(-50%,-50%);box-shadow:0 0 10px rgba(252,211,77,.6)}
+.m2lab{position:absolute;font-size:11px;font-weight:700;white-space:nowrap;transform:translate(calc(-100% - 8px),-150%)}
+.m2lab.now{color:#fff}.m2lab.fc{color:#FCD34D;transform:translate(-100%,-150%)}
+.m2x{position:relative;height:16px;margin:4px 8px 0 32px;font-size:11px;opacity:.65}
+.m2x span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}.m2x span.s{transform:none}.m2x span.e{transform:translateX(-100%)}
+.m2ct span:first-child{font-weight:600}
 .m2lg{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;opacity:.8;margin-top:4px}.m2lg span{display:flex;align-items:center;gap:6px}
 .m2lg i{display:inline-block;width:14px;height:3px;border-radius:2px}.m2lg i.tg{background:rgba(255,255,255,.55)}.m2lg i.ac{background:#FCD34D}.m2lg i.fc{background:repeating-linear-gradient(90deg,#FCD34D 0 4px,transparent 4px 7px)}
 .m2kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:24px}
@@ -1357,13 +1365,14 @@ function m2Proj(M){
   return{list:list,none:S.__none||fin(blank()),unt:unt};
 }
 function m2Lost(p,M){var o={},n=0;ROWS.forEach(function(r){if(r.proj!==p||r.kind!==0||r.vday<M.ms||r.vday>M.T||r.bk)return;n++;if(r.lost)o[r.lost]=(o[r.lost]||0)+1});var t=topOf(o);return t?"“"+t.k+"” · "+t.n+" of "+n:"not entered (column AP)"}
+function m2Recent(p,M){for(var i=0;i<ROWS.length;i++){var r=ROWS[i];if(r.proj===p&&r.kind===0&&r.vday>=M.ms-90&&r.vday<M.ms)return true}return false}
 function m2LastBk(p,T){var lb=0;ROWS.forEach(function(r){if(r.proj===p&&r.bk&&r.bday<=T&&r.bday>lb)lb=r.bday});return lb}
 function m2Box(lab,a,t,e,bad){var w=t?Math.min(100,a/t*100):0;return'<div class="m2box"><div class="m2bl">'+lab+'</div><div class="m2bv">'+fmt(a)+(t?' <small>/ '+fmt(t)+' · '+n1(e)+' expected by today</small>':' <small>no target</small>')+'</div>'+(t?'<div class="m2mb"><i class="'+bad+'" style="width:'+w.toFixed(1)+'%"></i><b style="left:'+(e/t*100).toFixed(1)+'%"></b></div>':"")+'</div>'}
 function m2Drill(M,x,co){var s=x.s,tg=x.tg,lb=m2LastBk(x.p,M.T),cl=function(k){return k==="behind"?"r":k==="slight"?"y":"g"};
   var src=function(R,sheet){return R.length?sheet+", "+M.sh+" "+String(Math.floor(M.ym/100))+" · "+R.length+" row"+(R.length>1?"s":"")+" ("+m2Uniq(R.map(function(r){return pn(r.m)})).join(", ")+")":"no target row for "+x.p};
   return'<div class="m2dk">'+m2Box("Net bookings vs target",s.net,tg.b,x.bs.e,cl(x.bs.k))+m2Box("Fresh walk-ins vs target",s.fresh,tg.w,x.ws.e,cl(x.ws.k))+'</div>'+
-    '<ul class="m2facts"><li><span>Last booking</span><b>'+(lb?dl(lb)+" ("+(M.T-lb)+" days ago)":"none on record")+'</b></li>'+
-    '<li><span>Conversion this month</span><b>'+fp(s.conv)+' vs '+(F.proj?"":"company ")+fp(co)+'</b></li>'+
+    '<ul class="m2facts"><li><span>Last booking</span><b>'+(lb?dl(lb)+(ymd(lb)[0]!==ymd(M.T)[0]?" "+ymd(lb)[0]:"")+" ("+(M.T-lb)+" days ago)":"none on record")+'</b></li>'+
+    '<li><span>Conversion this month</span><b>'+(s.conv==null?"no fresh walk-ins this month":fp(s.conv)+(F.proj||co==null?"":" vs company "+fp(co)))+'</b></li>'+
     '<li><span>Top reason walk-ins didn’t book (column AP)</span><b>'+esc(m2Lost(x.p,M))+'</b></li>'+
     '<li><span>Booking target from</span><b>'+esc(src(tg.bR,"Closing Targets"))+'</b></li>'+
     '<li><span>Walk-in target from</span><b>'+esc(src(tg.wR,"Sourcing Targets"))+'</b></li></ul>'+
@@ -1376,6 +1385,17 @@ function m2Attention(M,PR,flags){var items=[];
     else if(tg.b&&(x.bs.k==="behind"||x.bs.k==="slight")){var g=Math.round(tg.b*M.pace-s.net);if(g>=1)items.push({lvl:x.bs.k==="behind"?2:1,score:(x.bs.k==="behind"?50:12)+g*10,title:x.p+" is "+g+" booking"+(g>1?"s":"")+" short of where it should be by today.",own:{cm:o.cm,sm:[]},x:x})}
     if(tg.w&&x.ws.k==="behind")items.push({lvl:1,score:20+(1-s.fresh/(tg.w*M.pace))*10,title:x.p+" walk-ins are at "+Math.round(s.fresh/tg.w*100)+"% of target, with "+Math.round(M.pace*100)+"% of the month gone.",own:{cm:[],sm:o.sm},x:x});
   });
+  // activity problems that need no target: more cancellations than bookings, walk-ins dried up
+  PR.list.forEach(function(x){if(F.proj&&x.p!==F.proj)return;var s=x.s,o=m2Owners(M,x.p);
+    if(s.net<0)items.push({lvl:2,score:70,title:x.p+" has more cancellations than bookings this month ("+s.cx+" cancelled, "+s.gross+" booked).",own:{cm:o.cm,sm:[]},x:x});
+    if(s.fresh===0&&M.d>=7&&(x.tg.w||m2Recent(x.p,M)))items.push({lvl:1,score:25,title:x.p+" hasn’t had a fresh walk-in this month.",own:{cm:[],sm:o.sm},x:x});
+  });
+  // pace can't be judged without a target
+  if(F.proj){var me=PR.list.filter(function(x){return x.p===F.proj})[0];
+    if(!me||(!me.tg.b&&!me.tg.w))items.push({lvl:1,score:5,title:"No "+M.name+" target is set for "+F.proj+", so its pace can’t be judged.",note:"Add “"+F.proj+"” in column C (Project Name) of Closing Targets for the booking target and Sourcing Targets for the walk-in target, for "+M.name+" "+Math.floor(M.ym/100)+"."})}
+  else{var noT=PR.list.filter(function(x){return!x.tg.b&&!x.tg.w&&(x.s.fresh||x.s.gross||x.s.cx)});
+    if(noT.length)items.push({lvl:1,score:5,title:noT.length+" project"+(noT.length>1?"s":"")+" with activity this month "+(noT.length>1?"have":"has")+" no target, so "+(noT.length>1?"their":"its")+" pace can’t be judged.",
+      note:"No target: "+noT.map(function(x){return x.p}).join(", ")+"."+(PR.unt.n?" "+PR.unt.n+" target row"+(PR.unt.n>1?"s":"")+" for "+M.name+" still say “All” in column C. Put the project name there and these projects get their targets.":" Add rows for them in Closing Targets and Sourcing Targets.")})}
   flags.forEach(function(f){if(f.t!=="cx"&&f.t!=="cp")return;var t=f.title;
     if(f.t==="cp")t=t.replace(/^(\d+) CP firms? gone quiet: (.*)$/,function(_,n,g){return n+" channel partner"+(n==="1"?"":"s")+" stopped sending walk-ins ("+g+")."});
     else t=t.replace(/^Overall /,"").replace(/^(.*?)\s*cancellations up: (\d+) in 30 days vs usual ([\d.]+)\/month$/,function(_,w,n,u){return(w?w+" cancellations":"Cancellations")+" are up: "+n+" in the last 30 days, against a usual "+u+" a month."});
@@ -1384,7 +1404,7 @@ function m2Attention(M,PR,flags){var items=[];
 }
 function m2Item(it,M,co){var red=it.lvl===2,own="";
   if(it.own){own=(it.own.cm||[]).map(function(n){return'<span class="m2who">Closing · '+esc(pn(n))+'</span>'}).join("")+(it.own.sm||[]).map(function(n){return'<span class="m2who">Sourcing · '+esc(pn(n))+'</span>'}).join("")}
-  var body=it.x?m2Drill(M,it.x,co):(function(){var h=flagHtml(it.flag),i=h.indexOf('<div class="fbody">');return i<0?"":h.slice(i+19,h.length-16)})();
+  var body=it.note?'<p class="m2how m2note">'+esc(it.note)+'</p>':it.x?m2Drill(M,it.x,co):(function(){var h=flagHtml(it.flag),i=h.indexOf('<div class="fbody">');return i<0?"":h.slice(i+19,h.length-16)})();
   return'<details class="m2i '+(red?"r":"a")+'"><summary><span class="m2ic" aria-hidden="true">'+(red?"!":"↓")+'</span><span class="m2st"><span class="sr">'+(red?"Urgent: ":"Watch: ")+'</span><span class="m2t">'+esc(it.title)+'</span>'+(own?'<span class="m2o">'+own+'</span>':"")+'</span><span class="fchev" aria-hidden="true">›</span></summary><div class="m2d">'+body+'</div></details>';
 }
 function m2Bar(a,t,M){var k=m2St(a,t,M).k,c=k==="behind"?"r":k==="slight"?"y":k==="none"?"m":"g",w=t?Math.min(100,a/t*100):0;
@@ -1393,17 +1413,21 @@ function m2Chart(M,tgt){
   var c=new Array(M.days+1);for(var i=0;i<=M.days;i++)c[i]=0;
   ROWS.forEach(function(r){if(!pass(r,F))return;if(r.bk&&r.bday>=M.ms&&r.bday<=M.T)c[r.bday-M.ms+1]++;if(r.cx&&r.cday>=M.ms&&r.cday<=M.T)c[r.cday-M.ms+1]--});
   var cum=[0];for(i=1;i<=M.d;i++)cum[i]=cum[i-1]+c[i];
-  var now=cum[M.d],fc=M.d?Math.max(0,now/M.d*M.days):0,top=Math.max(tgt||0,fc,Math.max.apply(null,cum),1)*1.12,W=320,H=140,pd=10;
-  var x=function(d){return pd+(W-2*pd)*d/M.days},y=function(v){return H-pd-(H-2*pd)*Math.max(0,v)/top},g="";
-  [.25,.5,.75,1].forEach(function(f){g+='<line x1="'+pd+'" x2="'+(W-pd)+'" y1="'+y(top*f/1.12)+'" y2="'+y(top*f/1.12)+'" stroke="rgba(255,255,255,.07)"/>'});
-  if(tgt)g+='<line x1="'+x(0)+'" y1="'+y(0)+'" x2="'+x(M.days)+'" y2="'+y(tgt)+'" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-dasharray="2 4"/>';
+  var now=cum[M.d],fc=M.d?Math.max(0,now/M.d*M.days):0,mx=Math.max(tgt||0,fc,Math.max.apply(null,cum),1),top=mx<=4?4:Math.ceil(mx*1.1/2)*2,W=320,H=140;
+  // lines are drawn in a stretchable SVG; text and the "today" dot are HTML so they never get distorted
+  var x=function(d){return W*d/M.days},y=function(v){return H-H*Math.max(0,v)/top},g="";
+  [0,.5,1].forEach(function(f){g+='<line x1="0" x2="'+W+'" y1="'+y(top*f)+'" y2="'+y(top*f)+'" stroke="rgba(255,255,255,'+(f?.08:.25)+')" vector-effect="non-scaling-stroke"/>'});
+  if(tgt)g+='<line x1="'+x(0)+'" y1="'+y(0)+'" x2="'+x(M.days)+'" y2="'+y(tgt)+'" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-dasharray="2 4" vector-effect="non-scaling-stroke"/>';
   var pts=cum.map(function(v,i){return x(i).toFixed(1)+","+y(v).toFixed(1)}).join(" ");
   g+='<polygon points="'+x(0)+","+y(0)+" "+pts+" "+x(M.d).toFixed(1)+","+y(0)+'" fill="rgba(252,211,77,.14)"/>';
-  g+='<polyline points="'+pts+'" fill="none" stroke="#FCD34D" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
-  if(M.d<M.days)g+='<line x1="'+x(M.d)+'" y1="'+y(now)+'" x2="'+x(M.days)+'" y2="'+y(fc)+'" stroke="#FCD34D" stroke-width="2.5" stroke-dasharray="5 4" opacity=".8"/>'+
-    '<text x="'+(x(M.days)-2)+'" y="'+(y(fc)+(fc>=(tgt||0)?-8:16))+'" fill="#FCD34D" font-size="11" font-weight="700" text-anchor="end">→ '+Math.round(fc)+'</text>';
-  g+='<circle cx="'+x(M.d)+'" cy="'+y(now)+'" r="5" fill="#FCD34D" stroke="#2A1E21" stroke-width="2"/><text x="'+(x(M.d)-6)+'" y="'+(y(now)-10)+'" fill="#fff" font-size="11" font-weight="700" text-anchor="end">Today '+now+'</text>';
-  return'<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Net bookings this month so far, '+now+(tgt?" of target "+tgt:"")+'">'+g+'</svg>';
+  g+='<polyline points="'+pts+'" fill="none" stroke="#FCD34D" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>';
+  if(M.d<M.days)g+='<line x1="'+x(M.d)+'" y1="'+y(now)+'" x2="'+x(M.days)+'" y2="'+y(fc)+'" stroke="#FCD34D" stroke-width="2.5" stroke-dasharray="5 4" opacity=".8" vector-effect="non-scaling-stroke"/>';
+  var px=function(d){return(d/M.days*100).toFixed(2)+"%"},py=function(v){return((1-Math.max(0,v)/top)*100).toFixed(2)+"%"};
+  var lab='<span class="m2y" style="top:0">'+top+'</span><span class="m2y" style="top:50%">'+(top/2)+'</span><span class="m2y" style="top:100%">0</span>'+
+    '<span class="m2dot" style="left:'+px(M.d)+';top:'+py(now)+'"></span><span class="m2lab now" style="left:'+px(M.d)+';top:'+py(now)+'">Today '+now+'</span>'+
+    (M.d<M.days?'<span class="m2lab fc" style="left:100%;top:'+py(fc)+'">→ '+Math.round(fc)+'</span>':"");
+  var xs=[[0,"1 "+M.sh,"s"],[10,"10",""],[20,"20",""],[M.days,M.days+" "+M.sh,"e"]].map(function(t){return'<span class="'+t[2]+'" style="left:'+px(t[0])+'">'+t[1]+'</span>'}).join("");
+  return'<div class="m2plot"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Net bookings added up day by day this month: '+now+' so far'+(tgt?", target "+tgt:"")+'">'+g+'</svg>'+lab+'</div><div class="m2x">'+xs+'</div>';
 }
 function cmdHtml(){
   var M=m2Month(),D=cmdData(),fl=cmdFlags(D),dc=dataChecks();
@@ -1436,7 +1460,7 @@ function cmdHtml(){
       '<div class="m2ks">'+chip(st,g)+'<span>'+(t?'Pace → <b>'+fmt(fc)+'</b> by '+M.days+' '+M.sh+' · ':"")+vsTxt+'</span></div></div>'}
   var hero='<section class="m2hero '+mood+'" aria-label="This month"><div class="m2eye"><span class="cc-live"></span>'+M.name+' · day '+M.d+' of '+M.days+(ctx?' · '+ctx:"")+'</div>'+
     '<div class="m2story"><div><h2 class="m2h">'+head+'</h2><p class="m2sub">'+sub+'</p><div class="m2day">Month gone<span class="m2track"><i style="width:'+(M.pace*100).toFixed(1)+'%"></i></span><b>'+Math.round(M.pace*100)+'%</b></div></div>'+
-    '<div class="m2chart"><div class="m2ct"><span>Net bookings, day by day</span><span>'+(TG.b?"target "+TG.b:"no target")+'</span></div>'+m2Chart(M,TG.b)+
+    '<div class="m2chart"><div class="m2ct"><span>Net bookings so far, added up day by day'+(ctx?' · '+ctx:"")+'</span><span>'+(TG.b?"target "+TG.b:"no target")+'</span></div>'+m2Chart(M,TG.b)+
     '<div class="m2lg">'+(TG.b?'<span><i class="tg"></i>Target pace</span>':"")+'<span><i class="ac"></i>Actual</span><span><i class="fc"></i>At current pace</span></div></div></div>'+
     '<div class="m2kpis">'+kpi("Net bookings",S.net,TG.b,bs,gb,fcB,vs(S.net,L.net))+kpi("Fresh walk-ins",S.fresh,TG.w,ws,gw,fcW,vs(S.fresh,L.fresh))+
     '<div class="m2kpi"><div class="m2kl">Walk-in to booking</div><div class="m2kv">'+fp(S.conv)+'</div><div class="m2pb"><i class="ok" style="width:'+Math.min(100,(S.conv||0)*5).toFixed(1)+'%;background:linear-gradient(90deg,#FDE68A,#FCD34D)"></i></div><div class="m2ks"><span>'+fmt(S.gross)+' bookings ÷ '+fmt(S.fresh)+' fresh walk-ins</span>'+(S.conv!=null&&L.conv!=null?vs(S.conv,L.conv,1):"")+'</div></div></div></section>';
@@ -1444,7 +1468,8 @@ function cmdHtml(){
   var items=m2Attention(M,PR,fl),nR=items.filter(function(i){return i.lvl===2}).length,nA=items.length-nR,show=ui.attAll?items:items.slice(0,3);
   var att='<section class="card m2att" id="ccAlerts"><div class="m2ch"><h2>Needs your attention</h2>'+(nR?'<span class="cnt r">'+nR+' urgent</span>':"")+(nA?'<span class="cnt a">'+nA+' to watch</span>':"")+'</div>'+
     (items.length?'<div class="m2list">'+show.map(function(it){return m2Item(it,M,S.conv)}).join("")+'</div>'+(items.length>3?'<button class="reset m2more" data-ui="attAll" data-uv="'+(ui.attAll?"":"1")+'">'+(ui.attAll?"Show fewer":"+ "+(items.length-3)+" more")+'</button>':"")
-      :'<div class="allok"><span class="okic">✓</span><div><b>Nothing needs your attention</b><span>Every project with a target is on pace, and no other checks raised a flag.</span></div></div>')+
+      :(TG.b||TG.w?'<div class="allok"><span class="okic">✓</span><div><b>Nothing needs your attention</b><span>Everything with a target is on pace, and no other checks raised a flag.</span></div></div>'
+        :'<div class="allok skip"><span class="okic">–</span><div><b>Nothing urgent, but pace can’t be judged</b><span>There is no '+M.name+' target for this view yet.</span></div></div>'))+
     '<p class="m2foot">Tap an item to see the numbers behind it.</p></section>';
   // ③ projects scoreboard
   var sel=F.proj,all=ui.pcmp==="all",rows=PR.list.filter(function(x){return!sel||all||x.p===sel});
