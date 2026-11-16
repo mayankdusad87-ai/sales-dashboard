@@ -1393,7 +1393,7 @@ function m2Chart(M,tgt){
   var c=new Array(M.days+1);for(var i=0;i<=M.days;i++)c[i]=0;
   ROWS.forEach(function(r){if(!pass(r,F))return;if(r.bk&&r.bday>=M.ms&&r.bday<=M.T)c[r.bday-M.ms+1]++;if(r.cx&&r.cday>=M.ms&&r.cday<=M.T)c[r.cday-M.ms+1]--});
   var cum=[0];for(i=1;i<=M.d;i++)cum[i]=cum[i-1]+c[i];
-  var now=cum[M.d],fc=M.d?now/M.d*M.days:0,top=Math.max(tgt||0,fc,Math.max.apply(null,cum),1)*1.12,W=320,H=140,pd=10;
+  var now=cum[M.d],fc=M.d?Math.max(0,now/M.d*M.days):0,top=Math.max(tgt||0,fc,Math.max.apply(null,cum),1)*1.12,W=320,H=140,pd=10;
   var x=function(d){return pd+(W-2*pd)*d/M.days},y=function(v){return H-pd-(H-2*pd)*Math.max(0,v)/top},g="";
   [.25,.5,.75,1].forEach(function(f){g+='<line x1="'+pd+'" x2="'+(W-pd)+'" y1="'+y(top*f/1.12)+'" y2="'+y(top*f/1.12)+'" stroke="rgba(255,255,255,.07)"/>'});
   if(tgt)g+='<line x1="'+x(0)+'" y1="'+y(0)+'" x2="'+x(M.days)+'" y2="'+y(tgt)+'" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-dasharray="2 4"/>';
@@ -1410,7 +1410,7 @@ function cmdHtml(){
   var S=stats(F,{from:M.ms,to:M.T}).tot,TG=m2Targets(M),PR=m2Proj(M);
   var lmY=ymAdd(M.ym,-1),L=stats(F,{from:monStart(lmY),to:Math.min(monStart(lmY)+M.d-1,monEnd(lmY))}).tot;
   var bs=m2St(S.net,TG.b,M),ws=m2St(S.fresh,TG.w,M),gb=bs.e!=null?Math.round(bs.e-S.net):0,gw=ws.e!=null?Math.round(ws.e-S.fresh):0;
-  var bOK=bs.k==="ok"||bs.k==="met",wOK=ws.k==="ok"||ws.k==="met",fcB=M.d?Math.round(S.net/M.d*M.days):0,fcW=M.d?Math.round(S.fresh/M.d*M.days):0;
+  var bOK=bs.k==="ok"||bs.k==="met",wOK=ws.k==="ok"||ws.k==="met",fcB=M.d?Math.max(0,Math.round(S.net/M.d*M.days)):0,fcW=M.d?Math.max(0,Math.round(S.fresh/M.d*M.days)):0;
   var who=F.proj?esc(lab(F.proj)):"we";
   // ① the headline sentence
   var bT=bs.k==="met"?"bookings have <em>hit the target</em>":bOK?"bookings are on pace":"bookings are <em>"+Math.max(1,gb)+" behind pace</em>";
