@@ -269,6 +269,19 @@ svg.ch{display:block;width:100%;height:100%}
 .allok{display:flex;gap:12px;align-items:center;padding:16px;border-radius:14px;background:var(--goodbg)}
 .allok .okic{flex:none;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--good);color:#fff;font-weight:800;font-size:18px;animation:pop .5s cubic-bezier(.2,.9,.3,1.4)}
 .allok b{display:block;color:var(--good);font-size:14px}.allok span{color:var(--ink2);font-size:13px}
+button.cc-fresh{font:inherit;color:#fff;cursor:pointer;text-align:left;min-height:40px}
+button.cc-fresh:hover{background:rgba(255,255,255,.14)}
+button.cc-fresh b{font-size:18px;line-height:1;opacity:.8;margin-left:2px}
+.cc-fresh.bad{border-color:rgba(248,113,113,.6)}.cc-fresh.bad i{background:#F87171;box-shadow:0 0 8px #F87171;animation:blink 1.6s ease-in-out infinite}
+.cnt.g{background:var(--goodbg);color:var(--good)}
+.dchk.bad .pic{background:var(--badbg);color:var(--bad)}.dchk.warn .pic{background:var(--warnbg);color:var(--warn)}.dchk.ok .pic{background:var(--goodbg);color:var(--good)}
+.dchk.bad .ptag{background:var(--badbg);color:var(--bad)}.dchk.warn .ptag{background:var(--warnbg);color:var(--warn)}
+.dchk.ok p{margin-top:2px}
+.dchk ul{word-break:break-word}
+.dfix{color:var(--ink)!important}
+button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
+.cc-nav button b.a{background:var(--warn)}
+@media (min-width:1280px){.app.cmdtab{height:auto;min-height:100vh}.cmd{flex:none;grid-template-rows:auto auto 1fr;align-items:start}.catt{grid-column:1;grid-row:2 / 4}.cdata{grid-column:2;grid-row:2}.cpul{grid-column:2;grid-row:3}}
 .cc-chk.skip .cc-ic{color:#D6CBC9}.cc-chk.skip .cc-st i{background:#A8A0A2}
 .psec{margin:20px 0 4px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
 .plist{display:flex;flex-direction:column}
@@ -846,11 +859,15 @@ function projCard(P){
   var keys=Object.keys(S.G).concat(Object.keys(iv).filter(function(k){return!S.G[k]}));
   keys=keys.filter(function(k,i){return keys.indexOf(k)===i});
   keys.sort(function(a,b){var x=S.G[a]||{net:0,fresh:0},y=S.G[b]||{net:0,fresh:0};return y.net-x.net||y.fresh-x.fresh});
+  // with a project picked: show only it (default) or all projects with it pinned on top
+  var sel=F.proj,all=sel&&ui.pcmp==="all";
+  if(sel){if(all)keys=[sel].concat(keys.filter(function(k){return k!==sel}));else keys=[sel]}
   var mx=0;keys.forEach(function(k){if(S.G[k])mx=Math.max(mx,S.G[k].net)});
   var rows=keys.map(function(k){var s=S.G[k]||fin(blank()),u=iv[k];
     return drow("proj",k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td>'+fmt(s.rev)+'</td><td>'+fmt(s.net)+'</td><td>'+fmt(s.cx)+'</td><td>'+fp(s.conv)+'</td><td>'+(u?fmt(u.Unsold)+'<span class="dim">/'+fmt(u.tot)+'</span>':'<span class="dim">–</span>')+'</td>',F.proj===k)}).join("");
-  var t=S.tot,ti=inv("");
-  return card("cProj","Projects",esc(P.label),"",keys.length?'<table><thead><tr><th>Project</th><th>Fresh</th><th>Uniq. revisits</th><th>Net bkg</th><th>Cxl</th><th>Conv</th><th>Unsold</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>Total</td><td>'+fmt(t.fresh)+'</td><td>'+fmt(t.rev)+'</td><td>'+fmt(t.net)+'</td><td>'+fmt(t.cx)+'</td><td>'+fp(t.conv)+'</td><td>'+fmt(ti.Unsold)+'<span class="dim">/'+fmt(ti.tot)+'</span></td></tr></tfoot></table>':empty("No walk-ins in this period"));
+  var t=sel&&!all?(S.G[sel]||fin(blank())):S.tot,ti=inv(sel&&!all?sel:"");
+  var tg=sel?togs("pcmp",[["one",esc(lab(sel))+" only"],["all","All projects"]],all?"all":"one"):"";
+  return card("cProj","Projects",esc(P.label)+(sel&&!all?" · "+esc(lab(sel)):""),tg,keys.length?'<table><thead><tr><th>Project</th><th>Fresh</th><th>Uniq. revisits</th><th>Net bkg</th><th>Cxl</th><th>Conv</th><th>Unsold</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>'+(sel&&!all?esc(lab(sel))+" total":"Total")+'</td><td>'+fmt(t.fresh)+'</td><td>'+fmt(t.rev)+'</td><td>'+fmt(t.net)+'</td><td>'+fmt(t.cx)+'</td><td>'+fp(t.conv)+'</td><td>'+fmt(ti.Unsold)+'<span class="dim">/'+fmt(ti.tot)+'</span></td></tr></tfoot></table>':empty("No walk-ins in this period"));
 }
 // limit a period to the months that have targets, so actuals and targets cover the same months
 function clip(P,tm){if(!tm.length)return P;tm.sort();var a=tm[0],b=tm[tm.length-1];return{from:Math.max(P.from,monStart(a)),to:Math.min(P.to,monEnd(b)),full:{to:monEnd(b)},label:a===b?ymLab(a):ymLab(a)+"–"+ymLab(b),clipped:monStart(a)>P.from||monEnd(b)<P.full.to}}
@@ -1084,6 +1101,55 @@ function cmdFlags(D){
   fl.sm=sm;
   return fl;
 }
+/* data checks: whole sheet, filters ignored */
+var COLN={visit:"Date of Visit (column C)",booking:"Booking Date (column AT)",cancellation:"Cancellation Date (column AV)"};
+function rowList(a,n){return a&&a.length?"Rows "+a.join(", ")+(n>a.length?" … and "+(n-a.length)+" more":""):""}
+function dataChecks(){
+  var Q=DATA.Q||{},T=today(),Y=T-1,out=[];
+  // 1. dates after today
+  var fu=Q.future;
+  if(fu){var tot=fu.visit.n+fu.booking.n+fu.cancellation.n;
+    out.push(tot?{lvl:2,title:fmt(tot)+" date"+(tot>1?"s are":" is")+" after today",text:"Visits, bookings and cancellations cannot happen in the future, so these dates are wrong and are left out of today and this-week counts.",
+      lines:["visit","booking","cancellation"].filter(function(k){return fu[k].n}).map(function(k){return COLN[k]+": "+fmt(fu[k].n)+" · "+rowList(fu[k].rows,fu[k].n)}),fix:"Open these rows and correct the date, written as dd-mm-yyyy."}
+      :{lvl:0,title:"No dates after today",text:"Every visit, booking and cancellation date is today or earlier."})}
+  // 2. date format
+  var ev=Q.dateEvidence;
+  if(ev){var bad=[],okl=[],warn=[];
+    ["visit","booking","cancellation"].forEach(function(k){var e=ev[k];if(!e)return;var dm=e.order==="dmy";
+      if(e.dayFirst&&e.monthFirst){var minR=dm?e.monthFirstRows:e.dayFirstRows,minN=dm?e.monthFirst:e.dayFirst;
+        bad.push(COLN[k]+": "+fmt(e.dayFirst)+" written day-first and "+fmt(e.monthFirst)+" month-first. Read as "+(dm?"day-month":"month-day")+", so the "+fmt(minN)+" "+(dm?"month-first":"day-first")+" ones, and any of the "+fmt(e.either)+" that could go either way, may be wrong. "+rowList(minR,minN))}
+      else if(!e.dayFirst&&!e.monthFirst&&e.either)warn.push(COLN[k]+": "+fmt(e.either)+" dates like 05-06-2026 and none with a day above 12, so day and month cannot be told apart.");
+      else if(e.dayFirst||e.monthFirst)okl.push(COLN[k]+": read as "+(dm?"day-month":"month-day")+" ("+fmt(dm?e.dayFirst:e.monthFirst)+" dates prove it, e.g. "+(dm?"20-10-2026":"10-20-2026")+").")});
+    if(bad.length)out.push({lvl:2,title:"Mixed date formats",text:"Some dates are written day-first and others month-first in the same column.",lines:bad,fix:"Write every date the same way, dd-mm-yyyy (or with the month as a word, e.g. 8-Nov-2026)."});
+    else if(warn.length)out.push({lvl:1,title:"Date order can't be confirmed",text:"",lines:warn,fix:"Enter at least some dates with a day above 12, or write the month as a word."});
+    else out.push({lvl:0,title:"Date format consistent",text:okl.length?"":"Dates are stored as real date cells, so there is no day/month doubt.",lines:okl})}
+  // 3. sheet up to date
+  var lastV=0;ROWS.forEach(function(r){if(r.vday>lastV&&r.vday<=T)lastV=r.vday});
+  var lag=lastV?T-lastV:-1;
+  out.push(lag>2?{lvl:1,title:"Walk-in sheet looks behind",text:"The latest Date of Visit entered is "+dl(lastV)+", "+lag+" days ago. Until the sheet catches up, recent walk-ins look low, so “Walk-ins slowing” and Today & this week may be overstated.",fix:"Enter the missing walk-ins since "+dl(lastV)+"."}
+    :{lvl:0,title:"Sheet is up to date",text:lastV?"Latest Date of Visit: "+dl(lastV)+".":"No visit dates found."});
+  // 4. project missing
+  var n30=0,miss=0;ROWS.forEach(function(r){if(r.kind===0&&r.vday>=Y-29&&r.vday<=Y){n30++;if(!isProj(r.proj))miss++}});
+  var pm=n30?miss/n30*100:0;
+  out.push(n30&&pm>20?{lvl:pm>50?2:1,title:"Project missing on "+fp(pm,0)+" of recent walk-ins",text:fmt(miss)+" of "+fmt(n30)+" fresh walk-ins in "+dr(Y-29,Y)+" have Project (column B) blank or “All”. They count in the overall totals, but the project checks (Project stalled, Conversion dropped) cannot use them.",fix:"Fill in column B for these walk-ins."}
+    :{lvl:0,title:"Projects filled in",text:n30?fmt(n30-miss)+" of "+fmt(n30)+" fresh walk-ins in "+dr(Y-29,Y)+" have a project.":"No fresh walk-ins in the last 30 days."});
+  // 5. sudden jumps
+  var P={},O={a:0,b:0};ROWS.forEach(function(r){if(r.kind!==0)return;var a=r.vday>=Y-6&&r.vday<=Y,b=r.vday>=Y-34&&r.vday<=Y-7;if(!a&&!b)return;
+    if(a)O.a++;else O.b++;if(isProj(r.proj)){var p=P[r.proj]||(P[r.proj]={a:0,b:0});if(a)p.a++;else p.b++}});
+  var jumps=[];function jt(name,x){var base=x.b/4;if(x.a-base>=10&&x.a>=3*base)jumps.push(name+": "+x.a+" fresh walk-ins in the last 7 days vs usual "+n1(base)+"/week"+(base?" ("+n1(x.a/base)+"×)":""))}
+  jt("Overall",O);Object.keys(P).sort().forEach(function(p){jt(p,P[p])});
+  out.push(jumps.length?{lvl:1,title:"Sudden jump in walk-ins",text:"Last 7 days ("+dr(Y-6,Y)+") are at least 3× the usual week and 10+ above it. That can be a real surge, but it is often duplicate rows or wrong dates.",lines:jumps,fix:"Check these walk-ins for duplicates and date mistakes."}
+    :{lvl:0,title:"No sudden jumps",text:"No project's walk-ins in the last 7 days jumped to 3× its usual week."});
+  return out;
+}
+function dataHtml(dc){
+  var nR=dc.filter(function(x){return x.lvl===2}).length,nA=dc.filter(function(x){return x.lvl===1}).length;
+  var order=dc.slice().sort(function(a,b){return b.lvl-a.lvl});
+  return'<section class="card cdata" id="ccData"><div class="chd"><h2>Data checks</h2>'+(nR?'<span class="cnt r">'+nR+' red</span>':"")+(nA?'<span class="cnt a">'+nA+' amber</span>':"")+(!nR&&!nA?'<span class="cnt g">all OK</span>':"")+'<span class="sub">whole sheet · filters don’t apply</span></div><div class="cbd"><div class="plist">'+
+    order.map(function(x){var cl=x.lvl===2?"bad":x.lvl===1?"warn":"ok";
+      return'<div class="pchk dchk '+cl+'"><span class="pic">'+(x.lvl===2?"✕":x.lvl===1?"!":"✓")+'</span><div class="pbody"><div class="phd"><b>'+esc(x.title)+'</b>'+(x.lvl?'<span class="ptag">'+(x.lvl===2?"Fix needed":"Check")+'</span>':"")+'</div>'+
+        (x.text?'<p>'+esc(x.text)+'</p>':"")+(x.lines&&x.lines.length?'<ul>'+x.lines.map(function(l){return'<li>'+esc(l)+'</li>'}).join("")+'</ul>':"")+(x.fix?'<p class="dfix"><b>Fix:</b> '+esc(x.fix)+'</p>':"")+'</div></div>'}).join("")+'</div></div></section>';
+}
 function ccClock(){return new Date().toLocaleString("en-IN",{timeZone:"Asia/Kolkata",weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})}
 function flagHtml(f){
   var o=f.open||{},red=f.lvl===2,mx=0;f.bars.forEach(function(b){mx=Math.max(mx,b[1])});
@@ -1098,14 +1164,15 @@ function cmdHtml(){
   var nR=fl.filter(function(f){return f.lvl===2}).length,nA=fl.length-nR,cat=ui.ccat&&by[ui.ccat]?ui.ccat:"";
   // status board
   var head=nR+nA?[nR?nR+" red":"",nA?nA+" amber":""].filter(Boolean).join(" · ")+" alert"+(nR+nA>1?"s":"")+" need"+(nR+nA>1?"":"s")+" attention":"All clear: nothing needs attention";
-  var fresh=lag<0?'<div class="cc-fresh lag"><i></i>No walk-ins match these filters</div>':lag>2?'<div class="cc-fresh lag"><i></i>Sheet behind · last walk-in dated '+dl(D.lastV)+' ('+lag+' days ago)</div>':'<div class="cc-fresh"><i></i>Sheet up to date · last walk-in dated '+dl(D.lastV)+'</div>';
+  var dc=dataChecks(),dR=dc.filter(function(x){return x.lvl===2}).length,dA=dc.filter(function(x){return x.lvl===1}).length;
+  var fresh='<button class="cc-fresh '+(dR?"bad":dA?"lag":"")+'" data-jump="ccData"><i></i><span>Data checks: '+(dR||dA?[dR?dR+" to fix":"",dA?dA+" to check":""].filter(Boolean).join(" · "):"all OK")+(lag>=0?' · last walk-in '+dl(D.lastV):' · no walk-ins match these filters')+'</span><b aria-hidden="true">›</b></button>';
   var hero='<section class="cc-hero '+(nR?"bad":nA?"warn":"good")+'" aria-label="Status board"><div class="cc-top"><div class="cc-tt"><div class="cc-k"><span class="cc-live"></span>Command Centre · live</div><div class="cc-h">'+head+'</div><div class="cc-s"><span id="ccClock">'+ccClock()+'</span> IST · 5 checks on data up to '+dl(Y)+'</div></div>'+fresh+'</div>'+
     '<div class="cc-checks" role="group" aria-label="Show alerts for one check">'+CHECKS.map(function(c){var b=by[c[0]],sk=fl.sm[c[0]].skip,st=b.r?"bad":b.n?"warn":sk?"skip":"good";
       return'<button class="cc-chk '+st+(cat===c[0]?" on":"")+'" data-ccat="'+c[0]+'" aria-pressed="'+(cat===c[0])+'"><span class="cc-ic">'+ico(c[0])+'</span><span class="cc-nm">'+c[1]+'</span><span class="cc-st"><i></i>'+(b.n?b.n+(b.n>1?" alerts":" alert"):sk?"Not checked":"All clear")+'</span></button>'}).join("")+'</div></section>';
-  var nav='<nav class="cc-nav" aria-label="Command Centre sections"><button data-jump="ccAlerts">Alerts'+(fl.length?' <b>'+fl.length+'</b>':"")+'</button><button data-jump="ccPulse">Today &amp; week</button><button data-jump="ccRules">How it works</button></nav>';
+  var nav='<nav class="cc-nav" aria-label="Command Centre sections"><button data-jump="ccAlerts">Alerts'+(fl.length?' <b>'+fl.length+'</b>':"")+'</button><button data-jump="ccData">Data'+(dR||dA?' <b class="'+(dR?"":"a")+'">'+(dR+dA)+'</b>':"")+'</button><button data-jump="ccPulse">Today &amp; week</button></nav>';
   // alerts
   var list=cat?fl.filter(function(f){return f.t===cat}):fl,show=cat||ui.cmdAll?list:list.slice(0,6);
-  var lagBox=lag>2?'<div class="lagw"><b>⚠ Walk-in sheet looks behind</b><span>The latest Date of Visit (column C) entered is <b>'+dl(D.lastV)+'</b>, '+lag+' days ago. Until the sheet catches up, recent walk-ins look low, so “Walk-ins slowing” and the Today &amp; week numbers may be overstated.</span></div>':"";
+  var lagBox=dR||dA?'<button class="lagw" data-jump="ccData"><b>⚠ '+(dR?"Data issues may make these alerts wrong":"Check the data before acting on these alerts")+'</b><span>'+dc.filter(function(x){return x.lvl}).map(function(x){return x.title}).join(" · ")+'. See Data checks ›</span></button>':"";
   function passed(only){return CHECKS.filter(function(c){return!by[c[0]].n&&(!only||only===c[0])}).map(function(c){var s=fl.sm[c[0]];
     return'<div class="pchk '+(s.skip?"skip":"ok")+'"><span class="pic">'+(s.skip?"–":"✓")+'</span><div class="pbody"><div class="phd"><b>'+c[1]+'</b><span class="ptag">'+(s.skip?"Not checked":"All clear")+'</span></div><p>'+esc(s.text)+'</p>'+
       (s.list&&s.list.length?'<ul>'+s.list.map(function(x){return'<li>'+esc(x)+'</li>'}).join("")+'</ul>':"")+'</div></div>'}).join("")}
@@ -1130,14 +1197,16 @@ function cmdHtml(){
   function cell(r,c){var v=sum(D.O[r[0]],c[1],c[2]),t=0;for(var k=1;k<=4;k++)t+=sum(D.O[r[0]],c[1]-7*k,c[2]-7*k);t/=4;
     var d=t?(v-t)/t:(v>0?1:0),cl="eq",ar="≈";if(Math.abs(d)>=.1&&Math.abs(v-t)>=1){ar=d>0?"▲":"▼";cl=(d>0)===(r[2]>0)?"up":"dn"}
     return{v:v,t:t,cl:cl,ar:ar,lab:ar==="▲"?"above":ar==="▼"?"below":"about"}}
+  var WD=["Sundays","Mondays","Tuesdays","Wednesdays","Thursdays","Fridays","Saturdays"];
+  function avgLab(c,i){return i<2?"avg of last 4 "+WD[new Date(c[1]*DAY).getUTCDay()]:i===2?"avg of the same days, last 4 weeks":"avg of the 4 weeks before"}
   var tbl='<table class="pulse"><thead><tr><th></th>'+cols.map(function(c){return'<th>'+c[0]+'<small>'+dr(c[1],c[2])+'</small></th>'}).join("")+'</tr></thead><tbody>'+
-    rows.map(function(r){return'<tr><td>'+r[1]+'</td>'+cols.map(function(c){var x=cell(r,c);return'<td><span class="pv">'+fmt(x.v)+'<i class="'+x.cl+'" aria-label="'+x.lab+' typical">'+x.ar+'</i></span><span class="pt">typical '+n1(x.t)+'</span></td>'}).join("")+'</tr>'}).join("")+'</tbody></table>';
+    rows.map(function(r){return'<tr><td>'+r[1]+'</td>'+cols.map(function(c,i){var x=cell(r,c);return'<td title="'+esc(c[0]+": "+fmt(x.v)+" vs "+avgLab(c,i)+" = "+n1(x.t))+'"><span class="pv">'+fmt(x.v)+'<i class="'+x.cl+'" aria-label="'+x.lab+' average">'+x.ar+'</i></span><span class="pt">4-wk avg '+n1(x.t)+'</span></td>'}).join("")+'</tr>'}).join("")+'</tbody></table>';
   var pp=+ui.pp;if(!(pp>=0&&pp<4))pp=2;var pc=cols[pp];
   var mob='<div class="pmob"><div class="pseg" role="tablist" aria-label="Pick a period">'+cols.map(function(c,i){return'<button role="tab" data-ui="pp" data-uv="'+i+'" aria-selected="'+(i===pp)+'">'+c[3]+'</button>'}).join("")+'</div>'+
-    '<div class="pdate">'+pc[0]+' · '+dr(pc[1],pc[2])+'</div><div class="pgrid">'+rows.map(function(r){var x=cell(r,pc);return'<div class="pcell"><span class="pl">'+r[1]+'</span><span class="pbig">'+fmt(x.v)+'<i class="'+x.cl+'" aria-label="'+x.lab+' typical">'+x.ar+'</i></span><span class="ptyp">Typical '+n1(x.t)+'</span></div>'}).join("")+'</div></div>';
-  var pul='<section class="card cpul" id="ccPulse"><div class="chd"><h2>Today &amp; this week</h2><span class="sub">compared with a typical week</span></div><div class="cbd">'+tbl+mob+
-    '<div class="note">Typical = average of the same days in the previous 4 weeks. Weeks run Monday to Sunday. Today fills in as the sheet is updated. ▲▼ show a difference of 10%+ (and at least 1); for cancellations, fewer is better. Walk-ins and revisits are dated by column C, bookings by AT, cancellations by AV.</div></div></section>';
-  return hero+nav+att+pul;
+    '<div class="pdate">'+pc[0]+' · '+dr(pc[1],pc[2])+'</div><div class="pgrid">'+rows.map(function(r){var x=cell(r,pc);return'<div class="pcell"><span class="pl">'+r[1]+'</span><span class="pbig">'+fmt(x.v)+'<i class="'+x.cl+'" aria-label="'+x.lab+' typical">'+x.ar+'</i></span><span class="ptyp">'+avgLab(pc,pp).replace(/^a/,"A")+': '+n1(x.t)+'</span></div>'}).join("")+'</div></div>';
+  var pul='<section class="card cpul" id="ccPulse"><div class="chd"><h2>Today &amp; this week</h2><span class="sub">vs the average of the previous 4 weeks</span></div><div class="cbd">'+tbl+mob+
+    '<div class="note"><b>4-wk avg</b> = the average for the same days over the previous 4 weeks. Yesterday ('+WD[new Date(Y*DAY).getUTCDay()].slice(0,-1)+') is compared with the 4 '+WD[new Date(Y*DAY).getUTCDay()]+' before it; Last week with the 4 weeks before it; This week with the same days of the last 4 weeks. A decimal like 0.3 means about 1 in 4 weeks. Weeks run Monday to Sunday. Today fills in as the sheet is updated. ▲▼ show a difference of 10%+ (and at least 1); for cancellations, fewer is better.</div></div></section>';
+  return hero+nav+dataHtml(dc)+att+pul;
 }
 setInterval(function(){var c=document.getElementById("ccClock");if(c)c.textContent=ccClock()},30000);
 
@@ -1152,6 +1221,7 @@ function render(){
   var serM=weekly?series(F,P,false):ser; // achievement is always measured by month
   $("tabCmd").setAttribute("aria-selected",tab==="cmd");$("tabMgmt").setAttribute("aria-selected",tab==="mgmt");$("tabSite").setAttribute("aria-selected",tab==="site");
   charts=[];
+  document.querySelector(".app").classList.toggle("cmdtab",tab==="cmd");
   $("lPer").style.display=tab==="cmd"?"none":"";$("cmd").style.display=tab==="cmd"?"":"none";$("tiles").style.display=tab==="cmd"?"none":"";
   if(tab==="cmd"){
     $("focus").style.display="none";$("vis").style.display="none";$("vis").innerHTML="";
