@@ -189,6 +189,47 @@ svg.ch{display:block;width:100%;height:100%}
 .fa-def{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.45;border-top:1px solid var(--line);padding-top:10px}
 .fa-x{margin-top:12px;align-self:flex-start}
 
+/* command centre */
+.cmd{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:8px;margin:0 14px;align-items:start}
+@media (min-width:1280px){.cmd{flex:1;min-height:0;align-items:stretch}}
+.cmd .card{padding:14px 16px}
+.cnt{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px}
+.cnt.r{background:var(--badbg);color:var(--bad)}.cnt.a{background:var(--warnbg);color:var(--warn)}
+.flags{display:flex;flex-direction:column;gap:8px}
+.flag{border-radius:12px;border-left:4px solid}
+.flag.r{background:var(--badbg);border-color:var(--bad)}.flag.a{background:var(--warnbg);border-color:var(--warn)}
+.flag summary{list-style:none;display:grid;grid-template-columns:22px minmax(0,1fr) 16px;gap:2px 10px;align-items:start;padding:10px 12px;min-height:44px;cursor:pointer}
+.flag summary::-webkit-details-marker{display:none}
+.fdot{grid-row:1 / span 2;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;margin-top:1px}
+.flag.r .fdot{background:var(--bad)}.flag.a .fdot{background:var(--warn)}
+.ft{font-weight:700;font-size:13.5px;color:var(--ink);line-height:1.35}
+.fe{grid-column:2;font-size:12.5px;color:var(--ink2);line-height:1.4}
+.fchev{grid-row:1;grid-column:3;font-size:20px;line-height:1;color:var(--muted);transition:transform .2s;text-align:center}
+.flag[open] .fchev{transform:rotate(90deg)}
+.fbody{padding:0 12px 12px 44px}
+.fbody table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:10px}
+.fbody td,.fbody th{padding:5px 8px 5px 0;border-top:1px solid rgba(0,0,0,.08);text-align:left;vertical-align:top;height:auto;background:none!important;position:static!important}
+.fbody th{font-size:11px;color:var(--muted);font-weight:700}
+.fbody td:last-child{text-align:right;white-space:nowrap}
+.fmore{align-self:flex-start;margin-top:2px}
+.allok{display:flex;flex-direction:column;gap:4px;padding:16px;border-radius:12px;background:var(--goodbg);color:var(--good);font-size:13px}
+.allok span{color:var(--ink2)}
+.lagw{display:flex;flex-direction:column;gap:4px;padding:10px 12px;margin-bottom:8px;border-radius:12px;border:1px dashed var(--warn);color:var(--ink2);font-size:12.5px;line-height:1.45}
+.lagw b:first-child{color:var(--warn);font-size:13px}
+.rules{margin-top:12px;font-size:12.5px;color:var(--ink2)}
+.rules summary{cursor:pointer;font-weight:650;color:var(--muted);min-height:32px;display:flex;align-items:center}
+.rules ul{margin:4px 0 0;padding-left:18px;display:grid;gap:4px;line-height:1.45}
+.pulse{width:100%;border-collapse:collapse}
+.pulse th{font-size:12px;font-weight:700;text-align:right;padding:4px 6px 8px;color:var(--ink2);vertical-align:bottom}
+.pulse th small{display:block;font-size:10.5px;font-weight:600;color:var(--muted)}
+.pulse td{text-align:right;padding:8px 6px;border-top:1px solid var(--line);vertical-align:top}
+.pulse td:first-child{text-align:left;font-size:12.5px;font-weight:650;color:var(--ink2)}
+.pv{display:block;font-size:20px;font-weight:700;line-height:1.1;color:var(--ink)}
+.pt{display:block;font-size:11px;color:var(--muted);white-space:nowrap;margin-top:2px}
+.pv i{font-style:normal;font-weight:800;font-size:12px;margin-left:4px;vertical-align:2px}.pv .up{color:var(--good)}.pv .dn{color:var(--bad)}.pv .eq{color:var(--muted)}
+.pulse th .shl{display:none}
+.cpul{align-self:start}
+
 /* footer, states */
 .srcnote{margin:0 14px;font-size:11.5px;color:var(--muted);display:flex;gap:6px 14px;flex-wrap:wrap}
 .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:50;padding:16px}
@@ -310,6 +351,16 @@ svg.ch{display:block;width:100%;height:100%}
   .tile{min-height:0;padding:12px}
   .tile:last-child:nth-child(odd){grid-column:1 / -1}
   .tile .tl{font-size:12.5px}
+  .tl2{display:none}
+  .tabs button{flex:1}
+  .cmd{display:flex;flex-direction:column;gap:12px;margin:0 16px}
+  .cmd .card{padding:16px}
+  .cmd .cbd{max-height:none}
+  .fbody{padding-left:12px}
+  .pulse th{padding:4px 2px 8px;font-size:12px}.pulse td{padding:8px 2px;height:auto}
+  .pulse th .lgl,.pulse th small{display:none}.pulse th .shl{display:inline}
+  .pulse td:first-child{font-size:12px;max-width:76px;white-space:normal;line-height:1.3}
+  .pv{font-size:18px}.pv i{font-size:10px;margin-left:2px}
   .tinfo{width:36px;height:36px;margin:-10px -8px -10px -2px}
   .kpop{left:0!important;right:0;top:auto!important;bottom:0;width:auto;max-width:none;max-height:80vh;overflow:auto;border-radius:20px 20px 0 0;padding:20px 16px calc(16px + env(safe-area-inset-bottom));font-size:14px;animation:kUp .24s cubic-bezier(.2,.8,.2,1)}
   .kpop::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--line);margin:-8px auto 12px}
@@ -353,7 +404,8 @@ svg.ch{display:block;width:100%;height:100%}
   <header class="hdr">
     <h1 class="brand"><span class="plate"><img src="assets/logo.png" alt="Raghav Realty" width="104" height="30"></span><small>Sales Dashboard</small></h1>
     <div class="tabs" role="tablist">
-      <button role="tab" id="tabMgmt" aria-selected="true" data-tab="mgmt">Management</button>
+      <button role="tab" id="tabCmd" aria-selected="true" data-tab="cmd">Command<span class="tl2"> Centre</span></button>
+      <button role="tab" id="tabMgmt" aria-selected="false" data-tab="mgmt">Management</button>
       <button role="tab" id="tabSite" aria-selected="false" data-tab="site">Site Head</button>
     </div>
     <span class="sp"></span>
@@ -369,7 +421,7 @@ svg.ch{display:block;width:100%;height:100%}
   </div>
   <div class="flt" id="flt">
     <div class="sheet-h">Filters <button class="reset" id="fclose">Done</button></div>
-    <label>Period <select id="fPer"></select></label>
+    <label id="lPer">Period <select id="fPer"></select></label>
     <label>Project <select id="fProj"></select></label>
     <label>Closing manager <select id="fCm"></select></label>
     <label>Sourcing manager <select id="fSm"></select></label>
@@ -378,6 +430,7 @@ svg.ch{display:block;width:100%;height:100%}
   </div>
 
   <section class="tiles" id="tiles" aria-label="Key numbers"></section>
+  <main class="cmd" id="cmd" style="display:none" aria-label="Command Centre"></main>
   <main class="vis" id="vis"></main>
   <main class="focus" id="focus" style="display:none" aria-live="polite"></main>
   <footer class="srcnote" id="srcnote"></footer>
@@ -438,7 +491,7 @@ function fyStart(d){var a=ymd(d);return a[1]>=3?a[0]:a[0]-1}
 /* ---------- state ---------- */
 var DATA=null,ROWS=[],INV=[],CT=[],ST=[],MIN_DAY=0;
 var F={per:"fy",proj:"",cm:"",sm:"",src:"",cp:""};
-var tab="mgmt",focus=null,ui={trend:"book",chan:"split",why:"lost",fdim:"proj",strend:"book",ssrc:"src"};
+var tab="cmd",focus=null,ui={trend:"book",chan:"split",why:"lost",fdim:"proj",strend:"book",ssrc:"src"};
 var lastLoad=0,loadErr="";
 
 /* ---------- period ---------- */
@@ -446,6 +499,7 @@ function period(key){
   var t=today(),a=ymd(t),cur=a[0]*100+a[1]+1,fy=fyStart(t),p;
   if(key==="mtd")p={from:monStart(cur),to:t,label:"This month",shift:1};
   else if(key==="lm"){var l=ymAdd(cur,-1);p={from:monStart(l),to:monEnd(l),label:"Last month ("+ymLab(l)+")",shift:1}}
+  else if(key==="l30")p={from:t-29,to:t,label:"Last 30 days",shift:0};
   else if(key==="qtd"){var qs=ymAdd(cur,-((a[1]-3+12)%3));p={from:monStart(qs),to:t,label:"This quarter",shift:3}}
   else if(key==="fy")p={from:mkDay(fy,3,1),to:t,label:"FY "+fy+"-"+String(fy+1).slice(2)+" to date",shift:12};
   else if(key==="lfy")p={from:mkDay(fy-1,3,1),to:mkDay(fy,2,31),label:"FY "+(fy-1)+"-"+String(fy).slice(2),shift:12};
@@ -588,14 +642,14 @@ function recentMonths(n){var out=[],ym=ymOf(today());for(var i=0;i<n;i++){out.pu
 function projList(){var c={};ROWS.forEach(function(r){if(r.proj&&r.vday>=today()-730)c[r.proj]=(c[r.proj]||0)+1});INV.forEach(function(u){c[u.proj]=(c[u.proj]||0)+.001});return Object.keys(c).sort(function(a,b){return c[b]-c[a]})}
 function personList(key,T){var c={},t=today()-400;ROWS.forEach(function(r){if(r[key]&&r.vday>=t)c[r[key]]=(c[r[key]]||0)+1});T.forEach(function(x){c[x.m]=(c[x.m]||0)+1e6});return Object.keys(c).sort()}
 function renderFilters(){
-  setOpts($("fPer"),[["mtd","This month"],["lm","Last month"],["qtd","This quarter"],["fy","This FY to date"],["lfy","Last FY"],["l12","Last 12 months"],["all","All time"]].concat(recentMonths(18)),F.per);
+  setOpts($("fPer"),[["mtd","This month"],["lm","Last month"],["l30","Last 30 days"],["qtd","This quarter"],["fy","This FY to date"],["lfy","Last FY"],["l12","Last 12 months"],["all","All time"]].concat(recentMonths(18)),F.per);
   var pj=projList().map(function(p){return[p,lab(p)]});
   setOpts($("fProj"),tab==="site"?pj:[["","All projects"]].concat(pj),F.proj);
   setOpts($("fCm"),[["","All"]].concat(personList("cm",CT).map(function(x){return[x,x]})),F.cm);
   setOpts($("fSm"),[["","All"]].concat(personList("sm",ST).map(function(x){return[x,x]})),F.sm);
   setOpts($("fSrc"),[["","All"],["Direct","Direct"],["Indirect","Indirect (Channel Partner)"]].concat(uniq("src").filter(function(s){return!isCP(s)}).map(function(s){return[s,s]})),F.src);
   var P=period(F.per),ch=[];
-  ch.push('<span class="chip" title="Period">'+esc(P.label)+'</span>');
+  ch.push(tab==="cmd"?'<span class="chip" title="The Command Centre always looks at the latest days; the Period filter does not apply">Live · '+dl(today())+'</span>':'<span class="chip" title="Period">'+esc(P.label)+'</span>');
   [["proj","Project"],["cm","Closing"],["sm","Sourcing"],["src","Source"],["cp","CP firm"]].forEach(function(k){if(F[k[0]]&&!(tab==="site"&&k[0]==="proj"))ch.push('<button class="chip" data-x="'+k[0]+'" title="Remove filter">'+k[1]+': <b>'+esc(lab(F[k[0]]))+'</b> ✕</button>')});
   if(tab==="site")ch.unshift('<span class="chip"><b>'+esc(lab(F.proj))+'</b></span>');
   $("chips").innerHTML=ch.join("");
@@ -819,6 +873,110 @@ function renderFocus(P,S,PS,TG,ser,weekly,serM){
   colChart(el.querySelector("#fMid .plot"),items,{fmt:function(v){return m.f(v)},aria:m.label+" trend",alt:m.up<0});
 }
 
+/* ---------- command centre ---------- */
+function dl(d){var a=ymd(d);return a[2]+" "+MN[a[1]]}
+function dr(a,b){return a===b?dl(a):dl(a)+" – "+dl(b)}
+function n1(v){return v<10?String(Math.round(v*10)/10):fmt(v)}
+function isProj(p){return!!p&&!/^all$/i.test(p)}
+function topOf(o){var k=Object.keys(o).sort(function(a,b){return o[b]-o[a]})[0];return k?{k:k,n:o[k]}:null}
+// one pass over the walk-in rows (current Project / Manager / Source filters, Period ignored) into daily counts
+function cmdData(){
+  var T=today(),Y=T-1,S=T-220,L=221;
+  function z(){var a=new Array(L);for(var i=0;i<L;i++)a[i]=0;return a}
+  function mk(){return{f:z(),r:z(),b:z(),c:z()}}
+  var lastV=0,O=mk(),PJ={},lastBk={},lostO={},lostP={},cpOld={},cpNew={},cpBk={},cpLast={},w30=Y-29,cpA=Y-74,cpB=Y-30;
+  ROWS.forEach(function(r){
+    if(!pass(r,F))return;
+    if(r.vday>lastV&&r.vday<=T)lastV=r.vday;
+    var p=isProj(r.proj)?r.proj:null,P=p?(PJ[p]||(PJ[p]=mk())):null;
+    function add(k,d){if(d>=S&&d<=T){O[k][d-S]++;if(P)P[k][d-S]++}}
+    if(r.vday>0){if(r.kind===0)add("f",r.vday);else if(r.uniq)add("r",r.vday)}
+    if(r.bk&&r.bday>0){add("b",r.bday);if(p&&r.bday<=Y&&!(lastBk[p]>=r.bday))lastBk[p]=r.bday}
+    if(r.cx&&r.cday>0){add("c",r.cday);if(r.cday>=w30&&r.cday<=Y&&r.lost){lostO[r.lost]=(lostO[r.lost]||0)+1;if(p){var lp=lostP[p]||(lostP[p]={});lp[r.lost]=(lp[r.lost]||0)+1}}}
+    if(r.cp&&isCP(r.src)){
+      if(r.kind<2&&r.vday>0){if(r.vday>=cpA&&r.vday<=cpB)cpOld[r.cp]=(cpOld[r.cp]||0)+1;else if(r.vday>cpB&&r.vday<=Y)cpNew[r.cp]=(cpNew[r.cp]||0)+1;if(r.vday<=Y&&!(cpLast[r.cp]>=r.vday))cpLast[r.cp]=r.vday}
+      if(r.bk&&r.bday>=cpA&&r.bday<=cpB)cpBk[r.cp]=(cpBk[r.cp]||0)+1;
+    }
+  });
+  function sum(a,from,to){var s=0;for(var d=from;d<=to;d++){var i=d-S;if(i>=0&&i<L)s+=a[i]}return s}
+  return{lastV:lastV,T:T,Y:Y,O:O,PJ:PJ,lastBk:lastBk,lostO:lostO,lostP:lostP,cpOld:cpOld,cpNew:cpNew,cpBk:cpBk,cpLast:cpLast,sum:sum,w30:w30,cpA:cpA,cpB:cpB};
+}
+function cmdFlags(D){
+  var Y=D.Y,w30=D.w30,bA=Y-209,bB=Y-30,sum=D.sum,fl=[];
+  var W30=dr(w30,Y),B180=dr(bA,bB),W7=dr(Y-6,Y),B28=dr(Y-34,Y-7);
+  function line(a,b){return'<tr><td>'+a+'</td><td><b>'+b+'</b></td></tr>'}
+  function cxFlag(name,A,lost,open){
+    var c30=sum(A.c,w30,Y),c180=sum(A.c,bA,bB),norm=c180/6;
+    if(c30>=3&&c30>1.5*norm){var tl=topOf(lost||{});
+      fl.push({lvl:2,score:norm?c30/norm:c30,title:name+" cancellations up: "+c30+" in 30 days vs usual "+n1(norm)+"/month",ev:tl?"Top reason (AP): “"+tl.k+"” ("+tl.n+")":"No lost reason entered (AP)",
+        body:line("Cancellations (AU = Yes, dated by AV), "+W30,c30)+line("Cancellations "+B180+" ÷ 6",fmt(c180)+" ÷ 6 = "+n1(norm)+"/month")+line("Rule: more than 1.5 × usual and at least 3",c30+" > "+n1(1.5*norm)),open:Object.assign({k:"cx"},open)})}
+  }
+  function walkFlag(name,A,open,extra){
+    var f7=sum(A.f,Y-6,Y),base=sum(A.f,Y-34,Y-7)/4;
+    if(base>=10&&f7<.7*base){var dn=Math.round((1-f7/base)*100);
+      fl.push({lvl:1,score:1-f7/base,title:name+" walk-ins down "+dn+"% this week: "+f7+" vs usual "+n1(base)+"/week",ev:extra||("Last 7 days ("+W7+")"),
+        body:line("Fresh walk-ins (AW = Fresh, by C), "+W7,f7)+line("Fresh walk-ins "+B28+" ÷ 4",fmt(base*4)+" ÷ 4 = "+n1(base)+"/week")+line("Rule: below 70% of usual (only if usual ≥ 10/week)",f7+" < "+n1(.7*base)),open:Object.assign({k:"fresh"},open)})}
+  }
+  var projs=Object.keys(D.PJ).sort();
+  projs.forEach(function(p){
+    var A=D.PJ[p],f30=sum(A.f,w30,Y),b30=sum(A.b,w30,Y),f180=sum(A.f,bA,bB),b180=sum(A.b,bA,bB),op={p:p};
+    if(f30>=15&&b30===0){var lb=D.lastBk[p];
+      fl.push({lvl:2,score:f30,title:p+": "+f30+" walk-ins, 0 bookings in 30 days",ev:lb?"Last booking: "+dl(lb)+" ("+(D.T-lb)+" days ago)":"No booking on record",
+        body:line("Fresh walk-ins (AW = Fresh, by C), "+W30,f30)+line("Bookings (by AT), "+W30,0)+line("Rule: 15+ walk-ins and 0 bookings","flagged"),open:{p:p,k:"fresh"}})}
+    else if(f30>=20&&b180>=5&&f180){var c30=b30/f30*100,c180=b180/f180*100;
+      if(c30<c180/2)fl.push({lvl:1,score:1-c30/c180,title:p+" conversion down: "+fp(c30)+" vs normal "+fp(c180),ev:b30+" bookings from "+f30+" walk-ins in 30 days",
+        body:line("Last 30 days ("+W30+")",b30+" bookings ÷ "+f30+" fresh = "+fp(c30))+line("Previous 6 months ("+B180+")",b180+" bookings ÷ "+fmt(f180)+" fresh = "+fp(c180))+line("Rule: less than half of normal",fp(c30)+" < "+fp(c180/2)),open:{p:p,k:"conv"}})}
+    cxFlag(p,A,D.lostP[p],op);
+    walkFlag(p,A,op);
+  });
+  if(!F.proj){
+    cxFlag("Overall",D.O,D.lostO,{});
+    var drops=projs.map(function(p){var A=D.PJ[p];return{p:p,d:sum(A.f,Y-6,Y)-sum(A.f,Y-34,Y-7)/4}}).filter(function(x){return x.d<=-1}).sort(function(a,b){return a.d-b.d}).slice(0,2);
+    walkFlag("Overall",D.O,{},drops.length?"Biggest drops: "+drops.map(function(x){return x.p+" "+Math.round(x.d)}).join(", "):"");
+  }
+  var quiet=Object.keys(D.cpOld).filter(function(c){return D.cpOld[c]>=3&&!D.cpNew[c]}).sort(function(a,b){return D.cpOld[b]-D.cpOld[a]||a.localeCompare(b)});
+  if(quiet.length){
+    fl.push({lvl:1,score:quiet.length/10,title:quiet.length+" CP firm"+(quiet.length>1?"s have":" has")+" gone quiet (no walk-ins in 30 days)",
+      ev:quiet.slice(0,3).map(function(c){var b=D.cpBk[c]||0;return c+" ("+D.cpOld[c]+" walk-ins earlier, "+b+" booking"+(b===1?"":"s")+")"}).join(" · ")+(quiet.length>3?" + "+(quiet.length-3)+" more":""),
+      body:'<tr><th>CP firm (AA)</th><th>Walk-ins '+dr(D.cpA,D.cpB)+'</th><th>Bookings then</th><th>Last visit</th></tr>'+quiet.map(function(c){return'<tr><td>'+esc(c)+'</td><td>'+D.cpOld[c]+'</td><td>'+(D.cpBk[c]||0)+'</td><td>'+dl(D.cpLast[c])+'</td></tr>'}).join("")+
+        '<tr><td colspan="4" class="note">Rule: Source (Z) is Channel Partner; 3+ walk-ins (fresh or revisit) in '+dr(D.cpA,D.cpB)+' and none in '+W30+'.</td></tr>',open:{s:"Indirect",k:"cpf"}});
+  }
+  fl.sort(function(a,b){return b.lvl-a.lvl||b.score-a.score});
+  return fl;
+}
+function cmdHtml(){
+  var D=cmdData(),fl=cmdFlags(D),T=D.T,Y=D.Y,sum=D.sum,show=ui.cmdAll?fl:fl.slice(0,6);
+  var fh=fl.length?'<div class="flags">'+show.map(function(f){
+    var o=f.open||{};
+    return'<details class="flag '+(f.lvl===2?"r":"a")+'"><summary><span class="fdot" aria-hidden="true">'+(f.lvl===2?"✕":"!")+'</span><span class="ft">'+esc(f.title)+'</span><span class="fchev" aria-hidden="true">›</span><span class="fe">'+esc(f.ev)+'</span></summary>'+
+      '<div class="fbody"><table>'+f.body+'</table><button class="reset" data-cmdopen="'+esc(o.k||"")+'" data-p="'+esc(o.p||"")+'" data-s="'+esc(o.s||"")+'">Open in Management (last 30 days) →</button></div></details>'}).join("")+
+    (fl.length>6?'<button class="reset fmore" data-ui="cmdAll" data-uv="'+(ui.cmdAll?"":"1")+'">'+(ui.cmdAll?"Show fewer":"Show all ("+fl.length+")")+'</button>':"")+'</div>'
+    :'<div class="allok"><b>✓ Nothing needs attention right now</b><span>All five checks passed for data up to '+dl(Y)+'.</span></div>';
+  var nR=fl.filter(function(f){return f.lvl===2}).length,nA=fl.length-nR,lag=D.lastV?T-D.lastV:0;
+  var stale=lag>2?'<div class="lagw"><b>⚠ Walk-in sheet looks behind</b><span>The latest Date of Visit (C) entered is <b>'+dl(D.lastV)+'</b>, '+lag+' days ago. Until the sheet catches up, recent walk-ins look low, so “walk-ins slowing” and the pulse below may be overstated.</span></div>':"";
+  fh=stale+fh;
+  var rules='<details class="rules"><summary>How these flags are worked out</summary><ul>'+
+    '<li><b>Project stalled</b>: 15+ fresh walk-ins and 0 bookings in the last 30 days.</li>'+
+    '<li><b>Conversion dropped</b>: 30-day bookings ÷ fresh walk-ins is less than half of the previous 6 months (only with 20+ walk-ins and 5+ earlier bookings).</li>'+
+    '<li><b>Cancellation spike</b>: 30-day cancellations are more than 1.5 × the monthly average of the previous 6 months, and at least 3.</li>'+
+    '<li><b>Walk-ins slowing</b>: last 7 days below 70% of the weekly average of the 4 weeks before (only if that average is 10+).</li>'+
+    '<li><b>CP firm gone quiet</b>: 3+ walk-ins in the 45 days before the last 30, and none in the last 30.</li>'+
+    '<li>All windows end <b>yesterday</b>, because today is still being entered. Project, manager and source filters apply; the Period filter does not. Rows with project blank or “All” count only in the overall checks.</li></ul></details>';
+  var att='<section class="card catt"><div class="chd"><h2>Needs attention</h2>'+(nR?'<span class="cnt r">'+nR+' red</span>':"")+(nA?'<span class="cnt a">'+nA+' amber</span>':"")+'<span class="sub">data to '+dl(Y)+'</span></div><div class="cbd">'+fh+rules+'</div></section>';
+  // pulse
+  var dow=(new Date(T*DAY).getUTCDay()+6)%7,mon=T-dow,lm=mon-7;
+  var cols=[["Today",T,T,"Today"],["Yesterday",Y,Y,"Yest."],["This week",mon,T,"This wk"],["Last week",lm,lm+6,"Last wk"]];
+  var rows=[["f","Fresh walk-ins",1],["r","Unique revisits",1],["b","Bookings",1],["c","Cancellations",-1]];
+  var ph='<table class="pulse"><thead><tr><th></th>'+cols.map(function(c){return'<th title="'+dr(c[1],c[2])+'"><span class="lgl">'+c[0]+'</span><span class="shl">'+c[3]+'</span><small>'+dr(c[1],c[2])+'</small></th>'}).join("")+'</tr></thead><tbody>'+
+    rows.map(function(r){return'<tr><td>'+r[1]+'</td>'+cols.map(function(c){
+      var v=sum(D.O[r[0]],c[1],c[2]),t=0;for(var k=1;k<=4;k++)t+=sum(D.O[r[0]],c[1]-7*k,c[2]-7*k);t/=4;
+      var d=t?(v-t)/t:(v>0?1:0),cl="eq",ar="≈";if(Math.abs(d)>=.1&&Math.abs(v-t)>=1){ar=d>0?"▲":"▼";cl=(d>0)===(r[2]>0)?"up":"dn"}
+      return'<td><span class="pv">'+fmt(v)+'<i class="'+cl+'" aria-label="'+(ar==="▲"?"above":ar==="▼"?"below":"about")+' typical">'+ar+'</i></span><span class="pt">typ '+n1(t)+'</span></td>'}).join("")+'</tr>'}).join("")+'</tbody></table>'+
+    '<div class="note">Typical = average of the same days in the previous 4 weeks. Weeks run Monday to Sunday. Today fills in as the sheet is updated. ▲▼ show a difference of 10%+ (and at least 1); for cancellations, fewer is better.</div>';
+  var pul='<section class="card cpul"><div class="chd"><h2>Today &amp; this week</h2><span class="sub">'+dl(T)+'</span></div><div class="cbd">'+ph+'</div></section>';
+  return att+pul;
+}
+
 /* ---------- main render ---------- */
 var charts=[];
 function render(){
@@ -828,9 +986,13 @@ function render(){
   var S=stats(F,P),PS=Pv?stats(F,Pv):null;if(PS)PS.P=Pv;
   var TG=tab==="site"?{bookM:{},walkM:{},why:"Targets are set per manager, not per project"}:targets(F,P),ser=series(F,P,weekly);
   var serM=weekly?series(F,P,false):ser; // achievement is always measured by month
-  $("tabMgmt").setAttribute("aria-selected",tab==="mgmt");$("tabSite").setAttribute("aria-selected",tab==="site");
+  $("tabCmd").setAttribute("aria-selected",tab==="cmd");$("tabMgmt").setAttribute("aria-selected",tab==="mgmt");$("tabSite").setAttribute("aria-selected",tab==="site");
   charts=[];
-  if(tab==="mgmt"){
+  $("lPer").style.display=tab==="cmd"?"none":"";$("cmd").style.display=tab==="cmd"?"":"none";$("tiles").style.display=tab==="cmd"?"none":"";
+  if(tab==="cmd"){
+    $("focus").style.display="none";$("vis").style.display="none";$("vis").innerHTML="";
+    $("cmd").innerHTML=cmdHtml();
+  }else if(tab==="mgmt"){
     renderTiles(MGMT_TILES,P,S,PS,TG,serM);
     if(focus){$("vis").style.display="none";$("focus").style.display="";renderFocus(P,S,PS,TG,ser,weekly,serM)}
     else{
@@ -907,6 +1069,9 @@ document.addEventListener("click",function(e){
   if(t.closest("#kpop"))return;
   if(kpBtn)kpClose(false);
   if((x=t.closest("[data-tab]"))){setTab(x.getAttribute("data-tab"));return}
+  if((x=t.closest("[data-cmdopen]"))){var k=x.getAttribute("data-cmdopen"),pp=x.getAttribute("data-p"),ss=x.getAttribute("data-s");
+    tab="mgmt";F.per="l30";if(pp)F.proj=pp;if(ss)F.src=ss;
+    if(isPhone()&&k){openDetail(k)}else{focus=k||null;render();window.scrollTo(0,0)}return}
   if((x=t.closest("[data-unfocus]"))){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}return}
   if((x=t.closest("[data-tile]"))&&isPhone()){openDetail(x.getAttribute("data-tile"));return}
   if(x){var id=x.getAttribute("data-tile");if(tab==="site"){tab="mgmt"}focus=focus===id?null:id;render();window.scrollTo({top:0,behavior:"smooth"});return}
