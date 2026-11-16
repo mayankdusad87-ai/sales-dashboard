@@ -192,6 +192,7 @@ svg.ch{display:block;width:100%;height:100%}
 /* command centre */
 .cmd{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px;margin:0 14px;align-items:start}
 @media (min-width:1280px){.cmd{flex:1;min-height:0;grid-template-rows:auto minmax(0,1fr);align-items:stretch}.cpul{align-self:start}}
+@media (max-width:1279px){.cmd{grid-template-columns:minmax(0,1fr)}}
 .cmd .card{padding:16px}
 .cc-nav{display:none}
 /* status board */
@@ -268,6 +269,19 @@ svg.ch{display:block;width:100%;height:100%}
 .allok{display:flex;gap:12px;align-items:center;padding:16px;border-radius:14px;background:var(--goodbg)}
 .allok .okic{flex:none;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--good);color:#fff;font-weight:800;font-size:18px;animation:pop .5s cubic-bezier(.2,.9,.3,1.4)}
 .allok b{display:block;color:var(--good);font-size:14px}.allok span{color:var(--ink2);font-size:13px}
+.cc-chk.skip .cc-ic{color:#D6CBC9}.cc-chk.skip .cc-st i{background:#A8A0A2}
+.psec{margin:20px 0 4px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.plist{display:flex;flex-direction:column}
+.pchk{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.plist .pchk:first-child{border-top:0}
+.pic{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+.pchk.ok .pic{background:var(--goodbg);color:var(--good)}.pchk.skip .pic{background:var(--well);color:var(--muted)}
+.phd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.phd b{font-size:14px;color:var(--ink)}
+.ptag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+.pchk.ok .ptag{background:var(--goodbg);color:var(--good)}.pchk.skip .ptag{background:var(--well);color:var(--muted)}
+.pchk p{margin:4px 0 0;font-size:13px;line-height:1.5;color:var(--ink2)}
+.pchk ul{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.5;color:var(--ink2)}
 .lagw{display:flex;flex-direction:column;gap:4px;padding:12px 16px;margin-bottom:12px;border-radius:14px;border:1px dashed var(--warn);background:var(--warnbg);color:var(--ink2);font-size:13px;line-height:1.5}
 .lagw b:first-child{color:var(--warn);font-size:13.5px}
 .rules{margin-top:16px;font-size:13px;color:var(--ink2);scroll-margin-top:72px}
@@ -1018,9 +1032,11 @@ function cmdFlags(D){
         steps:[["Fresh walk-ins, last 7 days ("+W7+")",fmt(f7)],["Fresh walk-ins, 4 weeks before ("+B28+")",fmt(f28)],["Usual per week = "+fmt(f28)+" ÷ 4",n1(base)],["Rule: below 70% of usual ("+n1(.7*base)+"); only checked when usual is 10+ a week",f7+" → flagged"]].concat(drops&&drops.length?[["Projects with the biggest drop (last 7 days minus their usual week)",drops.map(function(x){return x.p+" "+Math.round(x.d)}).join(", ")]]:[]),
         src:SRC_WALK,open:Object.assign({k:"fresh"},open)})}
   }
-  var projs=Object.keys(D.PJ).sort();
+  var projs=Object.keys(D.PJ).sort(),el={stall:[],conv:[]};
   projs.forEach(function(p){
     var A=D.PJ[p],f30=sum(A.f,w30,Y),b30=sum(A.b,w30,Y),f180=sum(A.f,bA,bB),b180=sum(A.b,bA,bB),op={p:p};
+    if(f30>=15)el.stall.push({p:p,f:f30,b:b30});
+    if(!(f30>=15&&b30===0)&&f30>=20&&b180>=5&&f180)el.conv.push({p:p,c:b30/f30*100,n:b180/f180*100});
     if(f30>=15&&b30===0){var lb=D.lastBk[p];
       fl.push({t:"stall",lvl:2,score:f30,title:p+": "+f30+" walk-ins, 0 bookings in 30 days",ev:lb?"Last booking: "+dl(lb)+" ("+(T-lb)+" days ago)":"No booking on record",
         bars:[["Fresh walk-ins",f30,fmt(f30)],["Bookings",0,"0"]],
@@ -1050,6 +1066,22 @@ function cmdFlags(D){
       src:"CP walk-in = column Z (Source) contains “Channel”; firm = column AA (Channel Partner Company); visit dated by column C. Fresh and revisits both count (column AW). Spellings that differ only in case or spaces are merged.",open:{s:"Indirect",k:"cpf"}});
   }
   fl.sort(function(a,b){return b.lvl-a.lvl||b.score-a.score});
+  // what each check looked at, shown when it passed or could not run
+  var sm={},pl=function(n,w){return n+" "+w+(n===1?"":"s")},who=F.proj||"Overall";
+  var st=el.stall.slice().sort(function(a,b){return a.b-b.b||b.f-a.f});
+  sm.stall=st.length?{text:pl(st.length,"project")+" had 15+ fresh walk-ins in the last 30 days ("+W30+"), and "+(st.length===1?"it":"each")+" also had at least one booking.",list:st.map(function(x){return x.p+": "+x.f+" walk-ins, "+pl(x.b,"booking")})}
+    :{skip:1,text:"No project had 15 or more fresh walk-ins in the last 30 days ("+W30+"), so there was nothing to test."};
+  sm.conv=el.conv.length?{text:pl(el.conv.length,"project")+" had enough data (20+ fresh walk-ins in the last 30 days and 5+ bookings in the 6 months before). None fell below half of its normal conversion.",list:el.conv.map(function(x){return x.p+": "+fp(x.c)+" now vs normal "+fp(x.n)+" (alert below "+fp(x.n/2)+")"})}
+    :{skip:1,text:"No project had 20+ fresh walk-ins in the last 30 days ("+W30+") together with 5+ bookings in the 6 months before ("+B180+"), so conversion could not be compared fairly."};
+  var oc30=sum(D.O.c,w30,Y),oc180=sum(D.O.c,bA,bB),on=oc180/6;
+  sm.cx={text:who+": "+pl(oc30,"cancellation")+" in the last 30 days ("+W30+") vs usual "+n1(on)+"/month ("+fmt(oc180)+" in "+B180+" ÷ 6). An alert needs more than "+n1(1.5*on)+" and at least 3."+(F.proj?"":" Each project was also checked the same way; none spiked.")};
+  var of7=sum(D.O.f,Y-6,Y),of28=sum(D.O.f,Y-34,Y-7),ob=of28/4;
+  sm.walk=ob>=10?{text:who+": "+pl(of7,"fresh walk-in")+" in the last 7 days ("+W7+") vs usual "+n1(ob)+"/week ("+fmt(of28)+" in "+B28+" ÷ 4), which is "+Math.round(of7/ob*100)+"% of usual. An alert needs below 70% ("+n1(.7*ob)+")."+(F.proj?"":" Projects with 10+ walk-ins a week were also checked; none dropped below 70%.")}
+    :{skip:1,text:"Usual fresh walk-ins for these filters are only "+n1(ob)+" a week ("+fmt(of28)+" in "+B28+" ÷ 4). The check needs a usual of 10+ a week, so small swings are not flagged."};
+  var act=Object.keys(D.cpOld).filter(function(c){return D.cpOld[c]>=3});
+  sm.cp=act.length?{text:pl(act.length,"CP firm")+" had 3+ walk-ins in "+dr(D.cpA,D.cpB)+", and all of them brought at least one walk-in in the last 30 days ("+W30+")."}
+    :{skip:1,text:"No CP firm had 3 or more walk-ins in "+dr(D.cpA,D.cpB)+", so there was no active firm to watch."};
+  fl.sm=sm;
   return fl;
 }
 function ccClock(){return new Date().toLocaleString("en-IN",{timeZone:"Asia/Kolkata",weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})}
@@ -1068,15 +1100,20 @@ function cmdHtml(){
   var head=nR+nA?[nR?nR+" red":"",nA?nA+" amber":""].filter(Boolean).join(" · ")+" alert"+(nR+nA>1?"s":"")+" need"+(nR+nA>1?"":"s")+" attention":"All clear: nothing needs attention";
   var fresh=lag<0?'<div class="cc-fresh lag"><i></i>No walk-ins match these filters</div>':lag>2?'<div class="cc-fresh lag"><i></i>Sheet behind · last walk-in dated '+dl(D.lastV)+' ('+lag+' days ago)</div>':'<div class="cc-fresh"><i></i>Sheet up to date · last walk-in dated '+dl(D.lastV)+'</div>';
   var hero='<section class="cc-hero '+(nR?"bad":nA?"warn":"good")+'" aria-label="Status board"><div class="cc-top"><div class="cc-tt"><div class="cc-k"><span class="cc-live"></span>Command Centre · live</div><div class="cc-h">'+head+'</div><div class="cc-s"><span id="ccClock">'+ccClock()+'</span> IST · 5 checks on data up to '+dl(Y)+'</div></div>'+fresh+'</div>'+
-    '<div class="cc-checks" role="group" aria-label="Show alerts for one check">'+CHECKS.map(function(c){var b=by[c[0]],st=b.r?"bad":b.n?"warn":"good";
-      return'<button class="cc-chk '+st+(cat===c[0]?" on":"")+'" data-ccat="'+c[0]+'" aria-pressed="'+(cat===c[0])+'"><span class="cc-ic">'+ico(c[0])+'</span><span class="cc-nm">'+c[1]+'</span><span class="cc-st"><i></i>'+(b.n?b.n+(b.n>1?" alerts":" alert"):"All clear")+'</span></button>'}).join("")+'</div></section>';
+    '<div class="cc-checks" role="group" aria-label="Show alerts for one check">'+CHECKS.map(function(c){var b=by[c[0]],sk=fl.sm[c[0]].skip,st=b.r?"bad":b.n?"warn":sk?"skip":"good";
+      return'<button class="cc-chk '+st+(cat===c[0]?" on":"")+'" data-ccat="'+c[0]+'" aria-pressed="'+(cat===c[0])+'"><span class="cc-ic">'+ico(c[0])+'</span><span class="cc-nm">'+c[1]+'</span><span class="cc-st"><i></i>'+(b.n?b.n+(b.n>1?" alerts":" alert"):sk?"Not checked":"All clear")+'</span></button>'}).join("")+'</div></section>';
   var nav='<nav class="cc-nav" aria-label="Command Centre sections"><button data-jump="ccAlerts">Alerts'+(fl.length?' <b>'+fl.length+'</b>':"")+'</button><button data-jump="ccPulse">Today &amp; week</button><button data-jump="ccRules">How it works</button></nav>';
   // alerts
   var list=cat?fl.filter(function(f){return f.t===cat}):fl,show=cat||ui.cmdAll?list:list.slice(0,6);
   var lagBox=lag>2?'<div class="lagw"><b>⚠ Walk-in sheet looks behind</b><span>The latest Date of Visit (column C) entered is <b>'+dl(D.lastV)+'</b>, '+lag+' days ago. Until the sheet catches up, recent walk-ins look low, so “Walk-ins slowing” and the Today &amp; week numbers may be overstated.</span></div>':"";
-  var body=list.length?'<div class="flags">'+show.map(flagHtml).join("")+(!cat&&list.length>6?'<button class="reset fmore" data-ui="cmdAll" data-uv="'+(ui.cmdAll?"":"1")+'">'+(ui.cmdAll?"Show fewer":"Show all "+list.length+" alerts")+'</button>':"")+'</div>'
-    :cat?'<div class="allok"><span class="okic">✓</span><div><b>'+chk(cat)[1]+': all clear</b><span>No alert from this check for data up to '+dl(Y)+'.</span></div></div>'
-    :'<div class="allok"><span class="okic">✓</span><div><b>All five checks passed</b><span>Nothing needs attention for data up to '+dl(Y)+'.</span></div></div>';
+  function passed(only){return CHECKS.filter(function(c){return!by[c[0]].n&&(!only||only===c[0])}).map(function(c){var s=fl.sm[c[0]];
+    return'<div class="pchk '+(s.skip?"skip":"ok")+'"><span class="pic">'+(s.skip?"–":"✓")+'</span><div class="pbody"><div class="phd"><b>'+c[1]+'</b><span class="ptag">'+(s.skip?"Not checked":"All clear")+'</span></div><p>'+esc(s.text)+'</p>'+
+      (s.list&&s.list.length?'<ul>'+s.list.map(function(x){return'<li>'+esc(x)+'</li>'}).join("")+'</ul>':"")+'</div></div>'}).join("")}
+  var pass=passed(cat),nPass=CHECKS.filter(function(c){return!by[c[0]].n}).length;
+  var body=list.length?'<div class="flags">'+show.map(flagHtml).join("")+(!cat&&list.length>6?'<button class="reset fmore" data-ui="cmdAll" data-uv="'+(ui.cmdAll?"":"1")+'">'+(ui.cmdAll?"Show fewer":"Show all "+list.length+" alerts")+'</button>':"")+'</div>'+
+      (!cat&&nPass?'<h3 class="psec">Checks with no alert ('+nPass+') · data up to '+dl(Y)+'</h3><div class="plist">'+pass+'</div>':"")
+    :cat?'<div class="plist">'+pass+'</div>'
+    :'<div class="allok"><span class="okic">✓</span><div><b>No alerts from any of the five checks</b><span>Here is what each check looked at, for data up to '+dl(Y)+'.</span></div></div><div class="plist">'+pass+'</div>';
   var rules='<details class="rules" id="ccRules"><summary>How these checks work</summary><ul>'+
     '<li><b>Project stalled</b> (red): 15+ fresh walk-ins and 0 bookings in the last 30 days.</li>'+
     '<li><b>Conversion dropped</b> (amber): last-30-day bookings ÷ fresh walk-ins is less than half of the previous 6 months. Only with 20+ walk-ins and 5+ earlier bookings.</li>'+
