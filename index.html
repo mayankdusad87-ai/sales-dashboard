@@ -991,7 +991,7 @@ function personList(key,T){var c={},t=today()-400;ROWS.forEach(function(r){if(r[
 function renderFilters(){
   setOpts($("fPer"),[["mtd","This month"],["lm","Last month"],["l30","Last 30 days"],["qtd","This quarter"],["fy","This FY to date"],["lfy","Last FY"],["l12","Last 12 months"],["all","All time"]].concat(recentMonths(18)),F.per);
   var pj=projList().map(function(p){return[p,lab(p)]});
-  setOpts($("fProj"),tab==="site"?pj:[["","All projects"]].concat(pj),F.proj);
+  setOpts($("fProj"),tab==="site"?pj.filter(function(o){return o[0]!=="All"}):[["","All projects"]].concat(pj),F.proj);
   setOpts($("fCm"),[["","All"]].concat(personList("cm",CT).map(function(x){return[x,x]})),F.cm);
   setOpts($("fSm"),[["","All"]].concat(personList("sm",ST).map(function(x){return[x,x]})),F.sm);
   setOpts($("fSrc"),[["","All"],["Direct","Direct"],["Indirect","Indirect (Channel Partner)"]].concat(uniq("src").filter(function(s){return!isCP(s)}).map(function(s){return[s,s]})),F.src);
@@ -1841,7 +1841,7 @@ function load(fresh){
     return r.json();
   }).then(function(d){
     loadErr="";ingest(d);lastLoad=Date.now();$("gate").style.display="none";
-    if(tab==="site"&&!F.proj)F.proj=projList()[0]||"";
+    if(tab==="site"&&(!F.proj||F.proj==="All"))F.proj=siteProj();
     render();setLive();ldDone();
   }).catch(function(e){if(e.message==="password")return;loadErr="Could not load data";setLive();if(!DATA){ldFail("Could not load the data: "+e.message+". Try again in a minute.")}});
 }
@@ -1866,7 +1866,9 @@ document.addEventListener("mouseout",function(e){if(!kpBtn||kpPinned)return;var 
 window.addEventListener("scroll",function(){if(kpBtn&&!isPhone()&&CAN_HOVER.matches)kpClose(false)},{passive:true});
 window.addEventListener("popstate",function(){if(focus)closeDetail()});
 $("dback").onclick=goBack;
-function setTab(t){tab=t;focus=null;if(t==="site"&&!F.proj)F.proj=projList()[0]||"";render()}
+function setTab(t){tab=t;focus=null;if(t==="site"&&(!F.proj||F.proj==="All"))F.proj=siteProj();render()}
+// a site head works on a real project: "All" in column B is not one
+function siteProj(){var p=projList().filter(function(x){return x!=="All"});return p[0]||""}
 document.addEventListener("click",function(e){
   var t=e.target,x;
   if(t.closest("#kclose")||t.id==="kscrim"){kpClose(true);return}
