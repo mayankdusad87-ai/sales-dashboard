@@ -105,8 +105,9 @@ select:hover{border-color:var(--bar1)}
 .t0{background:linear-gradient(135deg,#E8432E,#B3261E)}.t1{background:linear-gradient(135deg,#4A4244,#2A2324)}
 .t2{background:linear-gradient(135deg,#9E1B22,#6E1217)}.t3{background:linear-gradient(135deg,#FBE2DD,#F2BFB4);color:#4A1418}
 .t4{background:linear-gradient(135deg,#7A3034,#4A1C1F)}.t5{background:linear-gradient(135deg,#C2412F,#8E2A1F)}
-.t6{background:linear-gradient(135deg,#8C8183,#5E5456)}.t7{background:linear-gradient(135deg,#7A3034,#4A1C1F)}
-.t8{background:linear-gradient(135deg,#F7F1EF,#ECE4E2);color:#6E6466;box-shadow:inset 0 0 0 1.5px rgba(110,100,102,.35)!important}.t8 .tv{text-shadow:none;opacity:.7}.t9{background:linear-gradient(135deg,#3A3536,#1A1415)}
+.t6{background:linear-gradient(135deg,#8C8183,#5E5456)}.t7{background:linear-gradient(135deg,#B9802F,#7A4E14)}
+.t8{background:linear-gradient(135deg,#4A4244,#2A2324)}.t9{background:linear-gradient(135deg,#7A3034,#4A1C1F)}.t10{background:linear-gradient(135deg,#9C6A24,#5E3D0E)}.t11{background:linear-gradient(135deg,#3A3536,#1A1415)}
+.tile.ph{background:linear-gradient(135deg,#F7F1EF,#ECE4E2);color:#6E6466;box-shadow:inset 0 0 0 1.5px rgba(110,100,102,.35)!important}.tile.ph .tv{text-shadow:none;opacity:.7}
 .t3 .tv{text-shadow:0 1px 0 rgba(255,255,255,.4)}
 .tile.hasg{display:grid;grid-template-columns:minmax(0,1fr) 74px;grid-template-rows:auto auto 1fr;column-gap:6px}
 .tile.hasg .tl{grid-column:1/3}
@@ -447,6 +448,10 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 .m2lg{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;opacity:.8;margin-top:4px}.m2lg span{display:flex;align-items:center;gap:6px}
 .m2lg i{display:inline-block;width:14px;height:3px;border-radius:2px}.m2lg i.tg{background:rgba(255,255,255,.55)}.m2lg i.ac{background:#FCD34D}.m2lg i.fc{background:repeating-linear-gradient(90deg,#FCD34D 0 4px,transparent 4px 7px)}
 .m2kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:24px}
+.m2kpis.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:1100px){.m2kpis.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.m2sv{white-space:nowrap}.m2sv b{font-variant-numeric:tabular-nums}.m2sv small{display:block;font-size:11px;color:var(--muted);font-weight:500}
+.m2pv{margin-top:6px;font-size:12.5px;color:var(--ink2)}.m2pv b{color:var(--ink)}
 .m2kpi{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:16px;padding:16px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .m2kl{font-size:12px;font-weight:600;opacity:.8}
 .m2kv{font-size:32px;font-weight:800;letter-spacing:-.5px;margin-top:4px;line-height:1.1}.m2kv small{font-size:15px;font-weight:600;opacity:.7;margin-left:4px;letter-spacing:0}
@@ -520,6 +525,8 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
   .m2sub{font-size:15px}
   .m2kpis{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:16px}
   .m2kpis .m2kpi:last-child{grid-column:1 / -1}
+  .m2kpis.four{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .m2kpis.four .m2kpi:last-child{grid-column:auto}
   .m2kpi{padding:12px}
   .m2kv{font-size:28px}.m2kv small{font-size:15px}
   .m2ks{flex-direction:column;align-items:flex-start;gap:8px}
@@ -859,6 +866,21 @@ function ingest(d){
   DATA=d;var f=d.fields,D=d.dict,ix={};f.forEach(function(k,i){ix[k]=i});
   HAS_ID=!!(d.ID&&d.ID.some(function(x){return x}));TIME_OK=false;HAS_NAMES=!!(d.NM&&d.NM.length);
   ROWS=d.W.map(function(r,n){var o={};f.forEach(function(k,i){o[k]=D[k]?D[k][r[i]]:r[i]});o.uniq=/^unique\s*revisit$/i.test(o.awv||"");o.id=d.ID?d.ID[n]||"":"";o.nm=d.NM?d.NM[n]||"":"";if(o.wait>=0)TIME_OK=true;return o});
+  // Booking details: every booking becomes its own row (kind 3) carrying the linked customer's details;
+  // walk-in rows then only say whether that customer booked (won 1) or booked and cancelled (won 2)
+  HAS_BK=!!(d.BK&&d.BK.rows&&d.BK.rows.length);
+  if(HAS_BK){var byK={},BKR=[];
+    ROWS.forEach(function(r){r.bk=0;r.cx=0;r.bday=-1;r.cday=-1;var k=fkey(r.id);if(k)(byK[k]||(byK[k]=[])).push(r)});
+    d.BK.rows.forEach(function(b){var w=b[0]>=0?ROWS[b[0]]:null,o={};
+      if(w)Object.assign(o,w);else f.forEach(function(k){o[k]=D[k]?"":-1});
+      o.kind=3;o.vday=-1;o.uniq=false;o.wait=-1;o.won=0;o.bk=1;o.bday=b[2];o.cx=b[3];o.cday=b[4];o.av=b[5];o.carpet=b[6];
+      if(b[1])o.proj=b[1];if(b[7])o.cm=b[7];if(b[8])o.sm=b[8];if(b[9]){o.cp=b[9];if(!w)o.src="Channel Partner"}else if(!w)o.src="Not linked";
+      o.id=b[10];o.fv=b[11];o.linked=!!w;o.nm=w?w.nm:"";o.bkRow=1;
+      (byK[fkey(b[10])]||[]).forEach(function(r){if(!b[3]){r.won=1;r.wonDay=b[2]}else if(!r.won)r.won=2});
+      BKR.push(o)});
+    ROWS=ROWS.concat(BKR)}
+  M("nr").ph=!HAS_BK;
+  M("net").def=HAS_BK?"Bookings in Booking details (Booking Date, column AN, and an Overall Status) minus bookings marked “Cancelled at Booking”, counted on the Cancellation Date (column V). Target: Closing Targets (Sourcing Targets when a sourcing manager is picked).":NET_DEF;
   MIN_DAY=ROWS.reduce(function(m,r){return r.vday>0&&r.vday<m?r.vday:m},today());
   CT=d.CT.map(function(r){return{m:r[0],ym:+r[1].replace("-",""),t:r[2],w:r[3],p:r[4]||"All"}});
   ST=d.ST.map(function(r){return{m:r[0],ym:+r[1].replace("-",""),b:r[2],t:r[3],w:r[4],p:r[5]||"All"}});
@@ -872,9 +894,12 @@ function pass(r,FF){
   if(FF.src){if(FF.src==="Direct"){if(isCP(r.src))return false}else if(FF.src==="Indirect"){if(!isCP(r.src))return false}else if(r.src!==FF.src)return false}
   return true;
 }
-function blank(){return{fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],wt:[],cps:{},cpWalk:0}}
+function blank(){return{fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],wt:[],cps:{},cpWalk:0,av:0,avx:0,avR:0,ca:0}}
+// money and turnaround of one booking row (Booking details): value, value per sq ft, days from first visit
+function addBk(s,r){s.gross++;var fv=r.fv>0?r.fv:r.vday;if(fv>0&&r.bday>=fv)s.tat.push(r.bday-fv);if(r.av>0){s.av+=r.av;if(!r.cx&&r.carpet>0){s.avR+=r.av;s.ca+=r.carpet}}}
+function addCx(s,r){s.cx++;if(r.av>0)s.avx+=r.av}
 // conversion = NET bookings (bookings − cancellations) ÷ fresh walk-ins, so it matches the Net Bookings number everywhere
-function fin(s){s.net=s.gross-s.cx;s.conv=pct(s.net,s.fresh);s.tatM=median(s.tat);s.wtM=median(s.wt);s.wt15=s.wt.filter(function(w){return w>15}).length;s.ncp=Object.keys(s.cps).length;return s}
+function fin(s){s.net=s.gross-s.cx;s.conv=pct(s.net,s.fresh);s.tatM=median(s.tat);s.sv=HAS_BK?s.av-s.avx:null;s.rpsf=HAS_BK&&s.ca?s.avR/s.ca:null;s.wtM=median(s.wt);s.wt15=s.wt.filter(function(w){return w>15}).length;s.ncp=Object.keys(s.cps).length;return s}
 // one pass: totals, optional groups by keyFn
 function stats(FF,p,keyFn){
   var tot=blank(),G={};
@@ -883,9 +908,9 @@ function stats(FF,p,keyFn){
     if(!inV&&!inB&&!inC)continue;
     var tg=[tot];if(keyFn){var k=keyFn(r);if(!G[k])G[k]=blank();tg.push(G[k])}
     for(var j=0;j<tg.length;j++){var s=tg[j];
-      if(inV){if(r.kind===0){s.fresh++;if(r.wait>=0)s.wt.push(r.wait);if(r.aff==="Hot"&&!r.bk)s.hot++}else if(r.uniq)s.rev++;if(r.cp&&isCP(r.src)){s.cps[r.cp]=1;s.cpWalk++}}
-      if(inB){s.gross++;if(r.vday>0&&r.bday>=r.vday)s.tat.push(r.bday-r.vday)}
-      if(inC)s.cx++}}
+      if(inV){if(r.kind===0){s.fresh++;if(r.wait>=0)s.wt.push(r.wait);if(r.aff==="Hot"&&!r.bk&&!r.won)s.hot++}else if(r.uniq)s.rev++;if(r.cp&&isCP(r.src)){s.cps[r.cp]=1;s.cpWalk++}}
+      if(inB)addBk(s,r);
+      if(inC)addCx(s,r)}}
   fin(tot);for(var g in G)fin(G[g]);
   return{tot:tot,G:G};
 }
@@ -894,9 +919,9 @@ function series(FF,p,weekly){
   var keys=weekly?[1,2,3,4,5,6]:monthsIn(p),B={};keys.forEach(function(k){B[k]=blank()});
   function key(d){return weekly?weekOf(d):ymOf(d)}
   for(var i=0;i<ROWS.length;i++){var r=ROWS[i];if(!pass(r,FF))continue;var s;
-    if(r.vday>=p.from&&r.vday<=p.to&&(s=B[key(r.vday)])){if(r.kind===0){s.fresh++;if(r.wait>=0)s.wt.push(r.wait);if(r.aff==="Hot"&&!r.bk)s.hot++}else if(r.uniq)s.rev++;if(r.cp&&isCP(r.src)){s.cps[r.cp]=1;s.cpWalk++}}
-    if(r.bk&&r.bday>=p.from&&r.bday<=p.to&&(s=B[key(r.bday)])){s.gross++;if(r.vday>0&&r.bday>=r.vday)s.tat.push(r.bday-r.vday)}
-    if(r.cx&&r.cday>=p.from&&r.cday<=p.to&&(s=B[key(r.cday)]))s.cx++}
+    if(r.vday>=p.from&&r.vday<=p.to&&(s=B[key(r.vday)])){if(r.kind===0){s.fresh++;if(r.wait>=0)s.wt.push(r.wait);if(r.aff==="Hot"&&!r.bk&&!r.won)s.hot++}else if(r.uniq)s.rev++;if(r.cp&&isCP(r.src)){s.cps[r.cp]=1;s.cpWalk++}}
+    if(r.bk&&r.bday>=p.from&&r.bday<=p.to&&(s=B[key(r.bday)]))addBk(s,r);
+    if(r.cx&&r.cday>=p.from&&r.cday<=p.to&&(s=B[key(r.cday)]))addCx(s,r)}
   keys.forEach(function(k){fin(B[k])});
   if(weekly)while(keys.length>4&&!B[keys[keys.length-1]].fresh&&!B[keys[keys.length-1]].gross&&!B[keys[keys.length-1]].cx&&keys[keys.length-1]>weekOf(p.full.to))keys.pop();
   return{keys:keys,B:B};
@@ -942,13 +967,21 @@ var METRICS=[
   {id:"cx",label:"Cancellations",fx:"Cancellations = count of bookings marked cancelled",v:function(s){return s.cx},f:fmt,up:-1,def:"Rows with Booking Cancellation = Yes, by Cancellation Date (Booking Date when that is empty)."},
   {id:"hot",label:"Hot Leads Open",v:function(s){return s.hot},f:fmt,up:1,def:"Fresh walk-ins in the period with Customer Affinity = Hot that have not booked yet."},
   {id:"cpf",label:"Active CP Firms",fx:"Active CP Firms = number of different CP companies with 1+ walk-in",v:function(s){return s.ncp},f:fmt,up:1,def:"Distinct Channel Partner Company names (column AA) that brought at least one walk-in (fresh or revisit) in the period, where Source = Channel Partner."},
-  {id:"tat",label:"TAT (wait time)",unit:"min",fx:"TAT = median minutes from Time In to Time Attended",v:function(s){return s.wtM},f:function(v){return v==null?"–":String(Math.round(v))},up:-1,def:"Fresh walk-ins in the period with both Time In and Time Attended filled (waits over 10 hours are treated as typing errors and left out). Half of the customers waited this long or less. Aim: attended within 15 minutes."},
-  {id:"nr",label:"Net Realisation",ph:true,fx:"Placeholder: needs a sale value for each booking",def:"Will show the average realised price (agreement value minus discounts, per sq ft) against the list price, by closing manager, once the sheet records sale value and carpet area for each booking."},
+  {id:"sv",label:"Sales Value",fx:"Sales value = agreement value of bookings − agreement value of cancellations",v:function(s){return s.sv},f:fcr,up:1,def:"Agreement value (Booking details, column AH, excluding GST and stamp duty) of bookings in the period, minus the agreement value of bookings cancelled in the period."},
+  {id:"tatb",label:"Booking TAT",unit:"days",fx:"Booking TAT = booking date − first visit date (median)",v:function(s){return s.tatM},f:function(v){return v==null?"–":String(Math.round(v))},up:-1,def:"Days from the customer’s first visit (earliest Date of Visit for that Form No in the Walk-in sheet) to the Booking Date (Booking details, column AN). Half the bookings closed faster than this. Bookings whose Form No is not in the Walk-in sheet are left out."},
+  {id:"tat",label:"Waiting Time",unit:"min",fx:"TAT = median minutes from Time In to Time Attended",v:function(s){return s.wtM},f:function(v){return v==null?"–":String(Math.round(v))},up:-1,def:"Fresh walk-ins in the period with both Time In and Time Attended filled (waits over 10 hours are treated as typing errors and left out). Half of the customers waited this long or less. Aim: attended within 15 minutes."},
+  {id:"nr",label:"Net Realisation",ph:true,unit:"/sq ft",fx:"Net realisation = agreement value ÷ carpet area",v:function(s){return s.rpsf},f:function(v){return v==null?"–":"₹"+fmt(Math.round(v))},up:1,def:"Agreement value (column AH, excluding GST and stamp duty) ÷ carpet area (column AD), over bookings in the period that are not cancelled and have both values. Comes from Booking details."},
   {id:"inv",label:"Unsold Inventory",fx:"Unsold = units with status Available",inv:true,def:"From the Inventory Status tab, as of now (not affected by the period). Sold = Sold + Booked + Overdue · On hold = Reserved + Blocked · Unsold = Available."}
 ];
 var SITE_TILES=["net","fresh","conv","rev","cx","cpf","tat","nr"];
 var MGMT_TILES=["net","fresh","conv","rev","cx","cpf","inv"];
 function M(id){for(var i=0;i<METRICS.length;i++)if(METRICS[i].id===id)return METRICS[i]}
+var NET_DEF=M("net").def;
+// tiles stay at 7 (Management) and 8 (Site Head); money and turnaround replace the less decisive ones once Booking details is connected
+function mgmtTiles(){return HAS_BK?["net","sv","nr","fresh","conv","tatb","cx"]:MGMT_TILES}
+function siteTiles(){return HAS_BK?["net","fresh","conv","rev","cx","nr","tatb","tat"]:SITE_TILES}
+// money: ₹14.2 Cr / ₹85 L on cards; exact rupees in tooltips
+function fcr(v){if(v==null)return"–";var a=Math.abs(v),sg=v<0?"−":"";return sg+(a>=1e7?"₹"+(a/1e7).toFixed(a>=1e9?0:a>=1e8?1:2).replace(/\.?0+$/,"")+" Cr":a>=1e5?"₹"+(a/1e5).toFixed(0)+" L":"₹"+fmt(Math.round(a)))}
 
 /* ---------- small renderers ---------- */
 function si(st){return st?'<span class="si '+st+'" aria-hidden="true">'+(st==="good"?"✓":st==="warn"?"!":"✕")+'</span>':""}
@@ -1021,10 +1054,15 @@ function tileData(id,P,S,PS,TG,ser){
   if(id==="cx")o.sub=fp(pct(S.tot.cx,S.tot.gross),0)+" of bookings in period";
   if(id==="hot")o.sub="of "+fmt(S.tot.fresh)+" fresh walk-ins";
   if(id==="cpf")o.sub="sent "+fmt(S.tot.cpWalk)+" CP walk-ins";
+  if(id==="sv"){o.sub=S.tot.gross?fcr(S.tot.av/Math.max(1,S.tot.gross))+" avg ticket":"No bookings";if(S.tot.avx)o.sub2=fcr(S.tot.avx)+" cancelled"}
+  if(id==="nr"&&!m.ph){o.sub=S.tot.ca?fmt(Math.round(S.tot.ca))+" sq ft carpet":"No carpet area"}
+  if(id==="tatb"){var nl=S.tot.tat.length;o.sub=nl?"median · "+fmt(nl)+" of "+fmt(S.tot.gross)+" bookings":"No linked bookings";o.st=v==null?"":v<=30?"good":v<=60?"warn":"bad"}
   if(id==="tat"){o.val=v==null?"–":m.f(v)+"<small>min</small>";o.sub=S.tot.wt.length?fp(pct(S.tot.wt15,S.tot.wt.length),0)+" waited over 15 min":TIME_OK?"No timed walk-ins in period":"Time In / Attended not readable yet";o.st=v==null?"":v<=15?"good":v<=30?"warn":"bad";o.sub2=fmt(S.tot.wt.length)+" of "+fmt(S.tot.fresh)+" timed"}
   var dt=deltaTxt(v,pv,m,PS&&PS.P);if(!o.sub2||!m.tgt||o.noT)o.sub2=dt;
   if(!o.sub){o.sub=o.sub2;o.sub2=tab==="mgmt"&&o.noT?o.noT:""}
   if(!o.st)o.st=deltaSt(v,pv,m);
+  // money per sq ft moves a little every month: only a change of 5% or more gets a colour
+  if(id==="nr"&&v!=null&&pv&&Math.abs(v-pv)/pv<.05)o.st="";
   o.dt=dt;o.pv=pv;o.v=v;
   return o;
 }
@@ -1033,12 +1071,12 @@ function renderTiles(ids,P,S,PS,TG,ser){
   var el=$("tiles");el.className="tiles"+(ids.length<=6?" six":"");el.style.setProperty("--n",ids.length);
   TILEC={P:P,S:S,PS:PS,o:{}};kpClose(false);
   el.innerHTML=ids.map(function(id,i){var o=tileData(id,P,S,PS,TG,ser);var c=METRICS.indexOf(o.m);TILEC.o[id]=o;
-    return'<div class="tile t'+c+(o.bar?" hasg":"")+(focus===id?" sel":"")+'" role="button" tabindex="0" data-tile="'+id+'" aria-pressed="'+(focus===id)+'" aria-label="'+esc(o.m.label)+': open details">'+si(o.st)+'<div class="tl"><span>'+esc(o.m.label)+'</span><button type="button" class="tinfo" data-info="'+id+'" aria-label="How '+esc(o.m.label)+' is calculated" aria-haspopup="dialog" aria-expanded="false" aria-controls="kpop"></button></div><div class="tv">'+o.val+'</div><div class="ts">'+esc(o.sub)+'</div>'+(o.bar?gauge(o.bar.pc,o.bar.pace):'<div class="ts">'+esc(o.sub2)+'</div>')+'</div>'}).join("");
+    return'<div class="tile t'+c+(o.m.ph?" ph":"")+(o.bar?" hasg":"")+(focus===id?" sel":"")+'" role="button" tabindex="0" data-tile="'+id+'" aria-pressed="'+(focus===id)+'" aria-label="'+esc(o.m.label)+': open details">'+si(o.st)+'<div class="tl"><span>'+esc(o.m.label)+'</span><button type="button" class="tinfo" data-info="'+id+'" aria-label="How '+esc(o.m.label)+' is calculated" aria-haspopup="dialog" aria-expanded="false" aria-controls="kpop"></button></div><div class="tv">'+o.val+'</div><div class="ts">'+esc(o.sub)+'</div>'+(o.bar?gauge(o.bar.pc,o.bar.pace):'<div class="ts">'+esc(o.sub2)+'</div>')+'</div>'}).join("");
 }
 /* ---------- (i) formula popover ---------- */
 var kpBtn=null,kpPinned=false,kpT=null,CAN_HOVER=matchMedia("(hover:hover) and (pointer:fine)");
 function kpHtml(id){
-  var o=TILEC.o[id],m=o.m,S=TILEC.S.tot,P=TILEC.P,PS=TILEC.PS,c=METRICS.indexOf(m),cols=["#E8432E","#4A4244","#9E1B22","#E07A64","#7A3034","#C2412F","#8C8183","#7A3034","#8C8183","#3A3536"];
+  var o=TILEC.o[id],m=o.m,S=TILEC.S.tot,P=TILEC.P,PS=TILEC.PS,c=METRICS.indexOf(m),cols=["#E8432E","#4A4244","#9E1B22","#E07A64","#7A3034","#C2412F","#8C8183","#B9802F","#4A4244","#7A3034","#9C6A24","#3A3536"];
   var now="";
   if(id==="net")now='<b>'+fmt(S.gross)+'</b> booked − <b>'+fmt(S.cx)+'</b> cancelled = <b>'+fmt(S.net)+'</b>';
   else if(id==="fresh")now='<b>'+fmt(S.fresh)+'</b> fresh walk-ins';
@@ -1046,7 +1084,9 @@ function kpHtml(id){
   else if(id==="rev")now='<b>'+fmt(S.rev)+'</b> unique revisits'+(S.fresh?' — '+fp(pct(S.rev,S.fresh),0)+' of '+fmt(S.fresh)+' fresh walk-ins':"");
   else if(id==="cx")now='<b>'+fmt(S.cx)+'</b> cancelled'+(S.gross?' — '+fp(pct(S.cx,S.gross),0)+' of '+fmt(S.gross)+' bookings':"");
   else if(id==="tat")now=S.wt.length?"Half of <b>"+fmt(S.wt.length)+"</b> timed walk-ins waited <b>"+m.f(S.wtM)+" min</b> or less · <b>"+fmt(S.wt15)+"</b> waited over 15 min":"No walk-in in the period has both times filled";
-  else if(id==="nr")now="Not available yet";
+  else if(id==="nr")now=m.ph?"Not available yet: connect Booking details":S.ca?"<b>"+fcr(S.avR)+"</b> ÷ <b>"+fmt(Math.round(S.ca))+"</b> sq ft = <b>"+m.f(S.rpsf)+"</b> per sq ft":"No booking in the period has both agreement value and carpet area";
+  else if(id==="sv")now="<b>"+fcr(S.av)+"</b> booked − <b>"+fcr(S.avx)+"</b> cancelled = <b>"+fcr(S.sv)+"</b> (₹"+fmt(Math.round(S.sv||0))+")";
+  else if(id==="tatb")now=S.tat.length?"Half of <b>"+fmt(S.tat.length)+"</b> linked bookings closed within <b>"+Math.round(S.tatM)+" days</b> of the first visit · "+fmt(S.gross-S.tat.length)+" bookings have no matching walk-in":"No booking in the period matches a walk-in Form No";
   else if(id==="cpf")now='<b>'+fmt(S.ncp)+'</b> firms brought <b>'+fmt(S.cpWalk)+'</b> CP walk-ins';
   else if(id==="inv"){var iv=inv(F.proj);now='<b>'+fmt(iv.Unsold)+'</b> unsold of <b>'+fmt(iv.tot)+'</b> units ('+fp(pct(iv.Unsold,iv.tot),0)+') · '+fmt(iv["On hold"])+' on hold · '+fmt(iv.Sold)+' sold'}
   var st="";
@@ -1089,7 +1129,7 @@ function groupSer(ser){
   var byQ=Math.ceil(ser.keys.length/3)<=24,g={},order=[],QL=["Jan–Mar","Apr–Jun","Jul–Sep","Oct–Dec"];
   ser.keys.forEach(function(k){var y=Math.floor(k/100),gk=byQ?y*10+Math.ceil((k%100)/3):y;
     if(!g[gk]){g[gk]={ks:[],s:blank()};order.push(gk)}var a=g[gk].s,b=ser.B[k];g[gk].ks.push(k);
-    a.fresh+=b.fresh;a.rev+=b.rev;a.gross+=b.gross;a.cx+=b.cx;a.hot+=b.hot;a.cpWalk+=b.cpWalk;Object.keys(b.cps).forEach(function(c){a.cps[c]=1});a.tat=a.tat.concat(b.tat)});
+    a.fresh+=b.fresh;a.rev+=b.rev;a.gross+=b.gross;a.cx+=b.cx;a.hot+=b.hot;a.cpWalk+=b.cpWalk;a.av+=b.av;a.avx+=b.avx;a.avR+=b.avR;a.ca+=b.ca;Object.keys(b.cps).forEach(function(c){a.cps[c]=1});a.tat=a.tat.concat(b.tat)});
   return{unit:byQ?"quarter":"year",list:order.map(function(gk){var x=g[gk],yy=String(Math.floor(gk/10)).slice(2);fin(x.s);return{lab:byQ?"Q"+(gk%10)+" "+yy:String(gk),full:byQ?QL[gk%10-1]+" "+yy:String(gk),s:x.s,ks:x.ks}})};
 }
 function grpTarget(MM,ks){var sum=0,any=false;ks.forEach(function(k){if(MM&&MM[k]!=null){sum+=MM[k];any=true}});return any?sum:null}
@@ -1114,10 +1154,10 @@ function projCard(P){
   if(sel){if(all)keys=[sel].concat(keys.filter(function(k){return k!==sel}));else keys=[sel]}
   var mx=0;keys.forEach(function(k){if(S.G[k])mx=Math.max(mx,S.G[k].net)});
   var rows=keys.map(function(k){var s=S.G[k]||fin(blank()),u=iv[k];
-    return drow("proj",k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td>'+fmt(s.rev)+'</td><td>'+fmt(s.net)+'</td><td>'+fmt(s.cx)+'</td><td>'+fp(s.conv)+'</td><td>'+(u?fmt(u.Unsold)+'<span class="dim">/'+fmt(u.tot)+'</span>':'<span class="dim">–</span>')+'</td>',F.proj===k)}).join("");
+    return drow("proj",k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td>'+fmt(s.rev)+'</td><td>'+fmt(s.net)+'</td><td>'+fmt(s.cx)+'</td><td>'+fp(s.conv)+'</td><td>'+(HAS_BK?(s.gross?fcr(s.sv):'<span class="dim">–</span>'):u?fmt(u.Unsold)+'<span class="dim">/'+fmt(u.tot)+'</span>':'<span class="dim">–</span>')+'</td>',F.proj===k)}).join("");
   var t=sel&&!all?(S.G[sel]||fin(blank())):S.tot,ti=inv(sel&&!all?sel:"");
   var tg=sel?togs("pcmp",[["one",esc(lab(sel))+" only"],["all","All projects"]],all?"all":"one"):"";
-  return card("cProj","Projects",esc(P.label)+(sel&&!all?" · "+esc(lab(sel)):""),tg,keys.length?'<table><thead><tr><th>Project</th><th>Fresh</th><th>Uniq. revisits</th><th>Net bkg</th><th>Cxl</th><th>Conv</th><th>Unsold</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>'+(sel&&!all?esc(lab(sel))+" total":"Total")+'</td><td>'+fmt(t.fresh)+'</td><td>'+fmt(t.rev)+'</td><td>'+fmt(t.net)+'</td><td>'+fmt(t.cx)+'</td><td>'+fp(t.conv)+'</td><td>'+fmt(ti.Unsold)+'<span class="dim">/'+fmt(ti.tot)+'</span></td></tr></tfoot></table>':empty("No walk-ins in this period"));
+  return card("cProj","Projects",esc(P.label)+(sel&&!all?" · "+esc(lab(sel)):""),tg,keys.length?'<table><thead><tr><th>Project</th><th>Fresh</th><th>Uniq. revisits</th><th>Net bkg</th><th>Cxl</th><th>Conv</th><th>'+(HAS_BK?"Sales value":"Unsold")+'</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>'+(sel&&!all?esc(lab(sel))+" total":"Total")+'</td><td>'+fmt(t.fresh)+'</td><td>'+fmt(t.rev)+'</td><td>'+fmt(t.net)+'</td><td>'+fmt(t.cx)+'</td><td>'+fp(t.conv)+'</td><td>'+(HAS_BK?fcr(t.sv):fmt(ti.Unsold)+'<span class="dim">/'+fmt(ti.tot)+'</span>')+'</td></tr></tfoot></table>':empty("No walk-ins in this period"));
 }
 // limit a period to the months that have targets, so actuals and targets cover the same months
 function clip(P,tm){if(!tm.length)return P;tm.sort();var a=tm[0],b=tm[tm.length-1];return{from:Math.max(P.from,monStart(a)),to:Math.min(P.to,monEnd(b)),full:{to:monEnd(b)},label:a===b?ymLab(a):ymLab(a)+"–"+ymLab(b),clipped:monStart(a)>P.from||monEnd(b)<P.full.to}}
@@ -1215,27 +1255,30 @@ function siteSrcCard(P,mode){
   return card("sSrcCard","Source & channel partners","",togs("ssrc",[["src","Source"],["cp","CP firms"]],mode),ks.length?'<table><thead><tr><th>Source</th><th>Fresh</th><th></th><th>Net bkg</th><th>Conv</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No walk-ins in this period"));
 }
 /* ---------- site head (phase A): records, team, CP scorecard, data to fix ---------- */
-var HAS_NAMES=false,HAS_ID=false,TIME_OK=false,REC_CTX=null;
-var REC={fresh:"Fresh walk-ins",conv:"Fresh walk-ins · who booked",rev:"Unique revisits",net:"Booking register",cx:"Cancellations",tat:"Waiting time (TAT)"};
+var HAS_NAMES=false,HAS_ID=false,TIME_OK=false,HAS_BK=false,REC_CTX=null;
+// Form No as a matching key, same rule as the server: "INQ-02919" = "inq 2919" = "INQ2919"
+function fkey(v){return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").replace(/\d+/g,function(n){return String(+n)})}
+var REC={fresh:"Fresh walk-ins",conv:"Fresh walk-ins · who booked",rev:"Unique revisits",net:"Booking register",cx:"Cancellations",tat:"Waiting time",nr:"Booking register · value",tatb:"Booking register · TAT"};
 var AFC={"Hot":"hot","Warm High":"wh","Warm Low":"wl","Cold":"cold","Lost":"lost"};
-function stLab(r){return r.cx?["Cancelled","cx"]:r.bk?["Booked "+(r.bday>0?dl(r.bday):""),"bk"]:r.aff==="Lost"?["Lost","lost"]:["Open","op"]}
+function stLab(r){return r.cx||r.won===2?["Cancelled","cx"]:r.bk?["Booked "+(r.bday>0?dl(r.bday):""),"bk"]:r.won===1?["Booked "+(r.wonDay>0?dl(r.wonDay):""),"bk"]:r.aff==="Lost"?["Lost","lost"]:["Open","op"]}
+function bkd(r){return(r.bk&&!r.cx)||r.won===1}
 function rateTxt(net,fresh){return fresh<10?'<span class="dim" title="Fewer than 10 walk-ins: too few to judge">few</span>':fp(pct(net,fresh))}
 function recRows(id,P){
   var out=[];
   for(var i=0;i<ROWS.length;i++){var r=ROWS[i];if(!pass(r,F))continue;var inV=r.vday>=P.from&&r.vday<=P.to;
     if(id==="fresh"||id==="conv"){if(inV&&r.kind===0)out.push(r)}
     else if(id==="rev"){if(inV&&r.uniq)out.push(r)}
-    else if(id==="net"){if(r.bk&&r.bday>=P.from&&r.bday<=P.to)out.push(r)}
+    else if(id==="net"||id==="nr"||id==="tatb"){if(r.bk&&r.bday>=P.from&&r.bday<=P.to)out.push(r)}
     else if(id==="cx"){if(r.cx&&r.cday>=P.from&&r.cday<=P.to)out.push(r)}
     else if(id==="tat"){if(inV&&r.kind===0&&r.wait>=0)out.push(r)}}
-  var dk=id==="net"?"bday":id==="cx"?"cday":"vday";
-  out.sort(id==="tat"?function(a,b){return b.wait-a.wait||b.vday-a.vday}:id==="conv"?function(a,b){return((b.bk&&!b.cx)-(a.bk&&!a.cx))||b.vday-a.vday}:function(a,b){return b[dk]-a[dk]});
+  var dk=id==="net"||id==="nr"||id==="tatb"?"bday":id==="cx"?"cday":"vday",tb=function(r){var fv=r.fv>0?r.fv:r.vday;return fv>0&&r.bday>=fv?r.bday-fv:-1};
+  out.sort(id==="tat"?function(a,b){return b.wait-a.wait||b.vday-a.vday}:id==="conv"?function(a,b){return(bkd(b)-bkd(a))||b.vday-a.vday}:id==="tatb"?function(a,b){return tb(b)-tb(a)}:id==="nr"?function(a,b){return(b.carpet>0?b.av/b.carpet:0)-(a.carpet>0?a.av/a.carpet:0)}:function(a,b){return b[dk]-a[dk]});
   return out;
 }
 function recPass(r,st,q){
-  if(st==="open"&&(r.bk||r.aff==="Lost"))return false;
-  if(st==="booked"&&!(r.bk&&!r.cx))return false;
-  if(st==="cx"&&!r.cx)return false;
+  if(st==="open"&&(r.bk||r.won||r.aff==="Lost"))return false;
+  if(st==="booked"&&!bkd(r))return false;
+  if(st==="cx"&&!(r.cx||r.won===2))return false;
   if(st==="hot"&&!(r.aff==="Hot"||r.aff==="Warm High"))return false;
   if(st==="lost"&&r.aff!=="Lost")return false;
   if(q&&((r.id||"")+" "+(r.nm||"")+" "+(r.cp||"")).toLowerCase().indexOf(q)<0)return false;
@@ -1245,13 +1288,14 @@ function nmCell(r){return HAS_NAMES?(r.nm?esc(r.nm):'<span class="dim">–</span
 function recListHtml(id,P){
   var q=(ui.rq||"").trim().toLowerCase(),st=ui.rst||"all",list=recRows(id,P).filter(function(r){return recPass(r,st,q)}),MAX=200;
   if(!list.length)return empty(q?"No customer matches “"+ui.rq+"”":id==="tat"&&!TIME_OK?"Time In and Time Attended cannot be read from the sheet yet, so waiting times are not available.":"No customers here for this period");
-  var showWait=id==="tat",showLost=id==="cx"||st==="lost";
+  var showWait=id==="tat",showLost=id==="cx"||st==="lost",showBk=HAS_BK&&(id==="net"||id==="nr"||id==="tatb"||id==="cx");
+  var tbd=function(r){var fv=r.fv>0?r.fv:r.vday;return fv>0&&r.bday>=fv?r.bday-fv:null};
   var src=function(r){return isCP(r.src)?(r.cp||"CP · firm not entered"):(r.src||"–")};
-  var head='<tr><th>Form No</th><th>Customer</th><th>Visit</th><th>Source / CP firm</th><th>Config</th><th>Budget</th><th>Affinity</th><th>Closing</th><th>Sourcing</th>'+(showWait?'<th>Wait</th>':"")+(showLost?'<th>Reason lost</th>':"")+'<th>Status</th></tr>';
+  var head='<tr><th>Form No</th><th>Customer</th><th>Visit</th><th>Source / CP firm</th><th>Config</th><th>Budget</th><th>Affinity</th><th>Closing</th><th>Sourcing</th>'+(showBk?'<th>Value</th><th>₹ / sq ft</th><th>TAT</th>':"")+(showWait?'<th>Wait</th>':"")+(showLost?'<th>Reason lost</th>':"")+'<th>Status</th></tr>';
   var body="",cards="";
-  list.slice(0,MAX).forEach(function(r){var s=stLab(r),af=r.aff?'<span class="rtag a-'+(AFC[r.aff]||"cold")+'">'+esc(r.aff)+'</span>':'<span class="dim">–</span>',vd=r.vday>0?dl(r.vday):"–";
-    body+='<tr><td class="fno">'+esc(r.id||"–")+'</td><td class="rnm">'+nmCell(r)+'</td><td>'+vd+'</td><td class="rsrc" title="'+esc(src(r))+'">'+esc(src(r))+'</td><td>'+esc(r.cfg||"–")+'</td><td>'+esc(r.budget||"–")+'</td><td>'+af+'</td><td>'+esc(r.cm||"–")+'</td><td>'+esc(r.sm||"–")+'</td>'+(showWait?'<td><b'+(r.wait>15?' class="lo"':"")+'>'+r.wait+' min</b></td>':"")+(showLost?'<td>'+esc(r.lost||"–")+'</td>':"")+'<td><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></td></tr>';
-    cards+='<div class="rcard"><div class="rc1"><b>'+nmCell(r)+'</b>'+af+'</div><div class="rc2">'+esc(r.id||"")+(r.id?" · ":"")+vd+(r.cm?" · "+esc(r.cm):"")+'</div><div class="rc3"><span>'+esc(r.cfg||"–")+'</span><span>'+esc(r.budget||"–")+'</span><span>'+esc(src(r))+'</span>'+(showWait?'<span><b'+(r.wait>15?' class="lo"':"")+'>Waited '+r.wait+' min</b></span>':"")+(showLost&&r.lost?'<span>'+esc(r.lost)+'</span>':"")+'</div>'+(s[1]!=="op"?'<div class="rc4"><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></div>':"")+'</div>'});
+  list.slice(0,MAX).forEach(function(r){var s=stLab(r),af=r.aff?'<span class="rtag a-'+(AFC[r.aff]||"cold")+'">'+esc(r.aff)+'</span>':'<span class="dim">–</span>',vd=r.vday>0?dl(r.vday):r.fv>0?dl(r.fv):"–",tt=tbd(r),bkc=showBk?'<td>'+(r.av>0?fcr(r.av):"–")+'</td><td>'+(r.av>0&&r.carpet>0?"₹"+fmt(Math.round(r.av/r.carpet)):"–")+'</td><td>'+(tt==null?'<span class="dim" title="No matching walk-in">–</span>':tt+" d")+'</td>':"";
+    body+='<tr><td class="fno">'+esc(r.id||"–")+'</td><td class="rnm">'+nmCell(r)+'</td><td>'+vd+'</td><td class="rsrc" title="'+esc(src(r))+'">'+esc(src(r))+'</td><td>'+esc(r.cfg||"–")+'</td><td>'+esc(r.budget||"–")+'</td><td>'+af+'</td><td>'+esc(r.cm||"–")+'</td><td>'+esc(r.sm||"–")+'</td>'+bkc+(showWait?'<td><b'+(r.wait>15?' class="lo"':"")+'>'+r.wait+' min</b></td>':"")+(showLost?'<td>'+esc(r.lost||"–")+'</td>':"")+'<td><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></td></tr>';
+    cards+='<div class="rcard"><div class="rc1"><b>'+nmCell(r)+'</b>'+af+'</div><div class="rc2">'+esc(r.id||"")+(r.id?" · ":"")+vd+(r.cm?" · "+esc(r.cm):"")+'</div><div class="rc3"><span>'+esc(r.cfg||"–")+'</span><span>'+esc(r.budget||"–")+'</span><span>'+esc(src(r))+'</span>'+(showWait?'<span><b'+(r.wait>15?' class="lo"':"")+'>Waited '+r.wait+' min</b></span>':"")+(showLost&&r.lost?'<span>'+esc(r.lost)+'</span>':"")+(showBk&&r.av>0?'<span><b>'+fcr(r.av)+'</b>'+(r.carpet>0?" · ₹"+fmt(Math.round(r.av/r.carpet))+"/sq ft":"")+'</span>':"")+(showBk&&tt!=null?'<span>TAT '+tt+' d</span>':"")+'</div>'+(s[1]!=="op"?'<div class="rc4"><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></div>':"")+'</div>'});
   return'<div class="rtbl"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div><div class="rcards">'+cards+'</div>'+(list.length>MAX?'<div class="note">Showing the first '+MAX+' of '+fmt(list.length)+'. Search or pick a status to narrow the list.</div>':"");
 }
 function recHtml(id,P){
@@ -1308,7 +1352,7 @@ function cpCard(P){
   // watch list over the last 90 days, so one quiet week does not mark a firm
   var t0=today(),A={},totF=0,totN=0,GE=/general|dropped|not interested|no requirement|just enquir|fake|wrong/i;
   ROWS.forEach(function(r){if(!r.cp||!isCP(r.src)||!pass(r,FF))return;var a=A[r.cp]||(A[r.cp]={f:0,g:0,c:0,ge:0,lost:0,prev:0,last:0,cm:{},un:0}),v=r.vday;
-    if(v>=t0-89&&v<=t0&&r.kind===0){a.f++;if(r.aff==="Lost"){a.lost++;if(GE.test(r.lost))a.ge++}if(!r.bk){a.un++;if(r.cm)a.cm[r.cm]=(a.cm[r.cm]||0)+1}}
+    if(v>=t0-89&&v<=t0&&r.kind===0){a.f++;if(r.aff==="Lost"){a.lost++;if(GE.test(r.lost))a.ge++}if(!r.bk&&!r.won){a.un++;if(r.cm)a.cm[r.cm]=(a.cm[r.cm]||0)+1}}
     if(r.bk&&r.bday>=t0-89&&r.bday<=t0)a.g++;
     if(r.cx&&r.cday>=t0-89&&r.cday<=t0)a.c++;
     if((r.kind===0||r.uniq)&&v>=t0-74&&v<=t0-30)a.prev++;
@@ -1354,6 +1398,8 @@ function fixCard(P){
   if(noProj)iss.push("<b>"+fmt(noProj)+" of "+fmt(tot)+"</b> fresh walk-ins in "+esc(P.label)+" have no project in column B, so no Site Head sees them.");
   var bkAll=0;ROWS.forEach(function(r){if(r.bk)bkAll++});
   if(q.bookingNoDate&&bkAll&&q.bookingNoDate/bkAll>.2)iss.push("<b>"+fmt(q.bookingNoDate)+" of "+fmt(bkAll)+"</b> bookings have no Booking Date, so they are counted on the visit date.");
+  if(HAS_BK){var ub=ROWS.filter(function(r){return r.bkRow&&!r.linked&&r.bday>=P.from&&r.bday<=P.to&&pass(r,F)});
+    if(ub.length)iss.push("<b>"+fmt(ub.length)+"</b> booking"+(ub.length>1?"s":"")+" in Booking details "+(ub.length>1?"have":"has")+" no matching walk-in (Form No): "+ub.slice(0,6).map(function(r){return esc(r.id||"blank")}).join(", ")+(ub.length>6?" …":"")+".")}
   if(!TIME_OK)iss.push("Time In and Time Attended could not be read for any walk-in, so TAT is not shown yet. If these columns are filled, their format or position needs a look.");
   if(q.cpVariants&&q.cpVariants.length)iss.push("CP firm names typed in different ways were merged: "+q.cpVariants.slice(0,3).map(function(v){return"“"+esc(v.as[0])+"” → "+esc(v.firm)}).join(", ")+(q.cpVariants.length>3?" and "+(q.cpVariants.length-3)+" more":"")+". A CP firm dropdown in the sheet would stop this.");
   var body=(iss.length?'<ul class="fxi">'+iss.map(function(t){return"<li>"+t+"</li>"}).join("")+'</ul>':"")+
@@ -1361,7 +1407,9 @@ function fixCard(P){
   return card("sFix","Data to fix",list.length?fmt(list.length)+" rows":"","",body,"auto");
 }
 // column heading check: a moved column makes every number wrong, so say it loudly
-function hdrWarn(){var h=DATA&&DATA.Q&&DATA.Q.headers;if(!h||!h.bad||!h.bad.length)return"";
+function hdrWarn(){var h=DATA&&DATA.Q&&DATA.Q.headers,bk=DATA&&DATA.Q&&DATA.Q.bk;
+  if(bk&&bk.headers&&bk.headers.bad.length)return'<section class="card hwarn" role="alert"><b>Booking details’ columns look moved.</b> '+bk.headers.bad.slice(0,6).map(function(b){return"column "+b.col+" should be “"+esc(b.want)+"” but says “"+esc(b.got||"(blank)")+"”"}).join("; ")+'.</section>';
+  if(!h||!h.bad||!h.bad.length)return"";
   return'<section class="card hwarn" role="alert"><b>The Walk-in sheet’s columns look moved.</b> Numbers may be wrong until this is fixed: '+h.bad.slice(0,6).map(function(b){return"column "+b.col+" should be “"+esc(b.want)+"” but says “"+esc(b.got||"(blank)")+"”"}).join("; ")+(h.bad.length>6?" and "+(h.bad.length-6)+" more":"")+'.</section>'}
 function invCard(proj,id){
   var G=invBy(proj,"type"),ks=Object.keys(G).sort(function(a,b){return G[b].tot-G[a].tot}),t=inv(proj);
@@ -1374,7 +1422,7 @@ function invCard(proj,id){
 var FDIMS=[["proj","Project"],["cm","Closing mgr"],["sm","Sourcing mgr"],["chan","Direct / Indirect"]];
 function renderFocus(P,S,PS,TG,ser,weekly,serM){
   var m=M(focus),el=$("focus"),o=tileData(focus,P,S,PS,TG,serM||ser),c=METRICS.indexOf(m);
-  var colors=["#E8432E","#4A4244","#9E1B22","#E07A64","#7A3034","#C2412F","#8C8183","#7A3034","#8C8183","#3A3536"];
+  var colors=["#E8432E","#4A4244","#9E1B22","#E07A64","#7A3034","#C2412F","#8C8183","#B9802F","#4A4244","#7A3034","#9C6A24","#3A3536"];
   var stTxt=o.a?(o.a.pc>=100?"Target achieved":o.a.st==="good"?"On pace for target":o.a.st==="warn"?"Slightly behind pace":"Behind pace"):(o.st==="good"?"Better than "+(PS?PS.P.label:"before"):o.st==="bad"?"Worse than "+(PS?PS.P.label:"before"):"");
   var ans='<section class="card fa" style="--fc:'+colors[c]+'"><div><div class="fa-label">'+esc(m.label)+' · '+esc(P.label)+'</div><div class="fa-num">'+o.big+(o.unit?'<small>'+esc(o.unit)+'</small>':"")+'</div>'+(stTxt?'<div class="fa-state">'+si(o.st)+esc(stTxt)+'</div>':"")+'<div class="fa-line">'+esc(o.sub)+(o.sub2&&o.sub2!==o.sub?'<br>'+esc(o.sub2):"")+(o.dt&&o.sub2!==o.dt?'<br>'+esc(o.dt):"")+'</div><div class="fa-def"><b>'+esc(m.fx)+'</b><br>'+esc(m.def)+'</div></div><button class="reset fa-x" data-unfocus>Close focus ✕</button></section>';
   var mid,right;
@@ -1537,6 +1585,12 @@ function dataChecks(){
     out.push({pin:1,lvl:pl<0||pl>2?1:0,title:nm+": "+(lp?"last walk-in "+dl(lp)+" ("+ago+")":"no walk-ins recorded"),
       text:p30+" fresh walk-in"+(p30===1?"":"s")+" in "+dr(Y-29,Y)+"."+(p30<15?" That is below the 15 a month the project checks need, so they show “Not checked”.":""),
       fix:pl<0?"Check that walk-ins for "+nm+" have Project (column B) filled in.":pl>2?"Enter "+nm+"’s walk-ins since "+dl(lp)+", with Project (column B) filled in.":""})}
+  // booking tracker: is it connected, and how many bookings match a walk-in by Form No
+  if(DATA.bookingError)out.push({lvl:2,title:"Booking details could not be read",text:DATA.bookingError+". Bookings are taken from the Walk-in sheet until this is fixed.",fix:"Check the Booking details tab in All Data.xlsx: its heading row (within the first 10 rows) must include “Overall Status”."});
+  else if(HAS_BK&&Q.bk){var B=Q.bk,nb=B.booked+B.cancelled,un=ROWS.filter(function(r){return r.bkRow&&!r.linked}),st=Object.keys(B.statuses).map(function(k){return k+" "+fmt(B.statuses[k])}).join(" · ");
+    out.push({lvl:un.length?1:0,title:fmt(nb-un.length)+" of "+fmt(nb)+" bookings matched a walk-in",text:"Bookings come from Booking details. A booking is linked when its Form No (column B) is in Walk-in column A; linked bookings get source, CP firm and first-visit date from the walk-in.",
+      lines:[st].concat(un.length?["No matching walk-in: "+un.slice(0,12).map(function(r){return r.id||"(no Form No)"}).join(", ")+(un.length>12?" and "+(un.length-12)+" more":"")]:[]).concat(B.noStatus?[fmt(B.noStatus)+" rows have a Booking Date but no Overall Status, so they are not counted"]:[]).concat(B.noValue?[fmt(B.noValue)+" bookings have no agreement value (AH)"]:[]).concat(B.noCarpet?[fmt(B.noCarpet)+" bookings have no carpet area (AD)"]:[]),
+      fix:un.length?"Correct the Form No on these bookings so it matches the Walk-in sheet.":""})}
   // 1. dates after today
   var fu=Q.future;
   if(fu){var tot=fu.visit.n+fu.booking.n+fu.cancellation.n;
@@ -1640,7 +1694,7 @@ function m2Proj(M){
   if(!F.cm&&!F.src&&!F.cp)ST.forEach(function(r){if(r.ym===M.ym&&!isProj(r.p)&&r.t>0&&(!F.sm||r.m===F.sm)){unt.w+=r.t;unt.n++}});
   return{list:list,none:S.__none||fin(blank()),unt:unt};
 }
-function m2Lost(p,M){var o={},n=0;ROWS.forEach(function(r){if(r.proj!==p||r.kind!==0||r.vday<M.ms||r.vday>M.T||r.bk)return;n++;if(r.lost)o[r.lost]=(o[r.lost]||0)+1});var t=topOf(o);return t?"“"+t.k+"” · "+t.n+" of "+n:"not entered (column AP)"}
+function m2Lost(p,M){var o={},n=0;ROWS.forEach(function(r){if(r.proj!==p||r.kind!==0||r.vday<M.ms||r.vday>M.T||r.bk||r.won)return;n++;if(r.lost)o[r.lost]=(o[r.lost]||0)+1});var t=topOf(o);return t?"“"+t.k+"” · "+t.n+" of "+n:"not entered (column AP)"}
 function m2Recent(p,M){for(var i=0;i<ROWS.length;i++){var r=ROWS[i];if(r.proj===p&&r.kind===0&&r.vday>=M.ms-90&&r.vday<M.ms)return true}return false}
 function m2LastBk(p,T){var lb=0;ROWS.forEach(function(r){if(r.proj===p&&r.bk&&r.bday<=T&&r.bday>lb)lb=r.bday});return lb}
 function m2Box(lab,a,t,e,bad){var w=t?Math.min(100,a/t*100):0;return'<div class="m2box"><div class="m2bl">'+lab+'</div><div class="m2bv">'+fmt(a)+(t?' <small>/ '+fmt(t)+' · '+n1(e)+' expected by now</small>':' <small>no target</small>')+'</div>'+(t?'<div class="m2mb"><i class="'+bad+'" style="width:'+w.toFixed(1)+'%"></i><b style="left:'+(e/t*100).toFixed(1)+'%"></b></div>':"")+'</div>'}
@@ -1648,11 +1702,12 @@ function m2Drill(M,x,co){var s=x.s,tg=x.tg,lb=m2LastBk(x.p,M.T),cl=function(k){r
   var src=function(R,sheet){return R.length?sheet+", "+M.sh+" "+String(Math.floor(M.ym/100))+" · "+R.length+" row"+(R.length>1?"s":"")+" ("+m2Uniq(R.map(function(r){return pn(r.m)})).join(", ")+")":"no target row for "+x.p};
   return'<div class="m2dk">'+m2Box("Net bookings vs target",s.net,tg.b,x.bs.e,cl(x.bs.k))+m2Box("Fresh walk-ins vs target",s.fresh,tg.w,x.ws.e,cl(x.ws.k))+'</div>'+
     '<ul class="m2facts"><li><span>Last booking</span><b>'+(lb?dl(lb)+(ymd(lb)[0]!==ymd(M.T)[0]?" "+ymd(lb)[0]:"")+" ("+(M.today-lb)+" days ago)":"none on record")+'</b></li>'+
+    (HAS_BK?'<li><span>Sales value this month</span><b>'+(s.gross?fcr(s.sv)+(s.rpsf?" · ₹"+fmt(Math.round(s.rpsf))+" per sq ft":"")+(s.tatM!=null?" · booked "+Math.round(s.tatM)+" days after first visit (median)":""):"no bookings yet")+'</b></li>':"")+
     '<li><span>Conversion this month</span><b>'+(s.conv==null?"no fresh walk-ins this month":fp(s.conv)+(F.proj||co==null?"":" vs company "+fp(co)))+'</b></li>'+
     '<li><span>Top reason walk-ins didn’t book (column AP)</span><b>'+esc(m2Lost(x.p,M))+'</b></li>'+
     '<li><span>Booking target from</span><b>'+esc(src(tg.bR,"Closing Targets"))+'</b></li>'+
     '<li><span>Walk-in target from</span><b>'+esc(src(tg.wR,"Sourcing Targets"))+'</b></li></ul>'+
-    '<p class="m2how">Expected by now = target × the share you usually have after '+M.d+' of '+M.days+' days: '+Math.round(M.cB*100)+'% of bookings'+(M.patB?"":" (straight line, too little history)")+' and '+Math.round(M.cW*100)+'% of walk-ins'+(M.patW?"":" (straight line)")+', from the last 3 months. Counts run to the end of '+dl(M.T)+'. Net bookings = bookings (Booking Date, column AT) minus cancellations (column AV).</p>'+
+    '<p class="m2how">Expected by now = target × the share you usually have after '+M.d+' of '+M.days+' days: '+Math.round(M.cB*100)+'% of bookings'+(M.patB?"":" (straight line, too little history)")+' and '+Math.round(M.cW*100)+'% of walk-ins'+(M.patW?"":" (straight line)")+', from the last 3 months. Counts run to the end of '+dl(M.T)+'. Net bookings = '+(HAS_BK?"bookings in Booking details (column AN) minus “Cancelled at Booking” (column V)":"bookings (Booking Date, column AT) minus cancellations (column AV)")+'.</p>'+
     '<button class="reset m2go" data-cmdopen="net" data-p="'+esc(x.p)+'" data-per="mtd">Open '+esc(x.p)+' in Management →</button>';
 }
 function m2Attention(M,PR,flags){var items=[];
@@ -1734,7 +1789,7 @@ function cmdHtml(){
   function chip(st,g){if(!M.d&&st.k!=="none"&&st.k!=="met")return'<span class="m2chip none">Month just started</span>';return st.k==="met"?'<span class="m2chip ok">Target met ✓</span>':st.k==="ok"?'<span class="m2chip ok">On pace</span>':st.k==="slight"?'<span class="m2chip warn">Slightly behind</span>':st.k==="behind"?'<span class="m2chip bad">'+Math.max(1,g)+' behind pace</span>':'<span class="m2chip none">No target set</span>'}
   // compare with the same days of last month, and say which days
   var lmDays=Math.min(M.d,monEnd(lmY)-monStart(lmY)+1),lmLab=lmDays<1?"":lmDays===1?"1 "+MN[lmY%100-1]:"1–"+lmDays+" "+MN[lmY%100-1];
-  function vs(a,b,pts){var d=a-b;if(a==null||b==null||!lmLab)return"";return'<span class="m2nw '+(d>=0?"up":"dn")+'" title="Compared with the same days of last month">'+(d>=0?"▲":"▼")+(pts?Math.abs(d).toFixed(1)+" pts":fmt(Math.abs(d)))+' vs '+lmLab+'</span>'}
+  function vs(a,b,pts,fn){var d=a-b;if(a==null||b==null||!lmLab)return"";return'<span class="m2nw '+(d>=0?"up":"dn")+'" title="Compared with the same days of last month">'+(d>=0?"▲":"▼")+(fn?fn(Math.abs(d)):pts?Math.abs(d).toFixed(1)+" pts":fmt(Math.abs(d)))+' vs '+lmLab+'</span>'}
   function kpi(lab2,a,t,st,g,fc,vsTxt,p){var w=t?Math.min(100,a/t*100):0,c=st.k==="behind"?"bad":st.k==="slight"?"warn":"ok";
     return'<div class="m2kpi"><div class="m2kl">'+lab2+'</div><div class="m2kv">'+fmt(a)+(t?'<small>/ '+fmt(t)+'</small>':"")+'</div>'+
       (t?'<div class="m2pb"><i class="'+c+'" style="width:'+w.toFixed(1)+'%"></i><b style="left:'+(p*100).toFixed(1)+'%" title="Where you would usually be by now"></b></div>':'<div class="m2pb"></div>')+
@@ -1743,8 +1798,10 @@ function cmdHtml(){
     '<div class="m2story"><div><h2 class="m2h">'+head+'</h2><p class="m2sub">'+sub+'</p><div class="m2day"><span>'+(M.d?'By day '+M.d+' you usually have <b>'+Math.round(M.pB*100)+'%</b> of a month’s bookings and <b>'+Math.round(M.pW*100)+'%</b> of its walk-ins'+(M.patB&&M.patW?(M.coPat?" (whole-company pattern, last 3 months; too little "+esc(lab(F.proj))+" history)":" (last 3 months)"):M.patB||M.patW?" (partly straight-line: little history)":" (straight-line: little history)"):"First day of the month: pace starts tomorrow")+'.</span></div></div>'+
     '<div class="m2chart"><div class="m2ct"><span>Net bookings so far, added up day by day'+(ctx?' · '+ctx:"")+'</span><span>'+(TG.b?"target "+TG.b:"no target")+'</span></div>'+m2Chart(M,TG.b)+
     '<div class="m2lg">'+(TG.b?'<span><i class="tg"></i>Target pace</span>':"")+'<span><i class="ac"></i>Actual</span><span><i class="fc"></i>At current pace</span></div></div></div>'+
-    '<div class="m2kpis">'+kpi("Net bookings",S.net,TG.b,bs,gb,fcB,vs(S.net,L.net),M.pB)+kpi("Fresh walk-ins",S.fresh,TG.w,ws,gw,fcW,vs(S.fresh,L.fresh),M.pW)+
-    '<div class="m2kpi"><div class="m2kl">Walk-in to booking</div><div class="m2kv">'+fp(S.conv)+'</div><div class="m2pb"><i class="ok" style="width:'+Math.min(100,(S.conv||0)*5).toFixed(1)+'%;background:linear-gradient(90deg,#FDE68A,#FCD34D)"></i></div><div class="m2ks"><span>'+fmt(S.net)+' net bookings ÷ '+fmt(S.fresh)+' fresh walk-ins</span>'+(S.conv!=null&&L.conv!=null?vs(S.conv,L.conv,1):"")+'</div></div></div></section>';
+    '<div class="m2kpis'+(HAS_BK?" four":"")+'">'+kpi("Net bookings",S.net,TG.b,bs,gb,fcB,vs(S.net,L.net),M.pB)+kpi("Fresh walk-ins",S.fresh,TG.w,ws,gw,fcW,vs(S.fresh,L.fresh),M.pW)+
+    '<div class="m2kpi"><div class="m2kl">Walk-in to booking</div><div class="m2kv">'+fp(S.conv)+'</div><div class="m2pb"><i class="ok" style="width:'+Math.min(100,(S.conv||0)*5).toFixed(1)+'%;background:linear-gradient(90deg,#FDE68A,#FCD34D)"></i></div><div class="m2ks"><span>'+fmt(S.net)+' net bookings ÷ '+fmt(S.fresh)+' fresh walk-ins</span>'+(S.conv!=null&&L.conv!=null?vs(S.conv,L.conv,1):"")+'</div></div>'+
+    (HAS_BK?'<div class="m2kpi"><div class="m2kl">Sales value</div><div class="m2kv" title="₹'+fmt(Math.round(S.sv||0))+' excl. GST and stamp duty">'+fcr(S.sv)+'</div><div class="m2pb" style="visibility:hidden"></div><div class="m2ks"><span class="m2nw"><b>'+(S.rpsf?"₹"+fmt(Math.round(S.rpsf)):"–")+'</b> /sq ft</span>'+(S.tatM!=null?'<span class="m2nw">TAT <b>'+Math.round(S.tatM)+'</b> days</span>':"")+vs(S.sv,L.sv,0,fcr)+'</div></div>':"")+
+    '</div></section>';
   // ② needs your attention
   var items=m2Attention(M,PR,fl),nR=items.filter(function(i){return i.lvl===2}).length,nA=items.length-nR,show=ui.attAll?items:items.slice(0,3);
   var att='<section class="card m2att" id="ccAlerts"><div class="m2ch"><h2>Needs your attention</h2>'+(nR?'<span class="cnt r">'+nR+' urgent</span>':"")+(nA?'<span class="cnt a">'+nA+' to watch</span>':"")+'</div>'+
@@ -1758,10 +1815,10 @@ function cmdHtml(){
   var mute=[];if(!sel&&(PR.none.fresh||PR.none.net))mute.push({p:"Project not entered",s:PR.none,tg:{b:null,w:null},st:["Tag project","m"],mute:1});
   if(!sel&&PR.unt.n)mute.push({p:"Targets not yet tagged (“All”)",s:{net:0,fresh:0,conv:null},tg:{b:PR.unt.b||null,w:PR.unt.w||null},st:["Tag target","m"],mute:1});
   var all2=rows.concat(mute);
-  var tbl='<table class="m2tbl"><thead><tr><th>Project</th><th>Net bookings vs target</th><th>Fresh walk-ins vs target</th><th>Conv.</th><th></th></tr></thead><tbody>'+
-    all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'" tabindex="0"';return'<tr class="'+(x.mute?"mute":"m2row")+(sel===x.p?" on":"")+'"'+at+'><td class="m2pj">'+esc(x.p)+'</td><td>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</td><td>'+m2Bar(x.s.fresh,x.tg.w,M.cW)+'</td><td>'+fp(x.s.conv)+'</td><td><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></td></tr>'}).join("")+'</tbody>'+
-    (!sel?'<tfoot><tr><td class="m2pj">Total</td><td>'+m2Bar(S.net,TG.b,M.pB)+'</td><td>'+m2Bar(S.fresh,TG.w,M.pW)+'</td><td>'+fp(S.conv)+'</td><td></td></tr></tfoot>':"")+'</table>';
-  var cards='<div class="m2cards">'+all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'"';return'<div class="m2pc'+(x.mute?" mute":"")+(sel===x.p?" on":"")+'"'+at+'><div class="m2ph"><b>'+esc(x.p)+'</b><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></div><div class="m2pr"><span>Bookings</span>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</div><div class="m2pr"><span>Walk-ins</span>'+m2Bar(x.s.fresh,x.tg.w,M.cW)+'</div></div>'}).join("")+'</div>';
+  var tbl='<table class="m2tbl"><thead><tr><th>Project</th><th>Net bookings vs target</th><th>Fresh walk-ins vs target</th><th>Conv.</th>'+(HAS_BK?'<th>Sales value</th>':"")+'<th></th></tr></thead><tbody>'+
+    all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'" tabindex="0"';return'<tr class="'+(x.mute?"mute":"m2row")+(sel===x.p?" on":"")+'"'+at+'><td class="m2pj">'+esc(x.p)+'</td><td>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</td><td>'+m2Bar(x.s.fresh,x.tg.w,M.cW)+'</td><td>'+fp(x.s.conv)+'</td>'+(HAS_BK?'<td class="m2sv">'+(x.mute?"–":'<b>'+fcr(x.s.sv)+'</b>'+(x.s.rpsf?'<small>₹'+fmt(Math.round(x.s.rpsf))+'/sq ft</small>':""))+'</td>':"")+'<td><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></td></tr>'}).join("")+'</tbody>'+
+    (!sel?'<tfoot><tr><td class="m2pj">Total</td><td>'+m2Bar(S.net,TG.b,M.pB)+'</td><td>'+m2Bar(S.fresh,TG.w,M.pW)+'</td><td>'+fp(S.conv)+'</td>'+(HAS_BK?'<td class="m2sv"><b>'+fcr(S.sv)+'</b>'+(S.rpsf?'<small>₹'+fmt(Math.round(S.rpsf))+'/sq ft</small>':"")+'</td>':"")+'<td></td></tr></tfoot>':"")+'</table>';
+  var cards='<div class="m2cards">'+all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'"';return'<div class="m2pc'+(x.mute?" mute":"")+(sel===x.p?" on":"")+'"'+at+'><div class="m2ph"><b>'+esc(x.p)+'</b><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></div><div class="m2pr"><span>Bookings</span>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</div><div class="m2pr"><span>Walk-ins</span>'+m2Bar(x.s.fresh,x.tg.w,M.cW)+'</div>'+(HAS_BK&&!x.mute&&x.s.gross?'<div class="m2pv"><b>'+fcr(x.s.sv)+'</b>'+(x.s.rpsf?' · ₹'+fmt(Math.round(x.s.rpsf))+'/sq ft':"")+'</div>':"")+'</div>'}).join("")+'</div>';
   var proj='<section class="card m2proj" id="ccProj"><div class="m2ch"><h2>Projects this month</h2><span class="sub">'+(sel?esc(lab(sel))+" selected":"vs target · biggest gap first · tap a project to focus the page")+'</span>'+
     (sel?togs("pcmp",[["one",esc(lab(sel))+" only"],["all","All projects"]],all?"all":"one"):"")+'</div>'+(all2.length?tbl+cards:empty("No walk-ins, bookings or targets for "+M.name+" yet"))+
     '<div class="m2key"><span><b></b>where you’d usually be by now (bookings '+Math.round(M.cB*100)+'%, walk-ins '+Math.round(M.cW*100)+'%)</span><span>Targets: Closing Targets (bookings) and Sourcing Targets (walk-ins), rolled up by project</span></div></section>';
@@ -1794,7 +1851,7 @@ function render(){
     $("focus").style.display="none";$("vis").style.display="none";$("vis").innerHTML="";
     $("cmd").innerHTML=cmdHtml();
   }else if(tab==="mgmt"){
-    renderTiles(MGMT_TILES,P,S,PS,TG,serM);
+    renderTiles(mgmtTiles(),P,S,PS,TG,serM);
     if(focus){$("vis").style.display="none";$("focus").style.display="";renderFocus(P,S,PS,TG,ser,weekly,serM)}
     else{
       $("focus").style.display="none";$("vis").style.display="";
@@ -1803,7 +1860,7 @@ function render(){
       charts.push(["#cTrend .plot",tr.items,{alt:ui.trend==="walk",aria:"trend"}]);
     }
   }else{
-    renderTiles(SITE_TILES,P,S,PS,TG,serM);
+    renderTiles(siteTiles(),P,S,PS,TG,serM);
     if(focus&&REC[focus]){$("vis").style.display="none";$("focus").style.display="";$("focus").innerHTML=recHtml(focus,P)}
     else{
       focus=null;$("focus").style.display="none";$("vis").style.display="";
@@ -1886,7 +1943,7 @@ document.addEventListener("click",function(e){
   if((x=t.closest("[data-unfocus]"))){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}return}
   if((x=t.closest("[data-tile]"))&&tab==="site"){var sid=x.getAttribute("data-tile");
     if(sid==="cpf"){var cpc=$("sCp");if(focus){focus=null;render();cpc=$("sCp")}if(cpc)cpc.scrollIntoView({behavior:NOMO.matches?"auto":"smooth",block:"start"});return}
-    if(sid==="nr"){var ib=x.querySelector("[data-info]");if(ib)kpOpen(ib,true);return}
+    if(sid==="nr"&&M("nr").ph){var ib=x.querySelector("[data-info]");if(ib)kpOpen(ib,true);return}
     if(isPhone()){openDetail(sid);return}
     ui.rst="all";ui.rq="";focus=focus===sid?null:sid;render();window.scrollTo({top:0,behavior:NOMO.matches?"auto":"smooth"});return}
   if(x&&isPhone()){openDetail(x.getAttribute("data-tile"));return}

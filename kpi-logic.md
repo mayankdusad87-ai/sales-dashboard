@@ -82,3 +82,24 @@ Cards: Weekly trend · Closing Managers · Sourcing Managers · Source & CP · W
 ## 7. Defaults (change any time)
 - Default period: current financial year (Apr 2026 onwards).
 - Data refresh: server reads the sheet at most every 5 minutes; the page refreshes itself every 5 minutes.
+
+## Booking details (5th tab of All Data.xlsx)
+Read from the same workbook: the tab with an "Overall Status" heading in its first 10 rows (a tab named with "booking" is tried first). A separate file can still be used through `BOOKING_FILE_ID` in Vercel. When it is connected, **all bookings come from here** and the Walk-in sheet's booking columns (AR, AT, AU, AV) are ignored.
+
+| Col | Header | Used for |
+|---|---|---|
+| B | Form No | Link to Walk-in column A (spaces, dashes, case and leading zeros ignored) |
+| V | Cancellation Date | Month a cancellation is counted (Booking Date when empty) |
+| AD | Carpet Area | ₹ per sq ft |
+| AH | Agreement Value (excl. GST and stamp duty) | Sales value, ₹ per sq ft (rupees, lakhs or crores detected automatically) |
+| AN | Booking Date | Booking month |
+| AS | Project Name | Project of the booking |
+| (by heading) | Overall Status | Booked = Booking Date and Overall Status filled; "Cancelled at Booking" (any status with "cancel") = cancelled |
+| (by heading) | Closing / Sourcing Manager, CP firm | Credit; win over the Walk-in sheet when filled |
+
+Nothing else in Booking details is read.
+
+- **Sales value** = agreement value of bookings in the period − agreement value of bookings cancelled in the period.
+- **Net realisation** = agreement value ÷ carpet area, over bookings in the period that are not cancelled and have both values.
+- **Booking TAT** = Booking Date − first visit (earliest Date of Visit for that Form No), median, in days.
+- **No matching walk-in**: the booking still counts (project from AS, managers and CP from Booking details), source shows "Not linked", it is left out of Booking TAT, and it is listed under Data checks and Data to fix.
