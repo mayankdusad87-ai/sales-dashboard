@@ -715,7 +715,7 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
   <i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i>
   <div class="ldcard">
     <div class="lglow"><span class="lgwrap"><img class="ldlogo" src="assets/logo-dark.png" alt="Raghav Realty"></span></div>
-    <div class="wsub">Sales Dashboard</div>
+    <div class="wsub">Control Tower</div>
     <div class="prog"><i id="ldBar"></i></div>
     <p class="ldstep" id="loadMsg">Connecting to the Google Sheet…</p>
   </div>
@@ -1563,7 +1563,7 @@ function setLive(){var el=$("live"),t=$("liveTxt");if(!DATA){t.textContent=loadE
   var ed=DATA.sheetModified?new Date(DATA.sheetModified):d,o={timeZone:"Asia/Kolkata",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"};
   t.innerHTML=(loadErr?"Offline · ":"")+'Updated <span class="lu">as on </span>'+esc(ed.toLocaleString("en-IN",o));
   el.title="Sheet last edited "+ed.toLocaleString("en-IN",o)+" (any change to All Data.xlsx). Dashboard last checked the sheet at "+d.toLocaleString("en-IN",o)+" and checks again every 5 minutes.";}
-var LD_STEPS=["Connecting to the Google Sheet…","Reading walk-ins…","Matching bookings and cancellations…","Lining up targets and inventory…","Building your dashboard…"],ldI=0,ldT=null;
+var LD_STEPS=["Connecting to the Google Sheet…","Reading walk-ins…","Matching bookings and cancellations…","Lining up targets…","Opening the Control Tower…"],ldI=0,ldT=null;
 function ldStart(){var el=$("loading");el.classList.remove("out");el.style.display="";ldI=0;$("loadMsg").className="ldstep";$("loadMsg").textContent=LD_STEPS[0];$("ldBar").style.width="8%";
   clearInterval(ldT);ldT=setInterval(function(){if(ldI>=LD_STEPS.length-1)return;ldI++;var m=$("loadMsg");m.classList.add("fade");setTimeout(function(){m.textContent=LD_STEPS[ldI];m.classList.remove("fade")},250);$("ldBar").style.width=(8+ldI*20)+"%"},1100)}
 function ldDone(){clearInterval(ldT);var el=$("loading");if(el.style.display==="none")return;$("ldBar").style.width="100%";$("loadMsg").textContent="Ready";
