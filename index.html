@@ -139,6 +139,23 @@ select:hover{border-color:var(--bar1)}
 .empty{height:100%;min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:600;text-align:center;padding:10px}
 .note{font-size:11.5px;color:var(--muted);margin-top:4px}
 
+/* achievement strip under the monthly trend */
+.achp{position:absolute;left:0;right:0;bottom:0;height:84px;border-top:1px solid var(--line);padding-top:4px}
+.ahd{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);font-weight:600;height:14px;padding:0 6px}
+.alg{display:flex;align-items:center;gap:4px;font-weight:500}.alg i{width:7px;height:7px;border-radius:50%;display:inline-block;margin-left:6px}
+.alg i.cur{background:transparent;border:1.5px solid var(--muted);width:6px;height:6px}
+.alg i.good,.adot.good{background:var(--good)}.alg i.warn,.adot.warn{background:var(--warn)}.alg i.bad,.adot.bad{background:var(--bad)}
+.aplot{position:relative}.aplot svg{position:absolute;inset:0;width:100%;height:100%}
+.a100{stroke:var(--target2);stroke-width:1;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
+.aln{fill:none;stroke:var(--ink2);stroke-width:1.5;vector-effect:non-scaling-stroke}.aln.dash{stroke-dasharray:4 3;opacity:.7}
+.adot{position:absolute;width:8px;height:8px;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 2px var(--card)}
+.adot.cur{background:var(--card)!important;border:2px solid}.adot.cur.good{border-color:var(--good)}.adot.cur.warn{border-color:var(--warn)}.adot.cur.bad{border-color:var(--bad)}
+.apc{position:absolute;transform:translateX(-50%);font-size:10.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.apc.r{transform:translateX(-90%)}.apc.l{transform:translateX(-10%)}
+.apc.good{color:var(--good)}.apc.warn{color:var(--warn)}.apc.bad{color:var(--bad)}.apc small{font-weight:500;color:var(--muted)}
+.aexp{position:absolute;width:12px;height:2px;background:var(--ink);transform:translate(-50%,-50%);opacity:.6}
+.ay{position:absolute;right:2px;transform:translateY(-110%);font-size:9.5px;color:var(--muted)}
+.anone{position:absolute;bottom:4px;transform:translateX(-50%);font-size:10px;color:var(--muted)}
 /* site head: records, team, CP scorecard, data to fix */
 #hwarn .hwarn{margin:0 14px 8px;background:var(--badbg);color:var(--bad);border:1px solid rgba(185,28,28,.3);font-size:12.5px;padding:10px 14px;display:block;line-height:1.45}
 .app.sitetab{height:auto!important}
@@ -206,6 +223,11 @@ select:hover{border-color:var(--bar1)}
   .cbd.auto{max-height:none}
   .cpgrid>div,.fxgrid>div{overflow-x:auto;min-width:0}
   .rec .cbd{max-height:none}
+  .cbd.chart:has(.achp){height:330px}
+  .cbd.chart:has(.achp) .plot{bottom:112px!important}
+  .achp{height:108px}
+  .ahd{height:auto;flex-wrap:wrap;row-gap:2px;align-items:flex-start}
+  .alg{flex-wrap:wrap;font-size:10.5px}
   #sCp table:not(.cpw) th:nth-child(6),#sCp table:not(.cpw) td:nth-child(6){display:none}
   .cpw thead{display:none}
   .cpw tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
@@ -930,12 +952,15 @@ function series(FF,p,weekly){
 /* ---------- targets ---------- */
 function targets(FF,p){
   var months=monthsIn(p),res={book:null,walk:null,bookM:{},walkM:{},bookW:null,walkW:null,why:""};
-  if(FF.proj||FF.src||FF.cp){res.why="Targets are set per manager, not per project or source";return res}
+  if(FF.src||FF.cp){res.why="Targets are set per manager and project, not per source";return res}
   var bRows,wRows;
   if(FF.cm&&FF.sm){res.why="No target for a closing + sourcing manager pair";return res}
-  if(FF.cm){bRows=CT.filter(function(t){return t.m===FF.cm}).map(function(t){return{ym:t.ym,v:t.t,w:t.w}});wRows=null}
-  else if(FF.sm){bRows=ST.filter(function(t){return t.m===FF.sm}).map(function(t){return{ym:t.ym,v:t.b,w:null}});wRows=ST.filter(function(t){return t.m===FF.sm}).map(function(t){return{ym:t.ym,v:t.t,w:t.w}})}
-  else{bRows=CT.map(function(t){return{ym:t.ym,v:t.t,w:t.w}});wRows=ST.map(function(t){return{ym:t.ym,v:t.t,w:t.w}})}
+  // a project picked: roll up only the target rows tagged with it in column C
+  var inP=function(t){return!FF.proj||t.p===FF.proj};
+  if(FF.cm){bRows=CT.filter(function(t){return t.m===FF.cm&&inP(t)}).map(function(t){return{ym:t.ym,v:t.t,w:t.w}});wRows=null}
+  else if(FF.sm){bRows=ST.filter(function(t){return t.m===FF.sm&&inP(t)}).map(function(t){return{ym:t.ym,v:t.b,w:null}});wRows=ST.filter(function(t){return t.m===FF.sm&&inP(t)}).map(function(t){return{ym:t.ym,v:t.t,w:t.w}})}
+  else{bRows=CT.filter(inP).map(function(t){return{ym:t.ym,v:t.t,w:t.w}});wRows=ST.filter(inP).map(function(t){return{ym:t.ym,v:t.t,w:t.w}})}
+  if(FF.proj&&!bRows.length&&!(wRows&&wRows.length)){res.why="No target tagged to "+FF.proj+" yet (column C of the target sheets)";return res}
   function sum(rows,M){var tot=0,any=false,W=[0,0,0,0,0,0],anyW=false;rows.forEach(function(t){if(months.indexOf(t.ym)<0)return;M[t.ym]=(M[t.ym]||0)+t.v;tot+=t.v;any=true;if(t.w)t.w.forEach(function(x,i){W[i]+=x;if(x)anyW=true})});return{tot:any?tot:null,W:anyW?W:null}}
   var b=sum(bRows,res.bookM);res.book=b.tot;res.bookW=b.W;
   if(wRows){var w=sum(wRows,res.walkM);res.walk=w.tot;res.walkW=w.W}
@@ -1142,8 +1167,11 @@ function trendCard(P,TG,ser,weekly,id,mode,withTarget){
   var items=ser.keys.map(function(k){var s=ser.B[k],v=isB?s.net:s.fresh,t=null;
     if(withTarget){if(weekly){var W=isB?TG.bookW:TG.walkW;t=W?W[k-1]:null}else{var MM=isB?TG.bookM:TG.walkM;t=MM[k]!=null?MM[k]:null}}
     var lb=weekly?"Wk "+k:ymLab(k);
-    return{lab:lb,v:v,t:t,per:weekly?null:"m"+k,tip:lb+": "+(isB?fmt(s.net)+" net ("+fmt(s.gross)+" booked, "+fmt(s.cx)+" cancelled)":fmt(s.fresh)+" fresh walk-ins, "+fmt(s.rev)+" unique revisits")+(t!=null?" · target "+fmt(t):"")+(weekly?"":" · click to open month")}});
-  return{items:items,html:card(id,(isB?"Net bookings":"Fresh walk-ins")+(weekly?" by week":" by month"),withTarget&&(isB?TG.book!=null:TG.walk!=null)?"▬ target":"",togs(id==="cTrend"?"trend":"strend",[["book","Bookings"],["walk","Walk-ins"]],mode),'<div class="plot" style="position:absolute;inset:0"></div>',"chart")};
+    return{lab:lb,v:v,t:t,cur:!weekly&&k===ymOf(today()),per:weekly?null:"m"+k,tip:lb+": "+(isB?fmt(s.net)+" net ("+fmt(s.gross)+" booked, "+fmt(s.cx)+" cancelled)":fmt(s.fresh)+" fresh walk-ins, "+fmt(s.rev)+" unique revisits")+(t!=null?" · target "+fmt(t):"")+(weekly?"":" · click to open month")}});
+  // achievement strip: only for months, and only when at least one month has a target
+  var ach=!weekly&&withTarget&&items.some(function(it){return it.t>0});
+  var sub=withTarget&&(isB?TG.book!=null:TG.walk!=null)?"▬ target":withTarget&&TG.why?esc(TG.why):"";
+  return{items:items,ach:ach,html:card(id,(isB?"Net bookings":"Fresh walk-ins")+(weekly?" by week":" by month"),sub,togs(id==="cTrend"?"trend":"strend",[["book","Bookings"],["walk","Walk-ins"]],mode),ach?'<div class="plot" style="position:absolute;left:0;right:0;top:0;bottom:88px"></div><div class="achp" aria-label="Achievement against target by month"></div>':'<div class="plot" style="position:absolute;inset:0"></div>',"chart")};
 }
 function projCard(P){
   var S=stats(Object.assign({},F,{proj:""}),P,function(r){return r.proj}),iv=invBy("","proj");
@@ -1154,11 +1182,20 @@ function projCard(P){
   var sel=F.proj,all=sel&&ui.pcmp==="all";
   if(sel){if(all)keys=[sel].concat(keys.filter(function(k){return k!==sel}));else keys=[sel]}
   var mx=0;keys.forEach(function(k){if(S.G[k])mx=Math.max(mx,S.G[k].net)});
-  var rows=keys.map(function(k){var s=S.G[k]||fin(blank()),u=iv[k];
-    return drow("proj",k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td>'+fmt(s.rev)+'</td><td>'+fmt(s.net)+'</td><td>'+fmt(s.cx)+'</td><td>'+fp(s.conv)+'</td><td>'+(HAS_BK?(s.gross?fcr(s.sv):'<span class="dim">–</span>'):u?fmt(u.Unsold)+'<span class="dim">/'+fmt(u.tot)+'</span>':'<span class="dim">–</span>')+'</td>',F.proj===k)}).join("");
+  // booking target per project = Closing Targets rows tagged with it in column C, for the months of the period;
+  // achievement compares net bookings in those same months only
+  var ms=monthsIn(P),PT={},tm=[],allT=0;
+  CT.forEach(function(x){if(ms.indexOf(x.ym)<0||!(x.t>0))return;allT+=x.t;if(!F.cm||x.m===F.cm){PT[x.p]=(PT[x.p]||0)+x.t;if(tm.indexOf(x.ym)<0)tm.push(x.ym)}});
+  var PP=clip(P,tm),SA=tm.length?stats(Object.assign({},F,{proj:""}),PP,function(r){return r.proj}).G:{},pace=achievePace(PP),totT=0,totA=0;
+  var achC=function(k){var tg=k==="All"?0:PT[k];if(!(tg>0))return'<td><span class="dim" title="No target tagged to this project in column C">–</span></td><td><span class="dim">–</span></td>';var a=(SA[k]||{net:0}).net,pc=a/tg*100;return'<td>'+fmt(tg)+'</td><td>'+pill(pc,stOf(pc,pace))+'</td>'};
+  var rows=keys.map(function(k){var s=S.G[k]||fin(blank()),u=iv[k];if(PT[k]>0&&k!=="All"){totT+=PT[k];totA+=(SA[k]||{net:0}).net}
+    return drow("proj",k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td>'+fmt(s.net)+'</td>'+achC(k)+'<td>'+fp(s.conv)+'</td><td>'+(HAS_BK?(s.av>0?fcr(s.sv):s.gross?'<span class="dim" title="Bookings have no agreement value (column AH)">–</span>':'<span class="dim">–</span>'):u?fmt(u.Unsold)+'<span class="dim">/'+fmt(u.tot)+'</span>':'<span class="dim">–</span>')+'</td>',F.proj===k)}).join("");
   var t=sel&&!all?(S.G[sel]||fin(blank())):S.tot,ti=inv(sel&&!all?sel:"");
+  // total row: the picked project, or the whole company against every target row (tagged or "All")
+  var one=sel&&!all,ft=one?totT:Object.keys(PT).reduce(function(a,k){return a+PT[k]},0),fa=one?totA:(tm.length?stats(Object.assign({},F,{proj:""}),PP).tot.net:0);
+  var untag=PT.All>0&&!sel?'<div class="note">'+fmt(PT.All)+' of the '+fmt(allT)+' booking target is not tagged to a project yet (column C says “All”), so project achievement shows “–”.</div>':"";
   var tg=sel?togs("pcmp",[["one",esc(lab(sel))+" only"],["all","All projects"]],all?"all":"one"):"";
-  return card("cProj","Projects",esc(P.label)+(sel&&!all?" · "+esc(lab(sel)):""),tg,keys.length?'<table><thead><tr><th>Project</th><th>Fresh</th><th>Uniq. revisits</th><th>Net bkg</th><th>Cxl</th><th>Conv</th><th>'+(HAS_BK?"Sales value":"Unsold")+'</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>'+(sel&&!all?esc(lab(sel))+" total":"Total")+'</td><td>'+fmt(t.fresh)+'</td><td>'+fmt(t.rev)+'</td><td>'+fmt(t.net)+'</td><td>'+fmt(t.cx)+'</td><td>'+fp(t.conv)+'</td><td>'+(HAS_BK?fcr(t.sv):fmt(ti.Unsold)+'<span class="dim">/'+fmt(ti.tot)+'</span>')+'</td></tr></tfoot></table>':empty("No walk-ins in this period"));
+  return card("cProj","Projects",esc(P.label)+(sel&&!all?" · "+esc(lab(sel)):""),tg,keys.length?'<table><thead><tr><th>Project</th><th>Fresh</th><th>Net bkg</th><th>Target</th><th>Achieved</th><th>Conv</th><th>'+(HAS_BK?"Sales value":"Unsold")+'</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>'+(sel&&!all?esc(lab(sel))+" total":"Total")+'</td><td>'+fmt(t.fresh)+'</td><td>'+fmt(t.net)+'</td><td>'+(ft?fmt(ft):'<span class="dim">–</span>')+'</td><td>'+(ft?pill(fa/ft*100,stOf(fa/ft*100,pace)):'<span class="dim">–</span>')+'</td><td>'+fp(t.conv)+'</td><td>'+(HAS_BK?fcr(t.sv):fmt(ti.Unsold)+'<span class="dim">/'+fmt(ti.tot)+'</span>')+'</td></tr></tfoot></table>'+untag:empty("No walk-ins in this period"));
 }
 // limit a period to the months that have targets, so actuals and targets cover the same months
 function clip(P,tm){if(!tm.length)return P;tm.sort();var a=tm[0],b=tm[tm.length-1];return{from:Math.max(P.from,monStart(a)),to:Math.min(P.to,monEnd(b)),full:{to:monEnd(b)},label:a===b?ymLab(a):ymLab(a)+"–"+ymLab(b),clipped:monStart(a)>P.from||monEnd(b)<P.full.to}}
@@ -1865,7 +1902,7 @@ function render(){
       $("focus").style.display="none";$("vis").style.display="";
       var tr=trendCard(P,TG,ser,weekly,"cTrend",ui.trend,true);
       $("vis").innerHTML=tr.html+projCard(P)+closingCard(P)+sourcingCard(P)+channelCard(P,ui.chan)+whyCard(P,ui.why,"cWhy");
-      charts.push(["#cTrend .plot",tr.items,{alt:ui.trend==="walk",aria:"trend"}]);
+      charts.push(["#cTrend .plot",tr.items,{alt:ui.trend==="walk",aria:"trend",ach:tr.ach}]);
     }
   }else{
     renderTiles(siteTiles(),P,S,PS,TG,serM);
@@ -1884,7 +1921,28 @@ function render(){
   var q=DATA.Q;
   $("srcnote").innerHTML='<span>Source: '+esc(DATA.file||"All Data.xlsx")+' — Walk-in, Closing Targets, Sourcing Targets, Inventory Status</span><span>'+fmt(q.rows)+' walk-in rows · '+fmt(INV.length)+' units</span>'+(q.noVisitDate||q.noFreshRevisit?'<span title="Rows the sheet is missing values for">Data gaps: '+fmt(q.noVisitDate)+' without visit date, '+fmt(q.noFreshRevisit)+' without Fresh/Revisit</span>':"")+'<span>Personal details are never loaded.</span>';
 }
-function drawCharts(){charts.forEach(function(c){var el=document.querySelector(c[0]);if(el)colChart(el,c[1],c[2])})}
+function drawCharts(){charts.forEach(function(c){var el=document.querySelector(c[0]);if(el){colChart(el,c[1],c[2]);if(c[2].ach){var a=el.parentNode.querySelector(".achp");if(a)achChart(a,c[1],el)}}})}
+// achievement % by month, in its own panel under the bars (never a second axis on the bar chart):
+// one point per month = actual ÷ target; dashed 100% line; the running month is hollow, "to date",
+// with a tick where you would usually be by today
+function achChart(el,items,plot){
+  var W=Math.max(260,plot.clientWidth||400),H=68,l=6,r=6,n=items.length,bw=(W-l-r)/n,top=14,bot=6,h=H-top-bot;
+  var P=items.map(function(it){return it.t>0?Math.round(it.v/it.t*100):null}),mx=Math.max(120,Math.min(200,Math.max.apply(null,P.map(function(p){return p||0}))*1.1));
+  var y=function(p){return top+h-Math.min(p,mx)/mx*h},cx=function(i){return l+i*bw+bw/2};
+  var exp=null;if(items.some(function(it){return it.cur&&it.t>0})){var M=m2Month();m2Pace(M);exp=Math.round(M.pB*100)}
+  var st=function(p,it){var b=it.cur&&exp!=null?exp:100;return p>=b?"good":p>=b*.8?"warn":"bad"};
+  var s='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Achievement against target by month">';
+  s+='<line class="a100" x1="'+l+'" x2="'+(W-r)+'" y1="'+y(100).toFixed(1)+'" y2="'+y(100).toFixed(1)+'"/>';
+  // join neighbouring months that both have a target; the step into the running month is dashed
+  for(var i=1;i<n;i++)if(P[i]!=null&&P[i-1]!=null)s+='<line class="aln'+(items[i].cur?" dash":"")+'" x1="'+cx(i-1).toFixed(1)+'" y1="'+y(P[i-1]).toFixed(1)+'" x2="'+cx(i).toFixed(1)+'" y2="'+y(P[i]).toFixed(1)+'"/>';
+  s+='</svg>';
+  var lab='<span class="ay" style="top:'+y(100).toFixed(1)+'px">100%</span>',prevLy=null;
+  P.forEach(function(p,i){var it=items[i];if(p==null){lab+='<span class="anone" style="left:'+(cx(i)/W*100).toFixed(2)+'%">–</span>';return}
+    var c=st(p,it),tip=it.lab+": "+fmt(it.v)+" of "+fmt(it.t)+" = "+p+"%"+(it.cur?" so far · usual by today "+exp+"%":"");
+    var xp=cx(i)/W*100,ed=xp>90?" r":xp<10?" l":"",ly=y(p)-15;if(prevLy!=null&&Math.abs(ly-prevLy)<12)ly=y(p)+5;prevLy=ly;lab+='<span class="adot '+c+(it.cur?" cur":"")+'" style="left:'+(cx(i)/W*100).toFixed(2)+'%;top:'+y(p).toFixed(1)+'px" title="'+esc(tip)+'"></span><span class="apc '+c+ed+'" style="left:'+(cx(i)/W*100).toFixed(2)+'%;top:'+ly.toFixed(1)+'px">'+(p>mx?"&gt;":"")+Math.min(p,999)+'%</span>';
+    if(it.cur&&exp!=null)lab+='<span class="aexp" style="left:'+(cx(i)/W*100).toFixed(2)+'%;top:'+y(exp).toFixed(1)+'px" title="Where you would usually be by today: '+exp+'% of the month’s target"></span>'});
+  el.innerHTML='<div class="ahd"><span>Achieved vs target</span><span class="alg"><i class="good"></i>100%+<i class="warn"></i>80–99%<i class="bad"></i>below 80%<i class="cur"></i>this month so far</span></div><div class="aplot" style="height:'+H+'px">'+s+lab+'</div>';
+}
 
 /* ---------- loading ---------- */
 function setLive(){var el=$("live"),t=$("liveTxt");if(!DATA){t.textContent=loadErr||"Loading…";return}
