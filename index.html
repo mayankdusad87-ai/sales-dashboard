@@ -794,7 +794,8 @@ function pass(r,FF){
   return true;
 }
 function blank(){return{fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],cps:{},cpWalk:0}}
-function fin(s){s.net=s.gross-s.cx;s.conv=pct(s.gross,s.fresh);s.tatM=median(s.tat);s.ncp=Object.keys(s.cps).length;return s}
+// conversion = NET bookings (bookings − cancellations) ÷ fresh walk-ins, so it matches the Net Bookings number everywhere
+function fin(s){s.net=s.gross-s.cx;s.conv=pct(s.net,s.fresh);s.tatM=median(s.tat);s.ncp=Object.keys(s.cps).length;return s}
 // one pass: totals, optional groups by keyFn
 function stats(FF,p,keyFn){
   var tot=blank(),G={};
@@ -857,7 +858,7 @@ function invBy(proj,key){var G={};INV.forEach(function(u){if(proj&&u.proj!==proj
 var METRICS=[
   {id:"net",label:"Net Bookings",fx:"Net Bookings = Bookings − Cancellations",v:function(s){return s.net},f:fmt,tgt:"book",up:1,def:"Bookings (row has a Booking Date or Booking Done = Y) minus cancellations (Booking Cancellation = Yes) in the period. Booking month from Booking Date; cancellation month from Cancellation Date. Target: Closing Targets (Sourcing Targets when a sourcing manager is picked)."},
   {id:"fresh",label:"Fresh Walk-ins",fx:"Fresh Walk-ins = count of visits marked Fresh",v:function(s){return s.fresh},f:fmt,tgt:"walk",up:1,def:"Rows where Customer Fresh/Revisit (column AW) = Fresh, by Date of Visit. Target: Sourcing Targets → Walk-ins."},
-  {id:"conv",label:"Walk-in to Booking",fx:"Conversion % = Bookings ÷ Fresh walk-ins × 100",v:function(s){return s.conv},f:function(v){return fp(v)},up:1,min:5,def:"Bookings in the period ÷ fresh walk-ins in the period. No target is set for this."},
+  {id:"conv",label:"Walk-in to Booking",fx:"Conversion % = Net bookings ÷ Fresh walk-ins × 100",v:function(s){return s.conv},f:function(v){return fp(v)},up:1,min:5,def:"Net bookings in the period (bookings minus cancellations, the same number as the Net Bookings tile) ÷ fresh walk-ins in the period. No target is set for this."},
   {id:"rev",label:"Unique Revisits",fx:"Unique Revisits = count of visits marked Unique Revisit",v:function(s){return s.rev},f:fmt,up:1,def:"Rows where Customer Fresh/Revisit (column AW) = Unique Revisit, by Date of Visit. Second, third and later revisits are not counted."},
   {id:"cx",label:"Cancellations",fx:"Cancellations = count of bookings marked cancelled",v:function(s){return s.cx},f:fmt,up:-1,def:"Rows with Booking Cancellation = Yes, by Cancellation Date (Booking Date when that is empty)."},
   {id:"hot",label:"Hot Leads Open",v:function(s){return s.hot},f:fmt,up:1,def:"Fresh walk-ins in the period with Customer Affinity = Hot that have not booked yet."},
@@ -933,7 +934,7 @@ function tileData(id,P,S,PS,TG,ser){
     else o.noT=TG.why||"No target";
   }
   if(id==="net"){if(o.noT)o.sub=fmt(S.tot.gross)+" booked · "+fmt(S.tot.cx)+" cancelled";else o.sub2=fmt(S.tot.gross)+" booked · "+fmt(S.tot.cx)+" cancelled"}
-  if(id==="conv")o.sub=fmt(S.tot.gross)+" bookings ÷ "+fmt(S.tot.fresh)+" fresh";
+  if(id==="conv")o.sub=fmt(S.tot.net)+" net bookings ÷ "+fmt(S.tot.fresh)+" fresh";
   if(id==="rev")o.sub=S.tot.fresh?fp(pct(S.tot.rev,S.tot.fresh),0)+" of fresh walk-ins came back":"";
   if(id==="cx")o.sub=fp(pct(S.tot.cx,S.tot.gross),0)+" of bookings in period";
   if(id==="hot")o.sub="of "+fmt(S.tot.fresh)+" fresh walk-ins";
@@ -958,7 +959,7 @@ function kpHtml(id){
   var now="";
   if(id==="net")now='<b>'+fmt(S.gross)+'</b> booked − <b>'+fmt(S.cx)+'</b> cancelled = <b>'+fmt(S.net)+'</b>';
   else if(id==="fresh")now='<b>'+fmt(S.fresh)+'</b> fresh walk-ins';
-  else if(id==="conv")now='<b>'+fmt(S.gross)+'</b> bookings ÷ <b>'+fmt(S.fresh)+'</b> fresh walk-ins = <b>'+m.f(S.conv)+'</b>';
+  else if(id==="conv")now='(<b>'+fmt(S.gross)+'</b> booked − <b>'+fmt(S.cx)+'</b> cancelled) = <b>'+fmt(S.net)+'</b> net bookings ÷ <b>'+fmt(S.fresh)+'</b> fresh walk-ins = <b>'+m.f(S.conv)+'</b>';
   else if(id==="rev")now='<b>'+fmt(S.rev)+'</b> unique revisits'+(S.fresh?' — '+fp(pct(S.rev,S.fresh),0)+' of '+fmt(S.fresh)+' fresh walk-ins':"");
   else if(id==="cx")now='<b>'+fmt(S.cx)+'</b> cancelled'+(S.gross?' — '+fp(pct(S.cx,S.gross),0)+' of '+fmt(S.gross)+' bookings':"");
   else if(id==="cpf")now='<b>'+fmt(S.ncp)+'</b> firms brought <b>'+fmt(S.cpWalk)+'</b> CP walk-ins';
@@ -997,12 +998,25 @@ function gauge(pc,pace){
 }
 
 /* ---------- management cards ---------- */
+// long periods: group months into quarters (or years) so all history fits instead of cutting to the last 24 months
+function groupSer(ser){
+  if(ser.keys.length<=24)return null;
+  var byQ=Math.ceil(ser.keys.length/3)<=24,g={},order=[],QL=["Jan–Mar","Apr–Jun","Jul–Sep","Oct–Dec"];
+  ser.keys.forEach(function(k){var y=Math.floor(k/100),gk=byQ?y*10+Math.ceil((k%100)/3):y;
+    if(!g[gk]){g[gk]={ks:[],s:blank()};order.push(gk)}var a=g[gk].s,b=ser.B[k];g[gk].ks.push(k);
+    a.fresh+=b.fresh;a.rev+=b.rev;a.gross+=b.gross;a.cx+=b.cx;a.hot+=b.hot;a.cpWalk+=b.cpWalk;Object.keys(b.cps).forEach(function(c){a.cps[c]=1});a.tat=a.tat.concat(b.tat)});
+  return{unit:byQ?"quarter":"year",list:order.map(function(gk){var x=g[gk],yy=String(Math.floor(gk/10)).slice(2);fin(x.s);return{lab:byQ?"Q"+(gk%10)+" "+yy:String(gk),full:byQ?QL[gk%10-1]+" "+yy:String(gk),s:x.s,ks:x.ks}})};
+}
+function grpTarget(MM,ks){var sum=0,any=false;ks.forEach(function(k){if(MM&&MM[k]!=null){sum+=MM[k];any=true}});return any?sum:null}
 function trendCard(P,TG,ser,weekly,id,mode,withTarget){
-  var isB=mode==="book",items=ser.keys.map(function(k){var s=ser.B[k],v=isB?s.net:s.fresh,t=null;
+  var isB=mode==="book",grp=weekly?null:groupSer(ser);
+  if(grp){var items=grp.list.map(function(gp){var s=gp.s,v=isB?s.net:s.fresh,t=withTarget?grpTarget(isB?TG.bookM:TG.walkM,gp.ks):null;
+      return{lab:gp.lab,v:v,t:t,per:null,tip:gp.full+": "+(isB?fmt(s.net)+" net ("+fmt(s.gross)+" booked, "+fmt(s.cx)+" cancelled)":fmt(s.fresh)+" fresh walk-ins, "+fmt(s.rev)+" unique revisits")+(t!=null?" · target "+fmt(t):"")}});
+    return{items:items,html:card(id,(isB?"Net bookings":"Fresh walk-ins")+" by "+grp.unit,withTarget&&(isB?TG.book!=null:TG.walk!=null)?"▬ target":"",togs(id==="cTrend"?"trend":"strend",[["book","Bookings"],["walk","Walk-ins"]],mode),'<div class="plot" style="position:absolute;inset:0"></div>',"chart")}}
+  var items=ser.keys.map(function(k){var s=ser.B[k],v=isB?s.net:s.fresh,t=null;
     if(withTarget){if(weekly){var W=isB?TG.bookW:TG.walkW;t=W?W[k-1]:null}else{var MM=isB?TG.bookM:TG.walkM;t=MM[k]!=null?MM[k]:null}}
     var lb=weekly?"Wk "+k:ymLab(k);
     return{lab:lb,v:v,t:t,per:weekly?null:"m"+k,tip:lb+": "+(isB?fmt(s.net)+" net ("+fmt(s.gross)+" booked, "+fmt(s.cx)+" cancelled)":fmt(s.fresh)+" fresh walk-ins, "+fmt(s.rev)+" unique revisits")+(t!=null?" · target "+fmt(t):"")+(weekly?"":" · click to open month")}});
-  if(!weekly&&items.length>24)items=items.slice(-24);
   return{items:items,html:card(id,(isB?"Net bookings":"Fresh walk-ins")+(weekly?" by week":" by month"),withTarget&&(isB?TG.book!=null:TG.walk!=null)?"▬ target":"",togs(id==="cTrend"?"trend":"strend",[["book","Bookings"],["walk","Walk-ins"]],mode),'<div class="plot" style="position:absolute;inset:0"></div>',"chart")};
 }
 function projCard(P){
@@ -1028,14 +1042,19 @@ function closingCard(P){
   var PP=clip(P,tm),S=stats(FF,PP,function(r){return r.cm});
   var names=Object.keys(T);Object.keys(S.G).forEach(function(k){if(k&&S.G[k].gross+S.G[k].cx>0&&names.indexOf(k)<0)names.push(k)});
   var pace=achievePace(PP),totT=0,totN=0;
-  var list=names.map(function(n){var s=S.G[n]||fin(blank()),t=T[n]||0;totT+=t;totN+=s.net;return{n:n,s:s,t:t,pc:t?s.net/t*100:null}});
-  var gapTot=0;list.forEach(function(x){if(x.t&&x.s.net<x.t)gapTot+=x.t-x.s.net});
+  var list=names.map(function(n){var s=S.G[n]||fin(blank()),t=T[n]||0;return{n:n,s:s,t:t,pc:t?s.net/t*100:null}});
   list.sort(function(a,b){return(a.pc==null)-(b.pc==null)||(a.pc-b.pc)||b.s.net-a.s.net});
+  // with a closing manager picked: show only them (default) or everyone with them pinned on top
+  var sel=F.cm,all=sel&&ui.cmcmp==="all";
+  if(sel){if(all)list=list.filter(function(x){return x.n===sel}).concat(list.filter(function(x){return x.n!==sel}));else list=list.filter(function(x){return x.n===sel})}
+  list.forEach(function(x){totT+=x.t;totN+=x.s.net});
+  var gapTot=0;list.forEach(function(x){if(x.t&&x.s.net<x.t)gapTot+=x.t-x.s.net});
   var mx=0;list.forEach(function(x){mx=Math.max(mx,x.t,x.s.net)});
   var rows=list.map(function(x){var gap=x.t&&x.s.net<x.t?x.t-x.s.net:0,st=x.pc==null?"":stOf(x.pc,pace);
     return drow("cm",x.n,'<td title="'+esc(lab(x.n))+'">'+esc(lab(x.n))+'</td><td>'+(x.t?fmt(x.t):'<span class="dim">–</span>')+'</td><td>'+fmt(x.s.net)+'</td><td class="bar">'+hbar(x.s.net,mx,st,x.t||null)+'</td><td>'+pill(x.pc,st)+'</td><td>'+(gap?fmt(gap)+' <span class="dim">'+fp(pct(gap,gapTot),0)+'</span>':'<span class="dim">–</span>')+'</td>',F.cm===x.n)}).join("");
   var sub=noT?"targets hidden for this filter":(PP.clipped?esc(PP.label)+" (months with targets) · ":"")+"worst first";
-  return card("cCm","Closing managers",sub,"",list.length?'<table><thead><tr><th>Manager</th><th>Target</th><th>Net</th><th></th><th>Achieved</th><th>Gap (share)</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>Total</td><td>'+(totT?fmt(totT):"–")+'</td><td>'+fmt(totN)+'</td><td></td><td>'+pill(totT?totN/totT*100:null,totT?stOf(totN/totT*100,pace):"")+'</td><td>'+(gapTot?fmt(gapTot):"–")+'</td></tr></tfoot></table>':empty("No closing data in this period"));
+  var tgc=sel?togs("cmcmp",[["one",esc(lab(sel))+" only"],["all","All managers"]],all?"all":"one"):"";
+  return card("cCm","Closing managers",sub,tgc,list.length?'<table><thead><tr><th>Manager</th><th>Target</th><th>Net</th><th></th><th>Achieved</th><th>Gap (share)</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>'+(sel&&!all?esc(lab(sel))+" total":"Total")+'</td><td>'+(totT?fmt(totT):"–")+'</td><td>'+fmt(totN)+'</td><td></td><td>'+pill(totT?totN/totT*100:null,totT?stOf(totN/totT*100,pace):"")+'</td><td>'+(gapTot?fmt(gapTot):"–")+'</td></tr></tfoot></table>':empty("No closing data in this period"));
 }
 function achievePace(P){var e=P.full.to,s=P.from,t=today();return t>=e?100:Math.max(0,(t-s+1)/(e-s+1)*100)}
 function sourcingCard(P){
@@ -1046,10 +1065,13 @@ function sourcingCard(P){
   var pace=achievePace(PP);
   var list=names.map(function(n){var s=S.G[n]||fin(blank());return{n:n,s:s,tw:TW[n]||0,tb:TB[n]||0}});
   list.sort(function(a,b){return(b.tw-a.tw)||(b.s.fresh-a.s.fresh)});
+  // with a sourcing manager picked: show only them (default) or everyone with them pinned on top
+  var sel=F.sm,all=sel&&ui.smcmp==="all";
+  if(sel){if(all)list=list.filter(function(x){return x.n===sel}).concat(list.filter(function(x){return x.n!==sel}));else list=list.filter(function(x){return x.n===sel})}
   var mx=0;list.forEach(function(x){mx=Math.max(mx,x.tw,x.s.fresh)});
   var rows=list.map(function(x){var pw=x.tw?x.s.fresh/x.tw*100:null,pb=x.tb?x.s.net/x.tb*100:null;
     return drow("sm",x.n,'<td title="'+esc(lab(x.n))+'">'+esc(lab(x.n))+'</td><td>'+fmt(x.s.fresh)+(x.tw?'<span class="dim">/'+fmt(x.tw)+'</span>':"")+'</td><td class="bar">'+hbar(x.s.fresh,mx,x.tw?stOf(pw,pace):"",x.tw||null)+'</td><td>'+pill(pw,x.tw?stOf(pw,pace):"")+'</td><td>'+fmt(x.s.net)+(x.tb?'<span class="dim">/'+fmt(x.tb)+'</span>':"")+'</td><td>'+pill(pb,x.tb?stOf(pb,pace):"")+'</td>',F.sm===x.n)}).join("");
-  return card("cSm","Sourcing managers",noT?"targets hidden for this filter":(PP.clipped?esc(PP.label)+" (months with targets)":"fresh walk-ins & bookings vs target"),"",list.length?'<table><thead><tr><th>Manager</th><th>Walk-ins</th><th></th><th>Ach.</th><th>Bookings</th><th>Ach.</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No sourcing data in this period"));
+  return card("cSm","Sourcing managers",noT?"targets hidden for this filter":(PP.clipped?esc(PP.label)+" (months with targets)":"fresh walk-ins & bookings vs target"),sel?togs("smcmp",[["one",esc(lab(sel))+" only"],["all","All managers"]],all?"all":"one"):"",list.length?'<table><thead><tr><th>Manager</th><th>Walk-ins</th><th></th><th>Ach.</th><th>Bookings</th><th>Ach.</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No sourcing data in this period"));
 }
 function channelCard(P,mode,site){
   var FF=Object.assign({},F,{src:""}),body="";
@@ -1083,8 +1105,8 @@ function whyCard(P,dim,id){
   ks.sort(function(a,b){return val(S.G[b])-val(S.G[a])});
   var top=ks.slice(0,10),rest=ks.slice(10),mx=0,tot=0;ks.forEach(function(k){tot+=val(S.G[k])});top.forEach(function(k){mx=Math.max(mx,val(S.G[k]))});
   var blankN=S.G[""]?val(S.G[""]):0;
-  var rows=top.map(function(k){var s=S.G[k],v=val(s);return'<tr><td title="'+esc(k)+'">'+esc(k)+'</td><td>'+fmt(v)+'</td><td class="bar">'+hbar(v,mx,"alt")+'</td><td>'+fp(pct(v,tot),0)+'</td>'+(bookingsOnly?"":'<td>'+fmt(s.gross)+'</td><td>'+(visits?"–":fp(s.conv))+'</td>')+'</tr>'}).join("");
-  if(rest.length){var o=0,og=0,of=0;rest.forEach(function(k){o+=val(S.G[k]);og+=S.G[k].gross;of+=S.G[k].fresh});rows+='<tr><td class="dim">'+rest.length+' others</td><td>'+fmt(o)+'</td><td class="bar">'+hbar(o,mx,"alt")+'</td><td>'+fp(pct(o,tot),0)+'</td>'+(bookingsOnly?"":'<td>'+fmt(og)+'</td><td>'+(visits?"–":fp(pct(og,of)))+'</td>')+'</tr>'}
+  var rows=top.map(function(k){var s=S.G[k],v=val(s);return'<tr><td title="'+esc(k)+'">'+esc(k)+'</td><td>'+fmt(v)+'</td><td class="bar">'+hbar(v,mx,"alt")+'</td><td>'+fp(pct(v,tot),0)+'</td>'+(bookingsOnly?"":'<td>'+fmt(s.net)+'</td><td>'+(visits?"–":fp(s.conv))+'</td>')+'</tr>'}).join("");
+  if(rest.length){var o=0,og=0,of=0;rest.forEach(function(k){o+=val(S.G[k]);og+=S.G[k].net;of+=S.G[k].fresh});rows+='<tr><td class="dim">'+rest.length+' others</td><td>'+fmt(o)+'</td><td class="bar">'+hbar(o,mx,"alt")+'</td><td>'+fp(pct(o,tot),0)+'</td>'+(bookingsOnly?"":'<td>'+fmt(og)+'</td><td>'+(visits?"–":fp(pct(og,of)))+'</td>')+'</tr>'}
   var sel='<select data-why="'+id+'" aria-label="Breakdown">'+WHY.map(function(w){return'<option value="'+w[0]+'"'+(w[0]===dim?" selected":"")+'>'+w[1]+'</option>'}).join("")+'</select>';
   var h=visits?"Visits":bookingsOnly?"Bookings":"Fresh";
   return card(id,"Why","",'<div class="togs">'+sel+'</div>',ks.length?'<table><thead><tr><th>'+esc(WHY.filter(function(w){return w[0]===dim})[0][1])+'</th><th>'+h+'</th><th></th><th>Share</th>'+(bookingsOnly?"":'<th>Bkg</th><th>Conv</th>')+'</tr></thead><tbody>'+rows+'</tbody></table>'+(blankN?'<div class="note">'+fmt(blankN)+' not entered in the sheet (left out).</div>':""):empty("Nothing recorded for this in the period"));
@@ -1094,9 +1116,11 @@ function whyCard(P,dim,id){
 function peopleCard(P,key,id,title){
   var FF=Object.assign({},F);FF[key]="";var S=stats(FF,P,function(r){return r[key]});
   var ks=Object.keys(S.G).filter(function(k){var s=S.G[k];return s.fresh+s.gross+s.rev>0}).sort(function(a,b){return S.G[b].net-S.G[a].net||S.G[b].fresh-S.G[a].fresh}),mx=0;
+  var sel=F[key],uk=key+"cmp",all=sel&&ui[uk]==="all";
+  if(sel){if(all)ks=ks.filter(function(k){return k===sel}).concat(ks.filter(function(k){return k!==sel}));else ks=ks.filter(function(k){return k===sel})}
   ks.forEach(function(k){mx=Math.max(mx,S.G[k].fresh)});
   var rows=ks.map(function(k){var s=S.G[k];return drow(key,k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td class="bar">'+hbar(s.fresh,mx)+'</td><td>'+fmt(s.rev)+'</td><td>'+fmt(s.net)+'</td><td>'+fp(s.conv)+'</td><td>'+fmt(s.hot)+'</td>',F[key]===k)}).join("");
-  return card(id,title,"","",ks.length?'<table><thead><tr><th>Name</th><th>Fresh</th><th></th><th>Uniq. revisits</th><th>Net bkg</th><th>Conv</th><th>Hot</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No activity in this period"));
+  return card(id,title,"",sel?togs(uk,[["one",esc(lab(sel))+" only"],["all","All"]],all?"all":"one"):"",ks.length?'<table><thead><tr><th>Name</th><th>Fresh</th><th></th><th>Uniq. revisits</th><th>Net bkg</th><th>Conv</th><th>Hot</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No activity in this period"));
 }
 function siteSrcCard(P,mode){
   if(mode!=="src")return channelCard(P,mode==="split"?"split":"cp",true).replace(togs("ssrc",[["split","Split"],["proj","By project"],["cp","CP firms"]],mode==="split"?"split":"cp"),togs("ssrc",[["src","Source"],["cp","CP firms"]],mode));
@@ -1128,8 +1152,9 @@ function renderFocus(P,S,PS,TG,ser,weekly,serM){
   }
   // trend
   var items=ser.keys.map(function(k){var s=ser.B[k],v=m.v(s),t=null;if(m.tgt){if(weekly){var W=m.tgt==="book"?TG.bookW:TG.walkW;t=W?W[k-1]:null}else{var MM=m.tgt==="book"?TG.bookM:TG.walkM;t=MM[k]!=null?MM[k]:null}}var lb=weekly?"Wk "+k:ymLab(k);return{lab:lb,v:v,t:t,per:weekly?null:"m"+k,tip:lb+": "+m.f(v)+(m.unit?" "+m.unit:"")+(t!=null?" · target "+fmt(t):"")}});
-  if(!weekly&&items.length>24)items=items.slice(-24);
-  mid=card("fMid",m.label+(weekly?" by week":" by month"),m.tgt&&(m.tgt==="book"?TG.book!=null:TG.walk!=null)?"▬ target":"","",'<div class="plot" style="position:absolute;inset:0"></div>',"chart");
+  var grpF=weekly?null:groupSer(ser);
+  if(grpF)items=grpF.list.map(function(gp){var v=m.v(gp.s),t=m.tgt?grpTarget(m.tgt==="book"?TG.bookM:TG.walkM,gp.ks):null;return{lab:gp.lab,v:v,t:t,per:null,tip:gp.full+": "+m.f(v)+(m.unit?" "+m.unit:"")+(t!=null?" · target "+fmt(t):"")}});
+  mid=card("fMid",m.label+(weekly?" by week":grpF?" by "+grpF.unit:" by month"),m.tgt&&(m.tgt==="book"?TG.book!=null:TG.walk!=null)?"▬ target":"","",'<div class="plot" style="position:absolute;inset:0"></div>',"chart");
   // breakdown
   // breakdown respects the filters: a filtered dimension shows only the picked value (with an "All" switch to compare)
   var DK={proj:"proj",cm:"cm",sm:"sm",chan:"src"},isF=function(d){return!!F[DK[d]]};
@@ -1210,17 +1235,18 @@ function cmdFlags(D){
   var projs=Object.keys(D.PJ).sort(),el={stall:[],conv:[]};
   projs.forEach(function(p){
     var A=D.PJ[p],f30=sum(A.f,w30,Y),b30=sum(A.b,w30,Y),f180=sum(A.f,bA,bB),b180=sum(A.b,bA,bB),op={p:p};
+    var n30=b30-sum(A.c,w30,Y),n180=b180-sum(A.c,bA,bB); // net bookings, for conversion
     if(f30>=15)el.stall.push({p:p,f:f30,b:b30});
-    if(!(f30>=15&&b30===0)&&f30>=20&&b180>=5&&f180)el.conv.push({p:p,c:b30/f30*100,n:b180/f180*100});
+    if(!(f30>=15&&b30===0)&&f30>=20&&b180>=5&&f180)el.conv.push({p:p,c:n30/f30*100,n:n180/f180*100});
     if(f30>=15&&b30===0){var lb=D.lastBk[p];
       fl.push({t:"stall",lvl:2,score:f30,title:p+": "+f30+" walk-ins, 0 bookings in 30 days",ev:lb?"Last booking: "+dl(lb)+" ("+(T-lb)+" days ago)":"No booking on record",
         bars:[["Fresh walk-ins",f30,fmt(f30)],["Bookings",0,"0"]],
         steps:[["Fresh walk-ins, last 30 days ("+W30+")",fmt(f30)],["Bookings, last 30 days ("+W30+")","0"],["Last booking for "+p,lb?dl(lb)+" ("+(T-lb)+" days ago)":"none on record"],["Rule: 15 or more walk-ins and 0 bookings","flagged"]],
         src:SRC_WALK+" "+SRC_BOOK,open:{p:p,k:"fresh"}})}
-    else if(f30>=20&&b180>=5&&f180){var c30=b30/f30*100,c180=b180/f180*100;
-      if(c30<c180/2)fl.push({t:"conv",lvl:1,score:1-c30/c180,title:p+" conversion down: "+fp(c30)+" vs normal "+fp(c180),ev:b30+" bookings from "+f30+" walk-ins in the last 30 days",
-        bars:[["Last 30 days",c30,fp(c30)],["Previous 6 months",c180,fp(c180)]],
-        steps:[["Last 30 days ("+W30+"): "+b30+" bookings ÷ "+f30+" fresh walk-ins",fp(c30)],["Previous 6 months ("+B180+"): "+b180+" bookings ÷ "+fmt(f180)+" fresh walk-ins",fp(c180)],["Half of normal",fp(c180/2)],["Rule: recent below half of normal; only with 20+ walk-ins and 5+ earlier bookings",fp(c30)+" → flagged"]],
+    else if(f30>=20&&b180>=5&&f180){var c30=n30/f30*100,c180=n180/f180*100;
+      if(c180>0&&c30<c180/2)fl.push({t:"conv",lvl:1,score:1-c30/c180,title:p+" conversion down: "+fp(c30)+" vs normal "+fp(c180),ev:n30+" net bookings from "+f30+" walk-ins in the last 30 days",
+        bars:[["Last 30 days",Math.max(0,c30),fp(c30)],["Previous 6 months",c180,fp(c180)]],
+        steps:[["Last 30 days ("+W30+"): "+n30+" net bookings ÷ "+f30+" fresh walk-ins",fp(c30)],["Previous 6 months ("+B180+"): "+n180+" net bookings ÷ "+fmt(f180)+" fresh walk-ins",fp(c180)],["Half of normal",fp(c180/2)],["Rule: recent below half of normal; only with 20+ walk-ins and 5+ earlier bookings",fp(c30)+" → flagged"]],
         src:SRC_WALK+" "+SRC_BOOK,open:{p:p,k:"conv"}})}
     cxFlag(p,A,D.lostP[p],op);
     walkFlag(p,A,op);
@@ -1484,7 +1510,7 @@ function cmdHtml(){
     '<div class="m2chart"><div class="m2ct"><span>Net bookings so far, added up day by day'+(ctx?' · '+ctx:"")+'</span><span>'+(TG.b?"target "+TG.b:"no target")+'</span></div>'+m2Chart(M,TG.b)+
     '<div class="m2lg">'+(TG.b?'<span><i class="tg"></i>Target pace</span>':"")+'<span><i class="ac"></i>Actual</span><span><i class="fc"></i>At current pace</span></div></div></div>'+
     '<div class="m2kpis">'+kpi("Net bookings",S.net,TG.b,bs,gb,fcB,vs(S.net,L.net),M.pB)+kpi("Fresh walk-ins",S.fresh,TG.w,ws,gw,fcW,vs(S.fresh,L.fresh),M.pW)+
-    '<div class="m2kpi"><div class="m2kl">Walk-in to booking</div><div class="m2kv">'+fp(S.conv)+'</div><div class="m2pb"><i class="ok" style="width:'+Math.min(100,(S.conv||0)*5).toFixed(1)+'%;background:linear-gradient(90deg,#FDE68A,#FCD34D)"></i></div><div class="m2ks"><span>'+fmt(S.gross)+' bookings ÷ '+fmt(S.fresh)+' fresh walk-ins</span>'+(S.conv!=null&&L.conv!=null?vs(S.conv,L.conv,1):"")+'</div></div></div></section>';
+    '<div class="m2kpi"><div class="m2kl">Walk-in to booking</div><div class="m2kv">'+fp(S.conv)+'</div><div class="m2pb"><i class="ok" style="width:'+Math.min(100,(S.conv||0)*5).toFixed(1)+'%;background:linear-gradient(90deg,#FDE68A,#FCD34D)"></i></div><div class="m2ks"><span>'+fmt(S.net)+' net bookings ÷ '+fmt(S.fresh)+' fresh walk-ins</span>'+(S.conv!=null&&L.conv!=null?vs(S.conv,L.conv,1):"")+'</div></div></div></section>';
   // ② needs your attention
   var items=m2Attention(M,PR,fl),nR=items.filter(function(i){return i.lvl===2}).length,nA=items.length-nR,show=ui.attAll?items:items.slice(0,3);
   var att='<section class="card m2att" id="ccAlerts"><div class="m2ch"><h2>Needs your attention</h2>'+(nR?'<span class="cnt r">'+nR+' urgent</span>':"")+(nA?'<span class="cnt a">'+nA+' to watch</span>':"")+'</div>'+
