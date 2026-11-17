@@ -377,7 +377,8 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 .m2pb i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#6EE7B7,#34D399)}
 .m2pb i.warn{background:linear-gradient(90deg,#FDE68A,#FBBF24)}.m2pb i.bad{background:linear-gradient(90deg,#FCA5A5,#F87171)}
 .m2pb b{position:absolute;top:-4px;bottom:-4px;width:2px;border-radius:2px;background:#fff;box-shadow:0 0 6px rgba(255,255,255,.8)}
-.m2ks{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}
+.m2ks{display:flex;justify-content:space-between;align-items:center;gap:8px 12px;flex-wrap:wrap;font-size:12px}
+.m2nw,.m2chip{white-space:nowrap}
 .m2ks .up{color:#6EE7B7}.m2ks .dn{color:#FCA5A5}
 .m2chip{display:inline-flex;align-items:center;padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700}
 .m2chip.ok{background:rgba(52,211,153,.18);color:#6EE7B7}.m2chip.warn{background:rgba(251,191,36,.18);color:#FCD34D}.m2chip.bad{background:rgba(248,113,113,.2);color:#FCA5A5}.m2chip.none{background:rgba(255,255,255,.1);color:rgba(255,255,255,.75)}
@@ -1471,11 +1472,13 @@ function cmdHtml(){
   var ctx=[F.proj?lab(F.proj):"",F.cm,F.sm,F.src?(F.src==="Indirect"?"Indirect (CP)":F.src):""].filter(Boolean).map(esc).join(" · ");
   // KPI cards
   function chip(st,g){if(!M.d&&st.k!=="none"&&st.k!=="met")return'<span class="m2chip none">Month just started</span>';return st.k==="met"?'<span class="m2chip ok">Target met ✓</span>':st.k==="ok"?'<span class="m2chip ok">On pace</span>':st.k==="slight"?'<span class="m2chip warn">Slightly behind</span>':st.k==="behind"?'<span class="m2chip bad">'+Math.max(1,g)+' behind pace</span>':'<span class="m2chip none">No target set</span>'}
-  function vs(a,b,pts){var d=a-b;if(a==null||b==null)return"";return'<span class="'+(d>=0?"up":"dn")+'">'+(d>=0?"▲":"▼")+(pts?Math.abs(d).toFixed(1)+" pts":fmt(Math.abs(d)))+' vs '+MN[lmY%100-1]+'</span>'}
+  // compare with the same days of last month, and say which days
+  var lmDays=Math.min(M.d,monEnd(lmY)-monStart(lmY)+1),lmLab=lmDays<1?"":lmDays===1?"1 "+MN[lmY%100-1]:"1–"+lmDays+" "+MN[lmY%100-1];
+  function vs(a,b,pts){var d=a-b;if(a==null||b==null||!lmLab)return"";return'<span class="m2nw '+(d>=0?"up":"dn")+'" title="Compared with the same days of last month">'+(d>=0?"▲":"▼")+(pts?Math.abs(d).toFixed(1)+" pts":fmt(Math.abs(d)))+' vs '+lmLab+'</span>'}
   function kpi(lab2,a,t,st,g,fc,vsTxt,p){var w=t?Math.min(100,a/t*100):0,c=st.k==="behind"?"bad":st.k==="slight"?"warn":"ok";
     return'<div class="m2kpi"><div class="m2kl">'+lab2+'</div><div class="m2kv">'+fmt(a)+(t?'<small>/ '+fmt(t)+'</small>':"")+'</div>'+
       (t?'<div class="m2pb"><i class="'+c+'" style="width:'+w.toFixed(1)+'%"></i><b style="left:'+(p*100).toFixed(1)+'%" title="Where you would usually be by now"></b></div>':'<div class="m2pb"></div>')+
-      '<div class="m2ks">'+chip(st,g)+'<span>'+(t?'Pace → <b>'+fmt(fc)+'</b> by '+M.days+' '+M.sh+' · ':"")+vsTxt+'</span></div></div>'}
+      '<div class="m2ks">'+chip(st,g)+(t&&fc!=null?'<span class="m2nw">Pace → <b>'+fmt(fc)+'</b> by '+M.days+' '+M.sh+'</span>':"")+vsTxt+'</div></div>'}
   var hero='<section class="m2hero '+mood+'" id="ccMonth" aria-label="This month"><div class="m2eye"><span class="cc-live"></span>'+M.name+' · '+M.d+' of '+M.days+' days complete'+(ctx?' · '+ctx:"")+'</div>'+
     '<div class="m2story"><div><h2 class="m2h">'+head+'</h2><p class="m2sub">'+sub+'</p><div class="m2day"><span>'+(M.d?'By day '+M.d+' you usually have <b>'+Math.round(M.pB*100)+'%</b> of a month’s bookings and <b>'+Math.round(M.pW*100)+'%</b> of its walk-ins'+(M.patB&&M.patW?(M.coPat?" (whole-company pattern, last 3 months; too little "+esc(lab(F.proj))+" history)":" (last 3 months)"):M.patB||M.patW?" (partly straight-line: little history)":" (straight-line: little history)"):"First day of the month: pace starts tomorrow")+'.</span></div></div>'+
     '<div class="m2chart"><div class="m2ct"><span>Net bookings so far, added up day by day'+(ctx?' · '+ctx:"")+'</span><span>'+(TG.b?"target "+TG.b:"no target")+'</span></div>'+m2Chart(M,TG.b)+
