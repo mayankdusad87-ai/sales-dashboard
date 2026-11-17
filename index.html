@@ -899,7 +899,8 @@ function blank(){return{fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],wt:[],cps:{},cpW
 function addBk(s,r){s.gross++;var fv=r.fv>0?r.fv:r.vday;if(fv>0&&r.bday>=fv)s.tat.push(r.bday-fv);if(r.av>0){s.av+=r.av;if(!r.cx&&r.carpet>0){s.avR+=r.av;s.ca+=r.carpet}}}
 function addCx(s,r){s.cx++;if(r.av>0)s.avx+=r.av}
 // conversion = NET bookings (bookings − cancellations) ÷ fresh walk-ins, so it matches the Net Bookings number everywhere
-function fin(s){s.net=s.gross-s.cx;s.conv=pct(s.net,s.fresh);s.tatM=median(s.tat);s.sv=HAS_BK?s.av-s.avx:null;s.rpsf=HAS_BK&&s.ca?s.avR/s.ca:null;s.wtM=median(s.wt);s.wt15=s.wt.filter(function(w){return w>15}).length;s.ncp=Object.keys(s.cps).length;return s}
+// a booking rate above 100% means the walk-ins behind those bookings are tagged elsewhere: show "–", never a fake rate
+function fin(s){s.net=s.gross-s.cx;s.conv=pct(s.net,s.fresh);s.convBad=s.conv!=null&&s.conv>100;if(s.convBad)s.conv=null;s.tatM=median(s.tat);s.sv=HAS_BK?s.av-s.avx:null;s.rpsf=HAS_BK&&s.ca?s.avR/s.ca:null;s.wtM=median(s.wt);s.wt15=s.wt.filter(function(w){return w>15}).length;s.ncp=Object.keys(s.cps).length;return s}
 // one pass: totals, optional groups by keyFn
 function stats(FF,p,keyFn){
   var tot=blank(),G={};
@@ -1049,7 +1050,7 @@ function tileData(id,P,S,PS,TG,ser){
     else o.noT=TG.why||"No target";
   }
   if(id==="net"){if(o.noT)o.sub=fmt(S.tot.gross)+" booked · "+fmt(S.tot.cx)+" cancelled";else o.sub2=fmt(S.tot.gross)+" booked · "+fmt(S.tot.cx)+" cancelled"}
-  if(id==="conv")o.sub=fmt(S.tot.net)+" net bookings ÷ "+fmt(S.tot.fresh)+" fresh";
+  if(id==="conv")o.sub=S.tot.convBad?"more bookings than tagged walk-ins":fmt(S.tot.net)+" net bookings ÷ "+fmt(S.tot.fresh)+" fresh";
   if(id==="rev")o.sub=S.tot.fresh?fp(pct(S.tot.rev,S.tot.fresh),0)+" of fresh walk-ins came back":"";
   if(id==="cx")o.sub=fp(pct(S.tot.cx,S.tot.gross),0)+" of bookings in period";
   if(id==="hot")o.sub="of "+fmt(S.tot.fresh)+" fresh walk-ins";
@@ -1284,6 +1285,8 @@ function recPass(r,st,q){
   if(q&&((r.id||"")+" "+(r.nm||"")+" "+(r.cp||"")).toLowerCase().indexOf(q)<0)return false;
   return true;
 }
+// day and month, plus the year when it is not this year ("12 Oct 25")
+function dly(d){var y=ymd(d)[0];return dl(d)+(y!==ymd(today())[0]?" "+String(y).slice(2):"")}
 function nmCell(r){return HAS_NAMES?(r.nm?esc(r.nm):'<span class="dim">–</span>'):'<span class="dim" title="Names show once the dashboard password is set">hidden</span>'}
 function recListHtml(id,P){
   var q=(ui.rq||"").trim().toLowerCase(),st=ui.rst||"all",list=recRows(id,P).filter(function(r){return recPass(r,st,q)}),MAX=200;
@@ -1293,7 +1296,7 @@ function recListHtml(id,P){
   var src=function(r){return isCP(r.src)?(r.cp||"CP · firm not entered"):(r.src||"–")};
   var head='<tr><th>Form No</th><th>Customer</th><th>Visit</th><th>Source / CP firm</th><th>Config</th><th>Budget</th><th>Affinity</th><th>Closing</th><th>Sourcing</th>'+(showBk?'<th>Value</th><th>₹ / sq ft</th><th>TAT</th>':"")+(showWait?'<th>Wait</th>':"")+(showLost?'<th>Reason lost</th>':"")+'<th>Status</th></tr>';
   var body="",cards="";
-  list.slice(0,MAX).forEach(function(r){var s=stLab(r),af=r.aff?'<span class="rtag a-'+(AFC[r.aff]||"cold")+'">'+esc(r.aff)+'</span>':'<span class="dim">–</span>',vd=r.vday>0?dl(r.vday):r.fv>0?dl(r.fv):"–",tt=tbd(r),bkc=showBk?'<td>'+(r.av>0?fcr(r.av):"–")+'</td><td>'+(r.av>0&&r.carpet>0?"₹"+fmt(Math.round(r.av/r.carpet)):"–")+'</td><td>'+(tt==null?'<span class="dim" title="No matching walk-in">–</span>':tt+" d")+'</td>':"";
+  list.slice(0,MAX).forEach(function(r){var s=stLab(r),af=r.aff&&!r.bkRow?'<span class="rtag a-'+(AFC[r.aff]||"cold")+'">'+esc(r.aff)+'</span>':'<span class="dim">–</span>',vd=r.vday>0?dly(r.vday):r.fv>0?dly(r.fv):"–",tt=tbd(r),bkc=showBk?'<td>'+(r.av>0?fcr(r.av):"–")+'</td><td>'+(r.av>0&&r.carpet>0?"₹"+fmt(Math.round(r.av/r.carpet)):"–")+'</td><td>'+(tt==null?'<span class="dim" title="No matching walk-in">–</span>':tt+" d")+'</td>':"";
     body+='<tr><td class="fno">'+esc(r.id||"–")+'</td><td class="rnm">'+nmCell(r)+'</td><td>'+vd+'</td><td class="rsrc" title="'+esc(src(r))+'">'+esc(src(r))+'</td><td>'+esc(r.cfg||"–")+'</td><td>'+esc(r.budget||"–")+'</td><td>'+af+'</td><td>'+esc(r.cm||"–")+'</td><td>'+esc(r.sm||"–")+'</td>'+bkc+(showWait?'<td><b'+(r.wait>15?' class="lo"':"")+'>'+r.wait+' min</b></td>':"")+(showLost?'<td>'+esc(r.lost||"–")+'</td>':"")+'<td><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></td></tr>';
     cards+='<div class="rcard"><div class="rc1"><b>'+nmCell(r)+'</b>'+af+'</div><div class="rc2">'+esc(r.id||"")+(r.id?" · ":"")+vd+(r.cm?" · "+esc(r.cm):"")+'</div><div class="rc3"><span>'+esc(r.cfg||"–")+'</span><span>'+esc(r.budget||"–")+'</span><span>'+esc(src(r))+'</span>'+(showWait?'<span><b'+(r.wait>15?' class="lo"':"")+'>Waited '+r.wait+' min</b></span>':"")+(showLost&&r.lost?'<span>'+esc(r.lost)+'</span>':"")+(showBk&&r.av>0?'<span><b>'+fcr(r.av)+'</b>'+(r.carpet>0?" · ₹"+fmt(Math.round(r.av/r.carpet))+"/sq ft":"")+'</span>':"")+(showBk&&tt!=null?'<span>TAT '+tt+' d</span>':"")+'</div>'+(s[1]!=="op"?'<div class="rc4"><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></div>':"")+'</div>'});
   return'<div class="rtbl"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div><div class="rcards">'+cards+'</div>'+(list.length>MAX?'<div class="note">Showing the first '+MAX+' of '+fmt(list.length)+'. Search or pick a status to narrow the list.</div>':"");
@@ -1397,9 +1400,12 @@ function fixCard(P){
   ROWS.forEach(function(r){if(r.kind!==0||r.vday<P.from||r.vday>P.to)return;tot++;if(!r.proj||r.proj==="All")noProj++});
   if(noProj)iss.push("<b>"+fmt(noProj)+" of "+fmt(tot)+"</b> fresh walk-ins in "+esc(P.label)+" have no project in column B, so no Site Head sees them.");
   var bkAll=0;ROWS.forEach(function(r){if(r.bk)bkAll++});
-  if(q.bookingNoDate&&bkAll&&q.bookingNoDate/bkAll>.2)iss.push("<b>"+fmt(q.bookingNoDate)+" of "+fmt(bkAll)+"</b> bookings have no Booking Date, so they are counted on the visit date.");
+  if(!HAS_BK&&q.bookingNoDate&&bkAll&&q.bookingNoDate/bkAll>.2)iss.push("<b>"+fmt(q.bookingNoDate)+" of "+fmt(bkAll)+"</b> bookings have no Booking Date, so they are counted on the visit date.");
   if(HAS_BK){var ub=ROWS.filter(function(r){return r.bkRow&&!r.linked&&r.bday>=P.from&&r.bday<=P.to&&pass(r,F)});
-    if(ub.length)iss.push("<b>"+fmt(ub.length)+"</b> booking"+(ub.length>1?"s":"")+" in Booking details "+(ub.length>1?"have":"has")+" no matching walk-in (Form No): "+ub.slice(0,6).map(function(r){return esc(r.id||"blank")}).join(", ")+(ub.length>6?" …":"")+".")}
+    if(ub.length){var nb0=ub.filter(function(r){return!r.id}).length,wid=ub.filter(function(r){return r.id});
+      iss.push("<b>"+fmt(ub.length)+"</b> booking"+(ub.length>1?"s":"")+" in Booking details "+(ub.length>1?"have":"has")+" no matching walk-in"+(nb0?": <b>"+fmt(nb0)+"</b> with no Form No (column B)":"")+(wid.length?(nb0?"; ":": ")+"Form No not in the Walk-in sheet: "+wid.slice(0,6).map(function(r){return esc(r.id)}).join(", ")+(wid.length>6?" and "+(wid.length-6)+" more":""):"")+".")}}
+  if(HAS_BK){var cb=0,tf=0;ROWS.forEach(function(r){if(r.bkRow&&r.bday>=P.from&&r.bday<=P.to&&pass(r,F)&&!r.cx)cb++;if(r.kind===0&&r.vday>=P.from&&r.vday<=P.to&&pass(r,F))tf++});
+    if(cb>tf)iss.push("<b>"+fmt(cb)+"</b> bookings but only <b>"+fmt(tf)+"</b> fresh walk-ins tagged "+esc(lab(F.proj))+" in "+esc(P.label)+", so the walk-in to booking rate can’t be shown. Tag column B for this project’s walk-ins.")}
   if(!TIME_OK)iss.push("Time In and Time Attended could not be read for any walk-in, so TAT is not shown yet. If these columns are filled, their format or position needs a look.");
   if(q.cpVariants&&q.cpVariants.length)iss.push("CP firm names typed in different ways were merged: "+q.cpVariants.slice(0,3).map(function(v){return"“"+esc(v.as[0])+"” → "+esc(v.firm)}).join(", ")+(q.cpVariants.length>3?" and "+(q.cpVariants.length-3)+" more":"")+". A CP firm dropdown in the sheet would stop this.");
   var body=(iss.length?'<ul class="fxi">'+iss.map(function(t){return"<li>"+t+"</li>"}).join("")+'</ul>':"")+
@@ -1589,18 +1595,20 @@ function dataChecks(){
   if(DATA.bookingError)out.push({lvl:2,title:"Booking details could not be read",text:DATA.bookingError+". Bookings are taken from the Walk-in sheet until this is fixed.",fix:"Check the Booking details tab in All Data.xlsx: its heading row (within the first 10 rows) must include “Overall Status”."});
   else if(HAS_BK&&Q.bk){var B=Q.bk,nb=B.booked+B.cancelled,un=ROWS.filter(function(r){return r.bkRow&&!r.linked}),st=Object.keys(B.statuses).map(function(k){return k+" "+fmt(B.statuses[k])}).join(" · ");
     out.push({lvl:un.length?1:0,title:fmt(nb-un.length)+" of "+fmt(nb)+" bookings matched a walk-in",text:"Bookings come from Booking details. A booking is linked when its Form No (column B) is in Walk-in column A; linked bookings get source, CP firm and first-visit date from the walk-in.",
-      lines:[st].concat(un.length?["No matching walk-in: "+un.slice(0,12).map(function(r){return r.id||"(no Form No)"}).join(", ")+(un.length>12?" and "+(un.length-12)+" more":"")]:[]).concat(B.noStatus?[fmt(B.noStatus)+" rows have a Booking Date but no Overall Status, so they are not counted"]:[]).concat(B.noValue?[fmt(B.noValue)+" bookings have no agreement value (AH)"]:[]).concat(B.noCarpet?[fmt(B.noCarpet)+" bookings have no carpet area (AD)"]:[]),
+      lines:[st].concat(un.filter(function(r){return!r.id}).length?[fmt(un.filter(function(r){return!r.id}).length)+" bookings have no Form No (column B)"]:[]).concat(un.filter(function(r){return r.id}).length?["Form No not in the Walk-in sheet: "+un.filter(function(r){return r.id}).slice(0,12).map(function(r){return r.id}).join(", ")+(un.filter(function(r){return r.id}).length>12?" and "+(un.filter(function(r){return r.id}).length-12)+" more":"")]:[]).concat(B.noStatus?[fmt(B.noStatus)+" rows have a Booking Date but no Overall Status, so they are not counted"]:[]).concat(B.noValue?[fmt(B.noValue)+" bookings have no agreement value (AH)"]:[]).concat(B.noCarpet?[fmt(B.noCarpet)+" bookings have no carpet area (AD)"]:[]),
       fix:un.length?"Correct the Form No on these bookings so it matches the Walk-in sheet.":""})}
   // 1. dates after today
   var fu=Q.future;
-  if(fu){var tot=fu.visit.n+fu.booking.n+fu.cancellation.n;
+  // with Booking details connected, the Walk-in booking and cancellation columns are not used, so only visit dates are checked
+  var DK3=HAS_BK?["visit"]:["visit","booking","cancellation"];
+  if(fu){var tot=0;DK3.forEach(function(k){tot+=fu[k].n});
     out.push(tot?{lvl:2,title:fmt(tot)+" date"+(tot>1?"s are":" is")+" after today",text:"Visits, bookings and cancellations cannot happen in the future, so these dates are wrong and are left out of today and this-week counts.",
-      lines:["visit","booking","cancellation"].filter(function(k){return fu[k].n}).map(function(k){return COLN[k]+": "+fmt(fu[k].n)+" · "+rowList(fu[k].rows,fu[k].n)}),fix:"Open these rows and correct the date, written as dd-mm-yyyy."}
+      lines:DK3.filter(function(k){return fu[k].n}).map(function(k){return COLN[k]+": "+fmt(fu[k].n)+" · "+rowList(fu[k].rows,fu[k].n)}),fix:"Open these rows and correct the date, written as dd-mm-yyyy."}
       :{lvl:0,title:"No dates after today",text:"Every visit, booking and cancellation date is today or earlier."})}
   // 2. date format
   var ev=Q.dateEvidence;
   if(ev){var bad=[],okl=[],warn=[];
-    ["visit","booking","cancellation"].forEach(function(k){var e=ev[k];if(!e)return;var dm=e.order==="dmy";
+    DK3.forEach(function(k){var e=ev[k];if(!e)return;var dm=e.order==="dmy";
       if(e.dayFirst&&e.monthFirst){var minR=dm?e.monthFirstRows:e.dayFirstRows,minN=dm?e.monthFirst:e.dayFirst;
         bad.push(COLN[k]+": "+fmt(e.dayFirst)+" written day-first and "+fmt(e.monthFirst)+" month-first. Read as "+(dm?"day-month":"month-day")+", so the "+fmt(minN)+" "+(dm?"month-first":"day-first")+" ones, and any of the "+fmt(e.either)+" that could go either way, may be wrong. "+rowList(minR,minN))}
       else if(!e.dayFirst&&!e.monthFirst&&e.either)warn.push(COLN[k]+": "+fmt(e.either)+" dates like 05-06-2026 and none with a day above 12, so day and month cannot be told apart.");
