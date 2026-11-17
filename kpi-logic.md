@@ -25,7 +25,11 @@ There is no booking tracker yet, so sale value, realisation and ₹ views are no
 | AV | Cancellation Date | Cancellation month |
 | **AW** | **Customer Fresh/Revisit** | **Fresh walk-ins ("Fresh") and revisits** |
 
-**Never loaded:** E–H (name, mobile, email, nationality), Q (pincode), AB–AC (CP name, mobile), AG–AH (referral), AO (remarks). They are dropped on the server before anything reaches the browser.
+**Never loaded:** F–H (mobile, email, nationality), Q (pincode), AB–AC (CP name, mobile), AG–AH (referral), AO (remarks). They are dropped on the server before anything reaches the browser.
+
+**Loaded only with a password:** E (customer name) is sent only when `DASHBOARD_PASSWORD` is set in Vercel, and only if the heading of column E says "name" (so a moved column can never expose a phone number). A (Form No) is always loaded; it is an internal reference.
+
+**Column check:** the headings of every column used are checked on each load. If one does not match (a column was added, removed or moved), a red warning shows above the tiles.
 
 ### Closing Targets (header row 3)
 B Closing manager · F Month & Year · G Monthly bookings target · H–M Week 1–6 targets.

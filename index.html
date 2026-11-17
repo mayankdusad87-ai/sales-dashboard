@@ -105,7 +105,8 @@ select:hover{border-color:var(--bar1)}
 .t0{background:linear-gradient(135deg,#E8432E,#B3261E)}.t1{background:linear-gradient(135deg,#4A4244,#2A2324)}
 .t2{background:linear-gradient(135deg,#9E1B22,#6E1217)}.t3{background:linear-gradient(135deg,#FBE2DD,#F2BFB4);color:#4A1418}
 .t4{background:linear-gradient(135deg,#7A3034,#4A1C1F)}.t5{background:linear-gradient(135deg,#C2412F,#8E2A1F)}
-.t6{background:linear-gradient(135deg,#8C8183,#5E5456)}.t7{background:linear-gradient(135deg,#3A3536,#1A1415)}
+.t6{background:linear-gradient(135deg,#8C8183,#5E5456)}.t7{background:linear-gradient(135deg,#7A3034,#4A1C1F)}
+.t8{background:linear-gradient(135deg,#F7F1EF,#ECE4E2);color:#6E6466;box-shadow:inset 0 0 0 1.5px rgba(110,100,102,.35)!important}.t8 .tv{text-shadow:none;opacity:.7}.t9{background:linear-gradient(135deg,#3A3536,#1A1415)}
 .t3 .tv{text-shadow:0 1px 0 rgba(255,255,255,.4)}
 .tile.hasg{display:grid;grid-template-columns:minmax(0,1fr) 74px;grid-template-rows:auto auto 1fr;column-gap:6px}
 .tile.hasg .tl{grid-column:1/3}
@@ -136,6 +137,82 @@ select:hover{border-color:var(--bar1)}
 .cbd.chart{overflow:hidden;min-height:180px}
 .empty{height:100%;min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:600;text-align:center;padding:10px}
 .note{font-size:11.5px;color:var(--muted);margin-top:4px}
+
+/* site head: records, team, CP scorecard, data to fix */
+#hwarn .hwarn{margin:0 14px 8px;background:var(--badbg);color:var(--bad);border:1px solid rgba(185,28,28,.3);font-size:12.5px;padding:10px 14px;display:block;line-height:1.45}
+.app.sitetab{height:auto!important}
+.vis.site{grid-template-rows:none;grid-auto-rows:auto}
+.vis.site>#sTrend,.vis.site>#sTeam,.vis.site>#sSrcCard{height:340px}
+.vis.site>#sCp,.vis.site>#sFix{grid-column:1/-1}
+.cbd.auto{overflow:visible;flex:none}
+.kstrip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.kb{background:var(--well);border-radius:10px;padding:8px 10px;min-width:0}
+.kb small{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.kb b{display:block;font-size:20px;line-height:1.2;margin:2px 0}
+.kb b span{font-size:12px;color:var(--muted);font-weight:500}
+.kb i{font-style:normal;font-size:11px;color:var(--ink2);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kb.warn{background:var(--warnbg)}.kb.warn i{color:var(--warn);font-weight:700}
+.cpgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px}
+.fxgrid{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.6fr);gap:18px}
+.lh{margin:4px 0 6px;font-size:12.5px;font-weight:700}.lh span{font-weight:500;color:var(--muted);font-size:11.5px;margin-left:4px}
+.lh.good{color:var(--good)}.lh.bad{color:var(--bad)}
+.cpflag{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:650;white-space:normal}
+.cpflag.bad{background:var(--badbg);color:var(--bad)}.cpflag.warn{background:var(--warnbg);color:var(--warn)}
+.okmsg{background:var(--goodbg);color:var(--good);border-radius:8px;padding:8px 10px;font-weight:600;font-size:12px}
+.miss{display:inline-block;background:var(--badbg);color:var(--bad);border-radius:999px;padding:0 7px;font-size:10.5px;font-weight:650;margin:1px 3px 1px 0}
+.fxb{display:grid;grid-template-columns:130px minmax(0,1fr) 40px;gap:8px;align-items:center;font-size:12px;padding:2px 0}
+.fxb .hb{min-width:0;width:100%}
+.fxb b{text-align:right}.wn{color:var(--warn)}.lo{color:var(--bad)}
+.fxi{margin:0 0 12px;padding:8px 12px 8px 28px;background:var(--warnbg);border-radius:10px;font-size:12px;color:var(--ink);line-height:1.45}
+.fxmore{margin-top:6px}
+.fxsep{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 2px;padding-top:8px;border-top:1px solid var(--line)}
+.fno{font-family:ui-monospace,Consolas,monospace;color:var(--muted);font-size:11.5px}
+.rhd{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.rhd h2{margin:0;font-size:16px}.rhd .sub{font-size:12px;color:var(--muted);font-weight:600}
+.rn{display:inline-block;background:var(--sel);border-radius:999px;padding:0 8px;font-size:12px;margin-left:4px;vertical-align:2px}
+.rtools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.rsearch{flex:1 1 220px;max-width:340px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;font:inherit}
+.rchips{display:flex;gap:6px;flex-wrap:wrap}
+.rchip{cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink2);border-radius:999px;padding:5px 11px;font:inherit;font-size:12px;font-weight:600}
+.rchip b{color:var(--muted);margin-left:2px}
+.rchip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--card)}.rchip[aria-pressed="true"] b{color:inherit;opacity:.75}
+.rtag{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:650;white-space:nowrap}
+.a-hot{background:#FEE2E2;color:#B91C1C}.a-wh{background:#FEF3C7;color:#B45309}.a-wl{background:#FEF9C3;color:#854D0E}.a-cold{background:#E0E7FF;color:#3730A3}.a-lost,.s-lost{background:var(--well);color:var(--muted)}
+.s-bk{background:var(--goodbg);color:var(--good)}.s-cx{background:var(--badbg);color:var(--bad)}.s-op{background:var(--well);color:var(--ink2)}
+.rec .cbd,.rec{overflow:visible}
+.focus>.rec{grid-column:1/-1;padding:14px 18px}
+.rtbl{overflow:auto}.rtbl td{white-space:nowrap}.rtbl .rsrc{max-width:190px;overflow:hidden;text-overflow:ellipsis}
+.rnm{font-weight:650}
+.rtbl td,.rtbl th,#sFix td,#sFix th,.cpw td:nth-child(4),.cpw th:nth-child(4),#sCp td:nth-child(2),#sCp th:nth-child(2){text-align:left}
+.rcards{display:none}
+.rnote{margin-top:10px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+@media (max-width:1100px){.kstrip{grid-template-columns:repeat(3,minmax(0,1fr))}.cpgrid,.fxgrid{grid-template-columns:1fr}}
+@media (max-width:760px){
+  #hwarn .hwarn{margin:0 16px 10px}
+  .kstrip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .vis.site>#sTrend,.vis.site>#sTeam,.vis.site>#sSrcCard{height:auto}
+  .rtbl{display:none}.rcards{display:block}
+  .rcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+  .rc1{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
+  .rc2{font-size:11.5px;color:var(--muted);margin-top:2px;font-family:ui-monospace,Consolas,monospace}
+  .rc3{display:flex;flex-wrap:wrap;gap:3px 10px;font-size:12px;color:var(--ink2);margin-top:6px}
+  .rc4{margin-top:6px}
+  .rback{display:none}
+  .rsearch{max-width:none}
+  .rchips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:0 12px}
+  .rchip{white-space:nowrap}
+  .fxb{grid-template-columns:110px minmax(0,1fr) 40px}
+  .cbd.auto{max-height:none}
+  .cpgrid>div,.fxgrid>div{overflow-x:auto;min-width:0}
+  .rec .cbd{max-height:none}
+  #sCp table:not(.cpw) th:nth-child(6),#sCp table:not(.cpw) td:nth-child(6){display:none}
+  .cpw thead{display:none}
+  .cpw tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+  .cpw td{border:0;height:auto;padding:0 4px;white-space:normal}
+  .cpw td:nth-child(2)::before{content:"Fresh ";color:var(--muted);font-size:11px}
+  .cpw td:nth-child(3)::before{content:"Net ";color:var(--muted);font-size:11px}
+  .cpw td:nth-child(4),.cpw td:nth-child(5){grid-column:1/-1;text-align:left;padding-top:4px}
+}
 
 /* tables */
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
@@ -692,6 +769,7 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
     <button class="reset" id="freset">Reset</button>
   </div>
 
+  <div id="hwarn"></div>
   <section class="tiles" id="tiles" aria-label="Key numbers"></section>
   <main class="cmd" id="cmd" style="display:none" aria-label="Command Centre"></main>
   <main class="vis" id="vis"></main>
@@ -779,7 +857,8 @@ function prevOf(p){if(!p.shift)return null;return{from:addMonths(p.from,-p.shift
 /* ---------- data ---------- */
 function ingest(d){
   DATA=d;var f=d.fields,D=d.dict,ix={};f.forEach(function(k,i){ix[k]=i});
-  ROWS=d.W.map(function(r){var o={};f.forEach(function(k,i){o[k]=D[k]?D[k][r[i]]:r[i]});o.uniq=/^unique\s*revisit$/i.test(o.awv||"");return o});
+  HAS_ID=!!(d.ID&&d.ID.some(function(x){return x}));TIME_OK=false;HAS_NAMES=!!(d.NM&&d.NM.length);
+  ROWS=d.W.map(function(r,n){var o={};f.forEach(function(k,i){o[k]=D[k]?D[k][r[i]]:r[i]});o.uniq=/^unique\s*revisit$/i.test(o.awv||"");o.id=d.ID?d.ID[n]||"":"";o.nm=d.NM?d.NM[n]||"":"";if(o.wait>=0)TIME_OK=true;return o});
   MIN_DAY=ROWS.reduce(function(m,r){return r.vday>0&&r.vday<m?r.vday:m},today());
   CT=d.CT.map(function(r){return{m:r[0],ym:+r[1].replace("-",""),t:r[2],w:r[3],p:r[4]||"All"}});
   ST=d.ST.map(function(r){return{m:r[0],ym:+r[1].replace("-",""),b:r[2],t:r[3],w:r[4],p:r[5]||"All"}});
@@ -793,9 +872,9 @@ function pass(r,FF){
   if(FF.src){if(FF.src==="Direct"){if(isCP(r.src))return false}else if(FF.src==="Indirect"){if(!isCP(r.src))return false}else if(r.src!==FF.src)return false}
   return true;
 }
-function blank(){return{fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],cps:{},cpWalk:0}}
+function blank(){return{fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],wt:[],cps:{},cpWalk:0}}
 // conversion = NET bookings (bookings − cancellations) ÷ fresh walk-ins, so it matches the Net Bookings number everywhere
-function fin(s){s.net=s.gross-s.cx;s.conv=pct(s.net,s.fresh);s.tatM=median(s.tat);s.ncp=Object.keys(s.cps).length;return s}
+function fin(s){s.net=s.gross-s.cx;s.conv=pct(s.net,s.fresh);s.tatM=median(s.tat);s.wtM=median(s.wt);s.wt15=s.wt.filter(function(w){return w>15}).length;s.ncp=Object.keys(s.cps).length;return s}
 // one pass: totals, optional groups by keyFn
 function stats(FF,p,keyFn){
   var tot=blank(),G={};
@@ -804,7 +883,7 @@ function stats(FF,p,keyFn){
     if(!inV&&!inB&&!inC)continue;
     var tg=[tot];if(keyFn){var k=keyFn(r);if(!G[k])G[k]=blank();tg.push(G[k])}
     for(var j=0;j<tg.length;j++){var s=tg[j];
-      if(inV){if(r.kind===0){s.fresh++;if(r.aff==="Hot"&&!r.bk)s.hot++}else if(r.uniq)s.rev++;if(r.cp&&isCP(r.src)){s.cps[r.cp]=1;s.cpWalk++}}
+      if(inV){if(r.kind===0){s.fresh++;if(r.wait>=0)s.wt.push(r.wait);if(r.aff==="Hot"&&!r.bk)s.hot++}else if(r.uniq)s.rev++;if(r.cp&&isCP(r.src)){s.cps[r.cp]=1;s.cpWalk++}}
       if(inB){s.gross++;if(r.vday>0&&r.bday>=r.vday)s.tat.push(r.bday-r.vday)}
       if(inC)s.cx++}}
   fin(tot);for(var g in G)fin(G[g]);
@@ -815,7 +894,7 @@ function series(FF,p,weekly){
   var keys=weekly?[1,2,3,4,5,6]:monthsIn(p),B={};keys.forEach(function(k){B[k]=blank()});
   function key(d){return weekly?weekOf(d):ymOf(d)}
   for(var i=0;i<ROWS.length;i++){var r=ROWS[i];if(!pass(r,FF))continue;var s;
-    if(r.vday>=p.from&&r.vday<=p.to&&(s=B[key(r.vday)])){if(r.kind===0){s.fresh++;if(r.aff==="Hot"&&!r.bk)s.hot++}else if(r.uniq)s.rev++;if(r.cp&&isCP(r.src)){s.cps[r.cp]=1;s.cpWalk++}}
+    if(r.vday>=p.from&&r.vday<=p.to&&(s=B[key(r.vday)])){if(r.kind===0){s.fresh++;if(r.wait>=0)s.wt.push(r.wait);if(r.aff==="Hot"&&!r.bk)s.hot++}else if(r.uniq)s.rev++;if(r.cp&&isCP(r.src)){s.cps[r.cp]=1;s.cpWalk++}}
     if(r.bk&&r.bday>=p.from&&r.bday<=p.to&&(s=B[key(r.bday)])){s.gross++;if(r.vday>0&&r.bday>=r.vday)s.tat.push(r.bday-r.vday)}
     if(r.cx&&r.cday>=p.from&&r.cday<=p.to&&(s=B[key(r.cday)]))s.cx++}
   keys.forEach(function(k){fin(B[k])});
@@ -863,9 +942,11 @@ var METRICS=[
   {id:"cx",label:"Cancellations",fx:"Cancellations = count of bookings marked cancelled",v:function(s){return s.cx},f:fmt,up:-1,def:"Rows with Booking Cancellation = Yes, by Cancellation Date (Booking Date when that is empty)."},
   {id:"hot",label:"Hot Leads Open",v:function(s){return s.hot},f:fmt,up:1,def:"Fresh walk-ins in the period with Customer Affinity = Hot that have not booked yet."},
   {id:"cpf",label:"Active CP Firms",fx:"Active CP Firms = number of different CP companies with 1+ walk-in",v:function(s){return s.ncp},f:fmt,up:1,def:"Distinct Channel Partner Company names (column AA) that brought at least one walk-in (fresh or revisit) in the period, where Source = Channel Partner."},
+  {id:"tat",label:"TAT (wait time)",unit:"min",fx:"TAT = median minutes from Time In to Time Attended",v:function(s){return s.wtM},f:function(v){return v==null?"–":String(Math.round(v))},up:-1,def:"Fresh walk-ins in the period with both Time In and Time Attended filled (waits over 10 hours are treated as typing errors and left out). Half of the customers waited this long or less. Aim: attended within 15 minutes."},
+  {id:"nr",label:"Net Realisation",ph:true,fx:"Placeholder: needs a sale value for each booking",def:"Will show the average realised price (agreement value minus discounts, per sq ft) against the list price, by closing manager, once the sheet records sale value and carpet area for each booking."},
   {id:"inv",label:"Unsold Inventory",fx:"Unsold = units with status Available",inv:true,def:"From the Inventory Status tab, as of now (not affected by the period). Sold = Sold + Booked + Overdue · On hold = Reserved + Blocked · Unsold = Available."}
 ];
-var SITE_TILES=["net","fresh","conv","rev","inv"];
+var SITE_TILES=["net","fresh","conv","rev","cx","cpf","tat","nr"];
 var MGMT_TILES=["net","fresh","conv","rev","cx","cpf","inv"];
 function M(id){for(var i=0;i<METRICS.length;i++)if(METRICS[i].id===id)return METRICS[i]}
 
@@ -926,6 +1007,7 @@ function renderFilters(){
 /* ---------- tiles ---------- */
 function tileData(id,P,S,PS,TG,ser){
   var m=M(id),o={m:m,st:"",sub:"",sub2:"",val:"",bar:null};
+  if(m.ph){o.val="—";o.big="—";o.unit="";o.sub="Placeholder";o.sub2="Needs sale value per booking";return o}
   if(m.inv){var iv=inv(F.proj);o.val=fmt(iv.Unsold)+'<small>units</small>';o.sub=fp(pct(iv.Unsold,iv.tot),0)+" of "+fmt(iv.tot)+" unsold";o.sub2=fmt(iv["On hold"])+" on hold · "+fmt(iv.Sold)+" sold";o.big=fmt(iv.Unsold);o.unit="units unsold";return o}
   var v=m.v(S.tot),pv=PS?m.v(PS.tot):null;
   o.val=m.f(v)+(m.unit?'<small>'+m.unit+'</small>':"");o.big=m.f(v);o.unit=m.unit||"";
@@ -939,6 +1021,7 @@ function tileData(id,P,S,PS,TG,ser){
   if(id==="cx")o.sub=fp(pct(S.tot.cx,S.tot.gross),0)+" of bookings in period";
   if(id==="hot")o.sub="of "+fmt(S.tot.fresh)+" fresh walk-ins";
   if(id==="cpf")o.sub="sent "+fmt(S.tot.cpWalk)+" CP walk-ins";
+  if(id==="tat"){o.val=v==null?"–":m.f(v)+"<small>min</small>";o.sub=S.tot.wt.length?fp(pct(S.tot.wt15,S.tot.wt.length),0)+" waited over 15 min":TIME_OK?"No timed walk-ins in period":"Time In / Attended not readable yet";o.st=v==null?"":v<=15?"good":v<=30?"warn":"bad";o.sub2=fmt(S.tot.wt.length)+" of "+fmt(S.tot.fresh)+" timed"}
   var dt=deltaTxt(v,pv,m,PS&&PS.P);if(!o.sub2||!m.tgt||o.noT)o.sub2=dt;
   if(!o.sub){o.sub=o.sub2;o.sub2=tab==="mgmt"&&o.noT?o.noT:""}
   if(!o.st)o.st=deltaSt(v,pv,m);
@@ -955,20 +1038,22 @@ function renderTiles(ids,P,S,PS,TG,ser){
 /* ---------- (i) formula popover ---------- */
 var kpBtn=null,kpPinned=false,kpT=null,CAN_HOVER=matchMedia("(hover:hover) and (pointer:fine)");
 function kpHtml(id){
-  var o=TILEC.o[id],m=o.m,S=TILEC.S.tot,P=TILEC.P,PS=TILEC.PS,c=METRICS.indexOf(m),cols=["#E8432E","#4A4244","#9E1B22","#E07A64","#7A3034","#C2412F","#8C8183","#3A3536"];
+  var o=TILEC.o[id],m=o.m,S=TILEC.S.tot,P=TILEC.P,PS=TILEC.PS,c=METRICS.indexOf(m),cols=["#E8432E","#4A4244","#9E1B22","#E07A64","#7A3034","#C2412F","#8C8183","#7A3034","#8C8183","#3A3536"];
   var now="";
   if(id==="net")now='<b>'+fmt(S.gross)+'</b> booked − <b>'+fmt(S.cx)+'</b> cancelled = <b>'+fmt(S.net)+'</b>';
   else if(id==="fresh")now='<b>'+fmt(S.fresh)+'</b> fresh walk-ins';
   else if(id==="conv")now='(<b>'+fmt(S.gross)+'</b> booked − <b>'+fmt(S.cx)+'</b> cancelled) = <b>'+fmt(S.net)+'</b> net bookings ÷ <b>'+fmt(S.fresh)+'</b> fresh walk-ins = <b>'+m.f(S.conv)+'</b>';
   else if(id==="rev")now='<b>'+fmt(S.rev)+'</b> unique revisits'+(S.fresh?' — '+fp(pct(S.rev,S.fresh),0)+' of '+fmt(S.fresh)+' fresh walk-ins':"");
   else if(id==="cx")now='<b>'+fmt(S.cx)+'</b> cancelled'+(S.gross?' — '+fp(pct(S.cx,S.gross),0)+' of '+fmt(S.gross)+' bookings':"");
+  else if(id==="tat")now=S.wt.length?"Half of <b>"+fmt(S.wt.length)+"</b> timed walk-ins waited <b>"+m.f(S.wtM)+" min</b> or less · <b>"+fmt(S.wt15)+"</b> waited over 15 min":"No walk-in in the period has both times filled";
+  else if(id==="nr")now="Not available yet";
   else if(id==="cpf")now='<b>'+fmt(S.ncp)+'</b> firms brought <b>'+fmt(S.cpWalk)+'</b> CP walk-ins';
   else if(id==="inv"){var iv=inv(F.proj);now='<b>'+fmt(iv.Unsold)+'</b> unsold of <b>'+fmt(iv.tot)+'</b> units ('+fp(pct(iv.Unsold,iv.tot),0)+') · '+fmt(iv["On hold"])+' on hold · '+fmt(iv.Sold)+' sold'}
   var st="";
   if(o.a){st='<div class="kst">'+si("good")+'<span>At or ahead of where you should be today</span>'+si("warn")+'<span>At 80–99% of that pace</span>'+si("bad")+'<span>Below 80% of that pace</span></div>'+
     '<div style="margin-top:6px">Now: <b>'+fmt(o.a.got)+' of '+fmt(o.a.tgt)+'</b> target = <b>'+fp(o.a.pc,0)+'</b>, against <b>'+fp(o.a.pace,0)+'</b> of the target period gone. On the gauge, the white arc is achieved and the dark tick is where you should be today.</div>'}
   else if(!m.inv&&PS){st='Compared with <b>'+esc(PS.P.label)+'</b>: '+si("good")+' better, '+si("bad")+' worse. '+(m.up<0?"For cancellations, <b>lower is better</b>.":"Higher is better.")+(m.tgt&&o.noT?" ("+esc(o.noT)+")":"")}
-  var flt=m.inv?"Only the Project filter applies; the period does not.":"Uses the Period, Project, Closing manager, Sourcing manager and Source filters.";
+  var flt=m.ph?"Not live yet.":m.inv?"Only the Project filter applies; the period does not.":"Uses the Period, Project, Closing manager, Sourcing manager and Source filters.";
   return'<h3 id="kpopT"><i style="background:'+cols[c]+'"></i>'+esc(m.label)+'</h3><div class="kfx">'+esc(m.fx)+'</div><dl>'+
     (now?'<div><dt>Right now'+(m.inv?"":" ("+esc(P.label)+")")+'</dt><dd>'+now+'</dd></div>':"")+
     '<div><dt>What is counted</dt><dd>'+esc(m.def)+'</dd></div>'+
@@ -1126,9 +1211,158 @@ function siteSrcCard(P,mode){
   if(mode!=="src")return channelCard(P,mode==="split"?"split":"cp",true).replace(togs("ssrc",[["split","Split"],["proj","By project"],["cp","CP firms"]],mode==="split"?"split":"cp"),togs("ssrc",[["src","Source"],["cp","CP firms"]],mode));
   var FF=Object.assign({},F,{src:""}),S=stats(FF,P,function(r){return r.src}),ks=Object.keys(S.G).filter(function(k){return S.G[k].fresh+S.G[k].gross>0}).sort(function(a,b){return S.G[b].fresh-S.G[a].fresh}),mx=0;
   ks.forEach(function(k){mx=Math.max(mx,S.G[k].fresh)});
-  var rows=ks.map(function(k){var s=S.G[k];return drow("src",k,'<td>'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td class="bar">'+hbar(s.fresh,mx,isCP(k)?"":"alt")+'</td><td>'+fmt(s.net)+'</td><td>'+fp(s.conv)+'</td>',F.src===k)}).join("");
+  var rows=ks.map(function(k){var s=S.G[k];return drow("src",k,'<td>'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td class="bar">'+hbar(s.fresh,mx,isCP(k)?"":"alt")+'</td><td>'+fmt(s.net)+'</td><td>'+fp(s.conv)+'</td>',!!k&&F.src===k)}).join("");
   return card("sSrcCard","Source & channel partners","",togs("ssrc",[["src","Source"],["cp","CP firms"]],mode),ks.length?'<table><thead><tr><th>Source</th><th>Fresh</th><th></th><th>Net bkg</th><th>Conv</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No walk-ins in this period"));
 }
+/* ---------- site head (phase A): records, team, CP scorecard, data to fix ---------- */
+var HAS_NAMES=false,HAS_ID=false,TIME_OK=false,REC_CTX=null;
+var REC={fresh:"Fresh walk-ins",conv:"Fresh walk-ins · who booked",rev:"Unique revisits",net:"Booking register",cx:"Cancellations",tat:"Waiting time (TAT)"};
+var AFC={"Hot":"hot","Warm High":"wh","Warm Low":"wl","Cold":"cold","Lost":"lost"};
+function stLab(r){return r.cx?["Cancelled","cx"]:r.bk?["Booked "+(r.bday>0?dl(r.bday):""),"bk"]:r.aff==="Lost"?["Lost","lost"]:["Open","op"]}
+function rateTxt(net,fresh){return fresh<10?'<span class="dim" title="Fewer than 10 walk-ins: too few to judge">few</span>':fp(pct(net,fresh))}
+function recRows(id,P){
+  var out=[];
+  for(var i=0;i<ROWS.length;i++){var r=ROWS[i];if(!pass(r,F))continue;var inV=r.vday>=P.from&&r.vday<=P.to;
+    if(id==="fresh"||id==="conv"){if(inV&&r.kind===0)out.push(r)}
+    else if(id==="rev"){if(inV&&r.uniq)out.push(r)}
+    else if(id==="net"){if(r.bk&&r.bday>=P.from&&r.bday<=P.to)out.push(r)}
+    else if(id==="cx"){if(r.cx&&r.cday>=P.from&&r.cday<=P.to)out.push(r)}
+    else if(id==="tat"){if(inV&&r.kind===0&&r.wait>=0)out.push(r)}}
+  var dk=id==="net"?"bday":id==="cx"?"cday":"vday";
+  out.sort(id==="tat"?function(a,b){return b.wait-a.wait||b.vday-a.vday}:id==="conv"?function(a,b){return((b.bk&&!b.cx)-(a.bk&&!a.cx))||b.vday-a.vday}:function(a,b){return b[dk]-a[dk]});
+  return out;
+}
+function recPass(r,st,q){
+  if(st==="open"&&(r.bk||r.aff==="Lost"))return false;
+  if(st==="booked"&&!(r.bk&&!r.cx))return false;
+  if(st==="cx"&&!r.cx)return false;
+  if(st==="hot"&&!(r.aff==="Hot"||r.aff==="Warm High"))return false;
+  if(st==="lost"&&r.aff!=="Lost")return false;
+  if(q&&((r.id||"")+" "+(r.nm||"")+" "+(r.cp||"")).toLowerCase().indexOf(q)<0)return false;
+  return true;
+}
+function nmCell(r){return HAS_NAMES?(r.nm?esc(r.nm):'<span class="dim">–</span>'):'<span class="dim" title="Names show once the dashboard password is set">hidden</span>'}
+function recListHtml(id,P){
+  var q=(ui.rq||"").trim().toLowerCase(),st=ui.rst||"all",list=recRows(id,P).filter(function(r){return recPass(r,st,q)}),MAX=200;
+  if(!list.length)return empty(q?"No customer matches “"+ui.rq+"”":id==="tat"&&!TIME_OK?"Time In and Time Attended cannot be read from the sheet yet, so waiting times are not available.":"No customers here for this period");
+  var showWait=id==="tat",showLost=id==="cx"||st==="lost";
+  var src=function(r){return isCP(r.src)?(r.cp||"CP · firm not entered"):(r.src||"–")};
+  var head='<tr><th>Form No</th><th>Customer</th><th>Visit</th><th>Source / CP firm</th><th>Config</th><th>Budget</th><th>Affinity</th><th>Closing</th><th>Sourcing</th>'+(showWait?'<th>Wait</th>':"")+(showLost?'<th>Reason lost</th>':"")+'<th>Status</th></tr>';
+  var body="",cards="";
+  list.slice(0,MAX).forEach(function(r){var s=stLab(r),af=r.aff?'<span class="rtag a-'+(AFC[r.aff]||"cold")+'">'+esc(r.aff)+'</span>':'<span class="dim">–</span>',vd=r.vday>0?dl(r.vday):"–";
+    body+='<tr><td class="fno">'+esc(r.id||"–")+'</td><td class="rnm">'+nmCell(r)+'</td><td>'+vd+'</td><td class="rsrc" title="'+esc(src(r))+'">'+esc(src(r))+'</td><td>'+esc(r.cfg||"–")+'</td><td>'+esc(r.budget||"–")+'</td><td>'+af+'</td><td>'+esc(r.cm||"–")+'</td><td>'+esc(r.sm||"–")+'</td>'+(showWait?'<td><b'+(r.wait>15?' class="lo"':"")+'>'+r.wait+' min</b></td>':"")+(showLost?'<td>'+esc(r.lost||"–")+'</td>':"")+'<td><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></td></tr>';
+    cards+='<div class="rcard"><div class="rc1"><b>'+nmCell(r)+'</b>'+af+'</div><div class="rc2">'+esc(r.id||"")+(r.id?" · ":"")+vd+(r.cm?" · "+esc(r.cm):"")+'</div><div class="rc3"><span>'+esc(r.cfg||"–")+'</span><span>'+esc(r.budget||"–")+'</span><span>'+esc(src(r))+'</span>'+(showWait?'<span><b'+(r.wait>15?' class="lo"':"")+'>Waited '+r.wait+' min</b></span>':"")+(showLost&&r.lost?'<span>'+esc(r.lost)+'</span>':"")+'</div>'+(s[1]!=="op"?'<div class="rc4"><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></div>':"")+'</div>'});
+  return'<div class="rtbl"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div><div class="rcards">'+cards+'</div>'+(list.length>MAX?'<div class="note">Showing the first '+MAX+' of '+fmt(list.length)+'. Search or pick a status to narrow the list.</div>':"");
+}
+function recHtml(id,P){
+  REC_CTX={id:id,P:P};
+  var base=recRows(id,P),st=ui.rst||"all";
+  var cnt=function(k){var n=0;base.forEach(function(r){if(recPass(r,k,""))n++});return n};
+  var chips=[["all","All"],["open","Open"],["hot","Hot / Warm high"],["booked","Booked"],["cx","Cancelled"],["lost","Lost"]].map(function(c){var n=cnt(c[0]);return n||c[0]==="all"||c[0]===st?'<button class="rchip" data-ui="rst" data-uv="'+c[0]+'" aria-pressed="'+(st===c[0])+'">'+c[1]+' <b>'+fmt(n)+'</b></button>':""}).join("");
+  var tw=id==="tat"&&base.length?'<div class="note">Half of these customers waited <b>'+Math.round(median(base.map(function(r){return r.wait})))+' min</b> or less; '+fmt(base.filter(function(r){return r.wait>15}).length)+' waited over 15 minutes. Longest waits first.</div>':"";
+  if(id==="fresh"||id==="conv")tw+='<div class="note">Status is what the first-visit row says. Most bookings are recorded on a later revisit row, so the full list of bookings is in the Booking register (Net Bookings tile).</div>';
+  var lock=HAS_NAMES?"Phone numbers, email and remarks are never loaded.":"Customer names show once the dashboard password is set (Vercel → Settings → Environment Variables → DASHBOARD_PASSWORD). Phone numbers, email and remarks are never loaded.";
+  return'<section class="card rec"><div class="rhd"><button class="reset rback" data-unfocus>‹ Site Head</button><div><h2>'+esc(REC[id]||M(id).label)+' <span class="rn">'+fmt(base.length)+'</span></h2><div class="sub">'+esc(lab(F.proj))+' · '+esc(P.label)+(F.cm?' · '+esc(F.cm):"")+(F.sm?' · '+esc(F.sm):"")+(F.cp?' · '+esc(F.cp):"")+'</div></div></div>'+
+    '<div class="rtools"><input class="rsearch" id="rq" type="search" autocomplete="off" placeholder="Search name, Form No or CP firm" value="'+esc(ui.rq||"")+'" aria-label="Search customers"><div class="rchips">'+chips+'</div></div>'+tw+
+    '<div id="recList">'+recListHtml(id,P)+'</div><div class="rnote"><span aria-hidden="true">🔒</span> '+lock+'</div></section>';
+}
+// team: walk-ins, net bookings and cancellations at this project, against targets tagged to this project (column C)
+function teamCard(P){
+  var mode=ui.steam==="sm"?"sm":"cm",FF=Object.assign({},F);FF[mode]="";
+  var ms=monthsIn(P),T={},tm=[];
+  (mode==="cm"?CT:ST).forEach(function(t){if(t.p===F.proj&&ms.indexOf(t.ym)>=0){T[t.m]=(T[t.m]||0)+t.t;if(tm.indexOf(t.ym)<0)tm.push(t.ym)}});
+  var hasT=Object.keys(T).length>0,PP=hasT?clip(P,tm):P,S=stats(FF,PP,function(r){return r[mode]}),pace=achievePace(PP);
+  var names=Object.keys(T);Object.keys(S.G).forEach(function(k){var s=S.G[k];if(k&&(s.fresh+s.gross+s.cx+s.rev)>0&&names.indexOf(k)<0)names.push(k)});
+  var list=names.map(function(n){var s=S.G[n]||fin(blank()),t=T[n]||0,got=mode==="cm"?s.net:s.fresh;return{n:n,s:s,t:t,got:got,pc:t?got/t*100:null}});
+  list.sort(function(a,b){return(a.pc==null)-(b.pc==null)||(a.pc-b.pc)||b.got-a.got});
+  var mx=0;list.forEach(function(x){mx=Math.max(mx,x.got,x.t)});
+  var rows=list.map(function(x){var st=x.pc==null?"":stOf(x.pc,pace),s=x.s;
+    return drow(mode,x.n,'<td title="'+esc(x.n)+'">'+esc(x.n)+'</td>'+(mode==="cm"?'<td>'+fmt(s.fresh)+'</td><td>'+fmt(s.net)+'</td>':'<td>'+fmt(s.fresh)+'</td>')+'<td>'+(x.t?fmt(x.t):'<span class="dim">–</span>')+'</td><td class="bar">'+hbar(x.got,mx,st,x.t||null)+'</td><td>'+pill(x.pc,st)+'</td>'+(mode==="cm"?'<td>'+rateTxt(s.net,s.fresh)+'</td><td>'+(s.cx?'<b class="lo">'+fmt(s.cx)+'</b>':"0")+'</td>':'<td>'+fmt(s.net)+'</td><td>'+rateTxt(s.net,s.fresh)+'</td>'),F[mode]===x.n)}).join("");
+  var sheet=mode==="cm"?"Closing Targets":"Sourcing Targets",ml=ms.length===1?ymLab(ms[0])+" target is":"target for these months is";
+  var note=hasT?(mode==="cm"?"Target = net bookings":"Target = fresh walk-ins")+" from "+sheet+" rows tagged "+lab(F.proj)+" in column C. Worst first.":"No "+ml+" tagged to "+lab(F.proj)+" yet. Put the project name in column C of the "+sheet+" sheet to see achievement here.";
+  var head=mode==="cm"?'<th>Manager</th><th>Fresh</th><th>Net bkg</th><th>Target</th><th></th><th>Achieved</th><th>Conv</th><th>Cancelled</th>':'<th>Manager</th><th>Fresh</th><th>Target</th><th></th><th>Achieved</th><th>Net bkg</th><th>Conv</th>';
+  return card("sTeam","Team",mode==="cm"?"closing managers":"sourcing managers",togs("steam",[["cm","Closing"],["sm","Sourcing"]],mode),(list.length?'<table><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table>':empty("No activity at this project in the period"))+'<div class="note">'+esc(note)+'</div>');
+}
+// channel partner scorecard: health numbers, top firms, and a watch list with reasons (last 90 days)
+function cpOwner(FF){var o={};ROWS.forEach(function(r){if(!r.cp||!r.sm||!isCP(r.src)||r.vday<today()-365||!pass(r,FF))return;var a=o[r.cp]||(o[r.cp]={});a[r.sm]=(a[r.sm]||0)+1});
+  var res={};for(var k in o){var b=o[k],best="",n=0;for(var s in b)if(b[s]>n){n=b[s];best=s}res[k]=best}return res}
+function cpCard(P){
+  var FF=Object.assign({},F,{cp:"",src:""}),all=stats(FF,P).tot;
+  var G=stats(FF,P,function(r){return isCP(r.src)?(r.cp||"\u0002"):"\u0000"}).G,noFirm=G["\u0002"];delete G["\u0000"];delete G["\u0002"];
+  var firms=Object.keys(G).filter(function(k){var s=G[k];return s.fresh+s.rev+s.gross+s.cx>0}),active=firms.filter(function(k){return G[k].fresh+G[k].rev>0});
+  var cpFresh=noFirm?noFirm.fresh:0;firms.forEach(function(k){cpFresh+=G[k].fresh});
+  var booked=firms.filter(function(k){return G[k].net>0}).length,byF=firms.slice().sort(function(a,b){return G[b].fresh-G[a].fresh}),top3=0;byF.slice(0,3).forEach(function(k){top3+=G[k].fresh});
+  var t3=cpFresh?top3/cpFresh*100:null,seen={};
+  ROWS.forEach(function(r){if(r.cp&&isCP(r.src)&&r.vday<P.from&&r.vday>=P.from-365&&pass(r,FF))seen[r.cp]=1});
+  var nNew=active.filter(function(k){return!seen[k]}).length,PV=prevOf(P),pAct=null;
+  if(PV){var GP=stats(FF,PV,function(r){return isCP(r.src)&&r.cp?r.cp:"\u0000"}).G;delete GP["\u0000"];pAct=Object.keys(GP).filter(function(k){return GP[k].fresh+GP[k].rev>0}).length}
+  var own=cpOwner(FF);
+  var k5=function(lb,v,sub,cls){return'<div class="kb'+(cls?" "+cls:"")+'"><small>'+lb+'</small><b>'+v+'</b><i>'+sub+'</i></div>'};
+  var strip='<div class="kstrip">'+k5("CP share of walk-ins",all.fresh?fp(pct(cpFresh,all.fresh),0):"–",fmt(cpFresh)+" of "+fmt(all.fresh)+" fresh")+
+    k5("Active CP firms",fmt(active.length),pAct==null?"brought a walk-in":(active.length>=pAct?"▲":"▼")+Math.abs(active.length-pAct)+" vs "+esc(PV.label))+
+    k5("Firms that booked",fmt(booked)+'<span> of '+fmt(active.length)+'</span>',fmt(Math.max(0,active.length-booked))+" with visits, no net booking")+
+    k5("Top 3 firms' share",t3==null?"–":fp(t3,0),t3!=null&&t3>50?"Dependence risk: above 50%":"of CP walk-ins",t3!=null&&t3>50?"warn":"")+
+    k5("New CP firms",fmt(nNew),"first walk-in here in a year")+'</div>';
+  var top=firms.filter(function(k){return G[k].fresh+G[k].gross>0}).sort(function(a,b){return G[b].net-G[a].net||G[b].fresh-G[a].fresh}).slice(0,8);
+  var topT=top.length?'<table><thead><tr><th>#</th><th>CP firm</th><th>Fresh</th><th>Net bkg</th><th>Rate</th><th>Sourcing</th></tr></thead><tbody>'+top.map(function(k,i){var s=G[k];return drow("cp",k,'<td class="dim">'+(i+1)+'</td><td title="'+esc(k)+'"><b>'+esc(k)+'</b></td><td>'+fmt(s.fresh)+'</td><td><b>'+fmt(s.net)+'</b></td><td>'+rateTxt(s.net,s.fresh)+'</td><td class="dim">'+esc(own[k]||"–")+'</td>',F.cp===k)}).join("")+'</tbody></table>':empty("No channel-partner walk-ins in this period");
+  // watch list over the last 90 days, so one quiet week does not mark a firm
+  var t0=today(),A={},totF=0,totN=0,GE=/general|dropped|not interested|no requirement|just enquir|fake|wrong/i;
+  ROWS.forEach(function(r){if(!r.cp||!isCP(r.src)||!pass(r,FF))return;var a=A[r.cp]||(A[r.cp]={f:0,g:0,c:0,ge:0,lost:0,prev:0,last:0,cm:{},un:0}),v=r.vday;
+    if(v>=t0-89&&v<=t0&&r.kind===0){a.f++;if(r.aff==="Lost"){a.lost++;if(GE.test(r.lost))a.ge++}if(!r.bk){a.un++;if(r.cm)a.cm[r.cm]=(a.cm[r.cm]||0)+1}}
+    if(r.bk&&r.bday>=t0-89&&r.bday<=t0)a.g++;
+    if(r.cx&&r.cday>=t0-89&&r.cday<=t0)a.c++;
+    if((r.kind===0||r.uniq)&&v>=t0-74&&v<=t0-30)a.prev++;
+    if((r.kind===0||r.uniq)&&v>t0-30&&v<=t0)a.last++});
+  for(var k in A){totF+=A[k].f;totN+=A[k].g-A[k].c}
+  var avg=totF?totN/totF:0,W=[];
+  for(k in A){var a=A[k],net=a.g-a.c,f=null;
+    if(a.f>=10&&a.g===0)f=[1,"bad","No booking from "+a.f+" walk-ins"];
+    else if(a.lost>=5&&a.ge/a.f>=.4)f=[2,"bad",a.ge+" of "+a.f+" lost as general enquiry or dropped"];
+    else if(a.g>=2&&a.c/a.g>=.5)f=[3,"bad",a.c+" of "+a.g+" bookings cancelled"];
+    else if(a.f>=10&&net>0&&net/a.f<avg/2)f=[4,"warn","Booking rate "+fp(net/a.f*100)+" vs "+fp(avg*100)+" average"];
+    else if(a.prev>=3&&a.last===0)f=[5,"warn","Gone quiet: "+a.prev+" walk-ins before, none in 30 days"];
+    if(!f)continue;
+    var who="";if(f[0]<=2&&a.un>=5){var bc="",bn=0;for(var c in a.cm)if(a.cm[c]>bn){bn=a.cm[c];bc=c}if(bn/a.un>=.6)who=Math.round(bn/a.un*100)+"% of unbooked handled by "+bc}
+    W.push({k:k,a:a,net:net,f:f,who:who})}
+  W.sort(function(x,y){return x.f[0]-y.f[0]||y.a.f-x.a.f});
+  var nW=W.length;W=W.slice(0,8);
+  var watchT=W.length?'<table class="cpw"><thead><tr><th>CP firm</th><th>Fresh</th><th>Net bkg</th><th>Why flagged</th><th>Owner</th></tr></thead><tbody>'+W.map(function(x){return drow("cp",x.k,'<td title="'+esc(x.k)+'"><b>'+esc(x.k)+'</b></td><td>'+fmt(x.a.f)+'</td><td>'+fmt(x.net)+'</td><td><span class="cpflag '+x.f[1]+'">'+esc(x.f[2])+'</span>'+(x.who?'<div class="note" style="margin:2px 0 0">'+esc(x.who)+'</div>':"")+'</td><td class="dim">'+esc(own[x.k]||"–")+'</td>',F.cp===x.k)}).join("")+'</tbody></table>'+(nW>8?'<div class="note">+ '+(nW-8)+' more firms flagged.</div>':""):'<div class="okmsg">No CP firm meets a warning rule in the last 90 days.</div>';
+  var rules="Flags (last 90 days): 10+ walk-ins and no booking · 40%+ of walk-ins lost as general enquiry or dropped (5+ lost) · half or more of bookings cancelled · booking rate under half the average (10+ walk-ins) · gone quiet (3+ walk-ins in the 45 days before, none in the last 30). When most unbooked walk-ins sit with one closing manager, it is said, so the firm is not blamed for a follow-up gap.";
+  return card("sCp","Channel partner scorecard",esc(P.label)+" · click a firm to filter the page","",strip+'<div class="cpgrid"><div><h3 class="lh good">▲ Top CP firms <span>by net bookings, then walk-ins</span></h3>'+topT+'</div><div><h3 class="lh bad">▼ Watch list <span>last 90 days, with the reason</span></h3>'+watchT+'</div></div><div class="note">'+rules+'</div>',"auto");
+}
+// data to fix: blank fields on this project's fresh walk-ins, by closing manager; plus sheet-wide issues
+function fixCard(P){
+  // operational fields decide which rows must be fixed; profile fields (age, employment...) are shown as completeness only
+  var FX=[["src","Source"],["cp","CP firm"],["cm","Closing manager"],["sm","Sourcing manager"],["aff","Affinity"],["lost","Lost reason"]];
+  if(TIME_OK)FX.push(["time","Time in / attended"]);if(HAS_ID)FX.push(["id","Form No"]);
+  var PROF=[["age","Age"],["emp","Employment"],["acc","Accompanied by"],["loc","Location"],["budget","Budget"],["cfg","Configuration"]];
+  var NAME={};FX.forEach(function(f){NAME[f[0]]=f[1]});
+  var fill={},den={},list=[],byM={};FX.concat(PROF).forEach(function(f){fill[f[0]]=0;den[f[0]]=0});
+  ROWS.forEach(function(r){if(r.kind!==0||r.vday<P.from||r.vday>P.to||!pass(r,F))return;var miss=[];
+    function ck(k,ok,applies){if(applies===false)return;den[k]++;if(ok)fill[k]++;else miss.push(k)}
+    ck("src",!!r.src);ck("cp",!!r.cp,isCP(r.src));ck("cm",!!r.cm);ck("sm",!!r.sm);ck("aff",!!r.aff);ck("lost",!!r.lost,r.aff==="Lost");if(TIME_OK)ck("time",r.wait>=0);if(HAS_ID)ck("id",!!r.id);
+    PROF.forEach(function(p){den[p[0]]++;if(r[p[0]])fill[p[0]]++});
+    if(miss.length){list.push({r:r,miss:miss});var m=r.cm||"No closing manager";byM[m]=(byM[m]||0)+1}});
+  var bars=FX.concat([["-","Customer profile (for later)"]]).concat(PROF).filter(function(f){return f[0]==="-"||den[f[0]]}).map(function(f){if(f[0]==="-")return'<div class="fxsep">'+f[1]+'</div>';var pc=fill[f[0]]/den[f[0]]*100,c=pc>=90?"good":pc>=75?"warn":"bad";return'<div class="fxb"><span>'+f[1]+'</span>'+hbar(pc,100,c)+'<b class="'+(c==="good"?"":c==="warn"?"wn":"lo")+'">'+fp(pc,0)+'</b></div>'}).join("");
+  list.sort(function(a,b){return(a.r.cm||"~").localeCompare(b.r.cm||"~")||b.r.vday-a.r.vday});
+  var SHOW=ui.fixall?400:25;
+  var rows=list.slice(0,SHOW).map(function(x){var r=x.r;return'<tr><td class="fno">'+esc(r.id||"–")+'</td><td class="rnm">'+nmCell(r)+'</td><td>'+(r.vday>0?dl(r.vday):"–")+'</td><td>'+esc(r.cm||"–")+'</td><td>'+x.miss.map(function(m){return'<span class="miss">'+NAME[m]+'</span>'}).join("")+'</td></tr>'}).join("");
+  var mgr=Object.keys(byM).sort(function(a,b){return byM[b]-byM[a]}).map(function(m){return esc(m)+" "+byM[m]}).join(" · ");
+  // sheet-wide issues the site head should raise
+  var iss=[],q=DATA.Q||{},noProj=0,tot=0;
+  ROWS.forEach(function(r){if(r.kind!==0||r.vday<P.from||r.vday>P.to)return;tot++;if(!r.proj||r.proj==="All")noProj++});
+  if(noProj)iss.push("<b>"+fmt(noProj)+" of "+fmt(tot)+"</b> fresh walk-ins in "+esc(P.label)+" have no project in column B, so no Site Head sees them.");
+  var bkAll=0;ROWS.forEach(function(r){if(r.bk)bkAll++});
+  if(q.bookingNoDate&&bkAll&&q.bookingNoDate/bkAll>.2)iss.push("<b>"+fmt(q.bookingNoDate)+" of "+fmt(bkAll)+"</b> bookings have no Booking Date, so they are counted on the visit date.");
+  if(!TIME_OK)iss.push("Time In and Time Attended could not be read for any walk-in, so TAT is not shown yet. If these columns are filled, their format or position needs a look.");
+  if(q.cpVariants&&q.cpVariants.length)iss.push("CP firm names typed in different ways were merged: "+q.cpVariants.slice(0,3).map(function(v){return"“"+esc(v.as[0])+"” → "+esc(v.firm)}).join(", ")+(q.cpVariants.length>3?" and "+(q.cpVariants.length-3)+" more":"")+". A CP firm dropdown in the sheet would stop this.");
+  var body=(iss.length?'<ul class="fxi">'+iss.map(function(t){return"<li>"+t+"</li>"}).join("")+'</ul>':"")+
+    (den.src?'<div class="fxgrid"><div><h3 class="lh">How complete the sheet is <span>fresh walk-ins, '+esc(P.label)+'</span></h3>'+bars+'</div><div><h3 class="lh">'+fmt(list.length)+' rows to fix <span>'+(mgr?"by closing manager: "+mgr:"")+'</span></h3>'+(list.length?'<table><thead><tr><th>Form No</th><th>Customer</th><th>Visit</th><th>Closing</th><th>What is missing</th></tr></thead><tbody>'+rows+'</tbody></table>'+(list.length>SHOW?'<button class="reset fxmore" data-ui="fixall" data-uv="1">Show all '+fmt(list.length)+' rows</button>':""):'<div class="okmsg">Every fresh walk-in in this period has its key fields filled.</div>')+'</div></div>':empty("No fresh walk-ins in this period"));
+  return card("sFix","Data to fix",list.length?fmt(list.length)+" rows":"","",body,"auto");
+}
+// column heading check: a moved column makes every number wrong, so say it loudly
+function hdrWarn(){var h=DATA&&DATA.Q&&DATA.Q.headers;if(!h||!h.bad||!h.bad.length)return"";
+  return'<section class="card hwarn" role="alert"><b>The Walk-in sheet’s columns look moved.</b> Numbers may be wrong until this is fixed: '+h.bad.slice(0,6).map(function(b){return"column "+b.col+" should be “"+esc(b.want)+"” but says “"+esc(b.got||"(blank)")+"”"}).join("; ")+(h.bad.length>6?" and "+(h.bad.length-6)+" more":"")+'.</section>'}
 function invCard(proj,id){
   var G=invBy(proj,"type"),ks=Object.keys(G).sort(function(a,b){return G[b].tot-G[a].tot}),t=inv(proj);
   if(!ks.length)return card(id,"Inventory by configuration","",'',empty("This project is not in the Inventory Status tab"));
@@ -1140,7 +1374,7 @@ function invCard(proj,id){
 var FDIMS=[["proj","Project"],["cm","Closing mgr"],["sm","Sourcing mgr"],["chan","Direct / Indirect"]];
 function renderFocus(P,S,PS,TG,ser,weekly,serM){
   var m=M(focus),el=$("focus"),o=tileData(focus,P,S,PS,TG,serM||ser),c=METRICS.indexOf(m);
-  var colors=["#E8432E","#4A4244","#9E1B22","#E07A64","#7A3034","#C2412F","#8C8183","#3A3536"];
+  var colors=["#E8432E","#4A4244","#9E1B22","#E07A64","#7A3034","#C2412F","#8C8183","#7A3034","#8C8183","#3A3536"];
   var stTxt=o.a?(o.a.pc>=100?"Target achieved":o.a.st==="good"?"On pace for target":o.a.st==="warn"?"Slightly behind pace":"Behind pace"):(o.st==="good"?"Better than "+(PS?PS.P.label:"before"):o.st==="bad"?"Worse than "+(PS?PS.P.label:"before"):"");
   var ans='<section class="card fa" style="--fc:'+colors[c]+'"><div><div class="fa-label">'+esc(m.label)+' · '+esc(P.label)+'</div><div class="fa-num">'+o.big+(o.unit?'<small>'+esc(o.unit)+'</small>':"")+'</div>'+(stTxt?'<div class="fa-state">'+si(o.st)+esc(stTxt)+'</div>':"")+'<div class="fa-line">'+esc(o.sub)+(o.sub2&&o.sub2!==o.sub?'<br>'+esc(o.sub2):"")+(o.dt&&o.sub2!==o.dt?'<br>'+esc(o.dt):"")+'</div><div class="fa-def"><b>'+esc(m.fx)+'</b><br>'+esc(m.def)+'</div></div><button class="reset fa-x" data-unfocus>Close focus ✕</button></section>';
   var mid,right;
@@ -1569,14 +1803,18 @@ function render(){
       charts.push(["#cTrend .plot",tr.items,{alt:ui.trend==="walk",aria:"trend"}]);
     }
   }else{
-    $("focus").style.display="none";$("vis").style.display="";
     renderTiles(SITE_TILES,P,S,PS,TG,serM);
-    var st=trendCard(P,TG,ser,weekly,"sTrend",ui.strend,false);
-    $("vis").innerHTML=st.html+peopleCard(P,"cm","sCm","Closing managers")+peopleCard(P,"sm","sSm","Sourcing managers")+siteSrcCard(P,ui.ssrc)+whyCard(P,ui.swhy||"lost","sWhy")+invCard(F.proj,"sInv");
-    charts.push(["#sTrend .plot",st.items,{alt:ui.strend==="walk",aria:"trend"}]);
+    if(focus&&REC[focus]){$("vis").style.display="none";$("focus").style.display="";$("focus").innerHTML=recHtml(focus,P)}
+    else{
+      focus=null;$("focus").style.display="none";$("vis").style.display="";
+      var st=trendCard(P,TG,ser,weekly,"sTrend",ui.strend,false);
+      $("vis").innerHTML=st.html+teamCard(P)+siteSrcCard(P,ui.ssrc)+cpCard(P)+fixCard(P);
+      charts.push(["#sTrend .plot",st.items,{alt:ui.strend==="walk",aria:"trend"}]);
+    }
   }
-  var det=isPhone()&&tab==="mgmt"&&!!focus;APP.classList.toggle("detail",det);
-  if(det)$("dtitle").textContent=M(focus).label;
+  $("hwarn").innerHTML=hdrWarn();document.querySelector(".app").classList.toggle("sitetab",tab==="site");$("vis").classList.toggle("site",tab==="site");
+  var det=isPhone()&&(tab==="mgmt"||tab==="site")&&!!focus;APP.classList.toggle("detail",det);
+  if(det)$("dtitle").textContent=tab==="site"?(REC[focus]||M(focus).label):M(focus).label;
   drawCharts();
   var q=DATA.Q;
   $("srcnote").innerHTML='<span>Source: '+esc(DATA.file||"All Data.xlsx")+' — Walk-in, Closing Targets, Sourcing Targets, Inventory Status</span><span>'+fmt(q.rows)+' walk-in rows · '+fmt(INV.length)+' units</span>'+(q.noVisitDate||q.noFreshRevisit?'<span title="Rows the sheet is missing values for">Data gaps: '+fmt(q.noVisitDate)+' without visit date, '+fmt(q.noFreshRevisit)+' without Fresh/Revisit</span>':"")+'<span>Personal details are never loaded.</span>';
@@ -1612,7 +1850,7 @@ function load(fresh){
 /* phone: a tile opens a full-screen detail page with its own history entry, so Back / swipe-back return to the dashboard */
 var APP=document.querySelector(".app"),detY=0,NOMO=matchMedia("(prefers-reduced-motion:reduce)");
 function isPhone(){return matchMedia("(max-width:760px)").matches}
-function openDetail(id){detY=window.scrollY;if(tab==="site")tab="mgmt";focus=id;
+function openDetail(id){detY=window.scrollY;if(tab==="site"){ui.rst="all";ui.rq=""}focus=id;
   if(!(history.state&&history.state.d))history.pushState({d:id},"");else history.replaceState({d:id},"");
   render();window.scrollTo(0,0)}
 function closeDetail(){var was=APP.classList.contains("detail");focus=null;APP.classList.remove("leaving");render();
@@ -1644,8 +1882,13 @@ document.addEventListener("click",function(e){
     tab="mgmt";F.per=x.getAttribute("data-per")||"l30";ui.fdimPicked=0;if(pp)F.proj=pp;if(ss)F.src=ss;
     if(isPhone()&&k){openDetail(k)}else{focus=k||null;render();window.scrollTo(0,0)}return}
   if((x=t.closest("[data-unfocus]"))){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}return}
-  if((x=t.closest("[data-tile]"))&&isPhone()){openDetail(x.getAttribute("data-tile"));return}
-  if(x){var id=x.getAttribute("data-tile");if(tab==="site"){tab="mgmt"}focus=focus===id?null:id;render();window.scrollTo({top:0,behavior:"smooth"});return}
+  if((x=t.closest("[data-tile]"))&&tab==="site"){var sid=x.getAttribute("data-tile");
+    if(sid==="cpf"){var cpc=$("sCp");if(focus){focus=null;render();cpc=$("sCp")}if(cpc)cpc.scrollIntoView({behavior:NOMO.matches?"auto":"smooth",block:"start"});return}
+    if(sid==="nr"){var ib=x.querySelector("[data-info]");if(ib)kpOpen(ib,true);return}
+    if(isPhone()){openDetail(sid);return}
+    ui.rst="all";ui.rq="";focus=focus===sid?null:sid;render();window.scrollTo({top:0,behavior:NOMO.matches?"auto":"smooth"});return}
+  if(x&&isPhone()){openDetail(x.getAttribute("data-tile"));return}
+  if(x){var id=x.getAttribute("data-tile");focus=focus===id?null:id;render();window.scrollTo({top:0,behavior:"smooth"});return}
   if((x=t.closest("[data-ui]"))){ui[x.getAttribute("data-ui")]=x.getAttribute("data-uv");if(x.getAttribute("data-ui")==="fdim")ui.fdimPicked=1;render();return}
   if((x=t.closest("[data-x]"))){F[x.getAttribute("data-x")]="";ui.fdimPicked=0;render();return}
   if((x=t.closest("[data-per]"))){F.per=normPer(x.getAttribute("data-per"));render();return}
@@ -1658,6 +1901,7 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Tab"&&kpPinned&&isPhone()){e.preventDefault();$("kclose").focus()}
   if(e.key==="Escape"){if($("flt").classList.contains("open"))$("flt").classList.remove("open");else if(focus){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}}}
 });
+document.addEventListener("input",function(e){if(e.target.id==="rq"&&REC_CTX){ui.rq=e.target.value;$("recList").innerHTML=recListHtml(REC_CTX.id,REC_CTX.P)}});
 document.addEventListener("change",function(e){var t=e.target;
   if(/^f(Proj|Cm|Sm|Src)$/.test(t.id))ui.fdimPicked=0;
   if(t.id==="fPer")F.per=t.value;else if(t.id==="fProj")F.proj=t.value;else if(t.id==="fCm")F.cm=t.value;else if(t.id==="fSm")F.sm=t.value;else if(t.id==="fSrc")F.src=t.value;

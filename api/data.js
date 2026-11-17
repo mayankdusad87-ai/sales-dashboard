@@ -1,4 +1,5 @@
-// GET /api/data — reads the Google Sheet with a service account, drops personal columns,
+// GET /api/data — reads the Google Sheet with a service account, drops personal columns
+// (customer name is kept only when DASHBOARD_PASSWORD is set; phone, email and remarks never),
 // returns the cleaned dataset. Cached in memory for CACHE_SECONDS (default 300).
 const { JWT } = require("google-auth-library");
 const XLSX = require("xlsx");
@@ -37,7 +38,8 @@ async function load() {
   const missing = Object.values(TABS).filter((n) => !find(n));
   const data = cleanAll(
     { walkin: tab(TABS.walkin), closing: tab(TABS.closing), sourcing: tab(TABS.sourcing), inventory: tab(TABS.inventory) },
-    { asOf: new Date().toISOString(), file: meta.name }
+    // customer names are sent only when the dashboard is password-protected
+    { asOf: new Date().toISOString(), file: meta.name, names: !!process.env.DASHBOARD_PASSWORD }
   );
   data.sheetModified = meta.modifiedTime;
   data.missingTabs = missing;
