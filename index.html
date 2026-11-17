@@ -1043,7 +1043,7 @@ function tileData(id,P,S,PS,TG,ser){
   if(m.ph){o.val="—";o.big="—";o.unit="";o.sub="Placeholder";o.sub2="Needs sale value per booking";return o}
   if(m.inv){var iv=inv(F.proj);o.val=fmt(iv.Unsold)+'<small>units</small>';o.sub=fp(pct(iv.Unsold,iv.tot),0)+" of "+fmt(iv.tot)+" unsold";o.sub2=fmt(iv["On hold"])+" on hold · "+fmt(iv.Sold)+" sold";o.big=fmt(iv.Unsold);o.unit="units unsold";return o}
   var v=m.v(S.tot),pv=PS?m.v(PS.tot):null;
-  o.val=m.f(v)+(m.unit?'<small>'+m.unit+'</small>':"");o.big=m.f(v);o.unit=m.unit||"";
+  o.val=m.f(v)+(m.unit&&v!=null?'<small>'+m.unit+'</small>':"");o.big=m.f(v);o.unit=v!=null?m.unit||"":"";
   if(m.tgt){var a=achieve(ser,m.tgt==="book"?TG.bookM:TG.walkM,m.v);
     if(a){o.sub=fmt(a.got)+" of "+fmt(a.tgt)+" target ("+fp(a.pc,0)+")";o.st=a.st;o.bar={pc:a.pc,pace:a.pace};o.a=a}
     else o.noT=TG.why||"No target";
