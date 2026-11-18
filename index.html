@@ -173,6 +173,14 @@ select:hover{border-color:var(--bar1)}
 .nrp{position:relative;height:190px;margin:22px 8px 30px}
 .nrs{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.nrs line{stroke:#B9802F;stroke-width:2.5;vector-effect:non-scaling-stroke;stroke-linecap:round}
 .nrd{position:absolute;width:10px;height:10px;border-radius:50%;background:#B9802F;transform:translate(-50%,-50%);box-shadow:0 0 0 2.5px var(--card)}
+.nrd.few{background:var(--card);border:2px solid #B9802F;opacity:.6}.nrv.few{color:var(--muted);font-weight:500}
+.nrs line.thin{stroke-dasharray:4 4;opacity:.5}
+.tile .tv .rng{font-size:20px;letter-spacing:-.4px}
+.nrhol{display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid #B9802F;opacity:.6;vertical-align:-1px;margin-right:4px}
+.nrd.few{background:var(--card);border:2px solid #B9802F;opacity:.6}.nrv.few{color:var(--muted);font-weight:500}
+.nrs line.thin{stroke-dasharray:4 4;opacity:.5}
+.tile .tv .rng{font-size:20px;letter-spacing:-.4px}
+.nrhol{display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid #B9802F;opacity:.6;vertical-align:-1px;margin-right:4px}
 .nrv{position:absolute;transform:translate(-50%,-160%);font-size:11px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
 .nrnone{position:absolute;top:50%;transform:translate(-50%,-50%);color:var(--muted)}
 .nrx{position:absolute;bottom:-30px;transform:translateX(-50%);font-size:11px;color:var(--muted);text-align:center;line-height:1.25;white-space:nowrap}
@@ -950,7 +958,12 @@ function ingest(d){
       o.id=b[10];o.fv=b[11];o.linked=!!w;o.nm=w?w.nm:"";o.bkRow=1;
       (byK[fkey(b[10])]||[]).forEach(function(r){if(!b[3]){r.won=1;r.wonDay=b[2]}else if(!r.won)r.won=2});
       BKR.push(o)});
-    ROWS=ROWS.concat(BKR)}
+    ROWS=ROWS.concat(BKR);
+    // a booking whose ₹/sq ft is more than 40% away from its project's median is almost always a typing error in
+    // agreement value (AH) or carpet area (AD): it stays in sales value but is left out of realisation and listed
+    var PR={};BKR.forEach(function(r){if(!r.cx&&r.av>0&&r.carpet>0&&r.proj)(PR[r.proj]||(PR[r.proj]=[])).push(r.av/r.carpet)});
+    var MED={};for(var pj in PR)if(PR[pj].length>=5)MED[pj]=median(PR[pj]);
+    RATE_OUT=[];BKR.forEach(function(r){var m=MED[r.proj];if(m&&r.av>0&&r.carpet>0){var x=r.av/r.carpet/m;if(x<.6||x>1.6){r.rOut=1;if(!r.cx)RATE_OUT.push(r)}}})}
   M("nr").ph=!HAS_BK;
   M("net").def=HAS_BK?"Bookings in Booking details (Booking Date, column AN, and an Overall Status) minus bookings marked “Cancelled at Booking”, counted on the Cancellation Date (column V). Target: Closing Targets (Sourcing Targets when a sourcing manager is picked).":NET_DEF;
   MIN_DAY=ROWS.reduce(function(m,r){return r.vday>0&&r.vday<m?r.vday:m},today());
@@ -966,12 +979,12 @@ function pass(r,FF){
   if(FF.src){if(FF.src==="Direct"){if(isCP(r.src))return false}else if(FF.src==="Indirect"){if(!isCP(r.src))return false}else if(r.src!==FF.src)return false}
   return true;
 }
-function blank(){return{fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],wt:[],cps:{},cpWalk:0,av:0,avx:0,avR:0,ca:0}}
+function blank(){return{fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],wt:[],cps:{},cpWalk:0,av:0,avx:0,avR:0,ca:0,nR:0}}
 // money and turnaround of one booking row (Booking details): value, value per sq ft, days from first visit
 // CP brokerage taken off indirect bookings for realisation (sales value stays the full agreement value)
 var BRK=.0225;
 function netAV(r){return r.av*(r.chan==="Indirect"?1-BRK:1)}
-function addBk(s,r){s.gross++;var fv=r.fv>0?r.fv:r.vday;if(fv>0&&r.bday>=fv)s.tat.push(r.bday-fv);if(r.av>0){s.av+=r.av;if(!r.cx&&r.carpet>0){s.avR+=netAV(r);s.ca+=r.carpet}}}
+function addBk(s,r){s.gross++;var fv=r.fv>0?r.fv:r.vday;if(fv>0&&r.bday>=fv)s.tat.push(r.bday-fv);if(r.av>0){s.av+=r.av;if(!r.cx&&r.carpet>0&&!r.rOut){s.avR+=netAV(r);s.ca+=r.carpet;s.nR++}}}
 function addCx(s,r){s.cx++;if(r.av>0)s.avx+=r.av}
 // conversion = NET bookings (bookings − cancellations) ÷ fresh walk-ins, so it matches the Net Bookings number everywhere
 // a booking rate above 100% means the walk-ins behind those bookings are tagged elsewhere: show "–", never a fake rate
@@ -1135,7 +1148,13 @@ function tileData(id,P,S,PS,TG,ser){
   if(id==="hot")o.sub="of "+fmt(S.tot.fresh)+" fresh walk-ins";
   if(id==="cpf")o.sub="sent "+fmt(S.tot.cpWalk)+" CP walk-ins";
   if(id==="sv"){o.sub=S.tot.gross?fcr(S.tot.av/Math.max(1,S.tot.gross))+" avg ticket":"No bookings";if(S.tot.avx)o.sub2=fcr(S.tot.avx)+" cancelled"}
-  if(id==="nr"&&!m.ph){o.sub=S.tot.ca?fmt(Math.round(S.tot.ca))+" sq ft carpet":"No carpet area"}
+  if(id==="nr"&&!m.ph){
+    if(!F.proj){var pr=nrByProj(P).list,ok3=pr.filter(function(x){return x.n>=3}),use=ok3.length?ok3:pr;
+      if(use.length){var lo=Math.min.apply(null,use.map(function(x){return x.v})),hi=Math.max.apply(null,use.map(function(x){return x.v}));
+        o.val=(use.length>1?rk(lo)+" – "+rk(hi):rs(lo))+"<small>/sq ft</small>";o.big=use.length>1?rk(lo)+" – "+rk(hi):rs(lo);o.unit="/sq ft";
+        o.sub=use.length+" project"+(use.length>1?"s":"")+" · tap to see each";o.range=1}
+      else{o.sub="No booking with value and carpet area"}}
+    else o.sub=S.tot.nR?fmt(S.tot.nR)+" booking"+(S.tot.nR>1?"s":"")+" · after CP brokerage":"No booking with value and carpet area"}
   if(id==="tatb"){var nl=S.tot.tat.length;o.sub=nl?"median · "+fmt(nl)+" of "+fmt(S.tot.gross)+" bookings":"No linked bookings";o.st=v==null?"":v<=30?"good":v<=60?"warn":"bad"}
   if(id==="tat"){o.val=v==null?"–":m.f(v)+"<small>min</small>";o.sub=S.tot.wt.length?fp(pct(S.tot.wt15,S.tot.wt.length),0)+" waited over 15 min":TIME_OK?"No timed walk-ins in period":"Time In / Attended not readable yet";o.st=v==null?"":v<=15?"good":v<=30?"warn":"bad";o.sub2=fmt(S.tot.wt.length)+" of "+fmt(S.tot.fresh)+" timed"}
   var dt=deltaTxt(v,pv,m,PS&&PS.P);if(!o.sub2||!m.tgt||o.noT)o.sub2=dt;
@@ -1143,7 +1162,9 @@ function tileData(id,P,S,PS,TG,ser){
   if(!o.st)o.st=deltaSt(v,pv,m);
   // money per sq ft moves a little every month: only a change of 5% or more gets a colour
   if(id==="nr"&&v!=null&&pv&&Math.abs(v-pv)/pv<.05)o.st="";
-  o.dt=dt;o.pv=pv;o.v=v;
+  // a range across projects has no single "previous" to compare with
+  if(o.range){o.sub2="";o.st="";o.dt=""}
+  o.dt=dt;o.pv=pv;o.v=v;if(o.range){o.dt="";o.sub2="";o.st="";o.val=o.val.replace(/^/,"<span class=\"rng\">").replace(/<small>/,"</span><small>")}
   return o;
 }
 var TILEC={};
@@ -1166,6 +1187,7 @@ function kpHtml(id){
   else if(id==="rev")now='<b>'+fmt(S.rev)+'</b> unique revisits'+(S.fresh?' — '+fp(pct(S.rev,S.fresh),0)+' of '+fmt(S.fresh)+' fresh walk-ins':"");
   else if(id==="cx")now='<b>'+fmt(S.cx)+'</b> cancelled'+(S.gross?' — '+fp(pct(S.cx,S.gross),0)+' of '+fmt(S.gross)+' bookings':"");
   else if(id==="tat")now=S.wt.length?"Half of <b>"+fmt(S.wt.length)+"</b> timed walk-ins waited <b>"+m.f(S.wtM)+" min</b> or less · <b>"+fmt(S.wt15)+"</b> waited over 15 min":"No walk-in in the period has both times filled";
+  else if(id==="nr"&&!m.ph&&!F.proj){var pl=nrByProj(P).list;now=pl.length?"Each project at its own rate (never blended): "+pl.map(function(x){return"<b>"+esc(x.p)+"</b> "+rs(x.v)+" ("+x.n+")"}).join(" · "):"No booking in the period has both agreement value and carpet area"}
   else if(id==="nr")now=m.ph?"Not available yet: connect Booking details":S.ca?"<b>"+fcr(S.avR)+"</b> ÷ <b>"+fmt(Math.round(S.ca))+"</b> sq ft = <b>"+m.f(S.rpsf)+"</b> per sq ft":"No booking in the period has both agreement value and carpet area";
   else if(id==="sv")now="<b>"+fcr(S.av)+"</b> booked − <b>"+fcr(S.avx)+"</b> cancelled = <b>"+fcr(S.sv)+"</b> (₹"+fmt(Math.round(S.sv||0))+")";
   else if(id==="tatb")now=S.tat.length?"Half of <b>"+fmt(S.tat.length)+"</b> linked bookings closed within <b>"+Math.round(S.tatM)+" days</b> of the first visit · "+fmt(S.gross-S.tat.length)+" bookings have no matching walk-in":"No booking in the period matches a walk-in Form No";
@@ -1240,31 +1262,50 @@ function speedo(o){
   return s+'<div class="sro"><b>'+fmt(got)+'</b><span>of '+fmt(tgt)+' target</span></div><div class="sch s-'+k+'">'+chip+(o.span?" · "+esc(o.span):"")+'</div>';
 }
 /* ---------- net realisation drill-down ---------- */
+function rk(v){return"₹"+(v/1000).toFixed(1)+"k"}
+// realisation per project for a period (and the previous period), never mixed across projects
+function nrByProj(P){
+  var FF=Object.assign({},F,{proj:""}),G={},GP={},PV=prevOf(P);
+  nrRows(FF,P.from,Math.min(P.to,today())).forEach(function(r){if(!r.proj||r.proj==="All")return;(G[r.proj]||(G[r.proj]=[])).push(r)});
+  if(PV)nrRows(FF,PV.from,PV.to).forEach(function(r){if(!r.proj||r.proj==="All")return;(GP[r.proj]||(GP[r.proj]=[])).push(r)});
+  var list=Object.keys(G).map(function(p){var a=nrSum(G[p]),b=GP[p]?nrSum(GP[p]):{n:0,v:null};return{p:p,n:a.n,v:a.v,pn:b.n,pv:b.v}}).sort(function(a,b){return b.n-a.n});
+  return{list:list,PV:PV};
+}
+function nrProjCard(P){
+  var R=nrByProj(P),L=R.list;
+  if(!L.length)return card("nrP","Realisation by project","","",empty("No booking in the period has both agreement value and carpet area"),"auto");
+  var rows=L.map(function(x){var few=x.n<3,ch="";
+    if(x.pv!=null&&x.v!=null&&x.n>=3&&x.pn>=3){var c=(x.v-x.pv)/x.pv*100;ch='<b class="'+(c<=-5?"lo":c>=5?"hi":"")+'">'+(c>=0?"▲ ":"▼ ")+Math.abs(c).toFixed(1)+'%</b>'}else ch='<span class="dim">–</span>';
+    return drow("proj",x.p,'<td><b>'+esc(x.p)+'</b></td><td>'+(few?'<span class="dim" title="Fewer than 3 bookings">'+rs(x.v)+'</span>':rs(x.v))+'</td><td>'+(x.pv!=null?(x.pn<3?'<span class="dim">'+rs(x.pv)+'</span>':rs(x.pv)):'<span class="dim">–</span>')+'</td><td>'+ch+'</td><td>'+x.n+(few?' <span class="dim">too few</span>':"")+'</td>',false)}).join("");
+  return card("nrP","Realisation by project",esc(P.label)+" · ₹ per sq ft after CP brokerage","",'<table class="nrtab"><thead><tr><th>Project</th><th>'+esc(P.label)+'</th><th>'+(R.PV?esc(cap(R.PV.label)):"Previous")+'</th><th>Change</th><th>Bookings</th></tr></thead><tbody>'+rows+'</tbody></table><div class="note">Each project at its own rate; projects are never added together. Change shows only when both periods have 3+ bookings. Click a project to see its monthly trend.'+(RATE_OUT.length?" "+RATE_OUT.length+" bookings with a rate far from their project’s usual rate are left out (see Data checks).":"")+'</div>',"auto");
+}
 // bookings that count for realisation: not cancelled, with agreement value and carpet area
-function nrRows(FF,from,to){return ROWS.filter(function(r){return r.bkRow&&!r.cx&&r.av>0&&r.carpet>0&&r.bday>=from&&r.bday<=to&&pass(r,FF)})}
+function nrRows(FF,from,to){return ROWS.filter(function(r){return r.bkRow&&!r.cx&&!r.rOut&&r.av>0&&r.carpet>0&&r.bday>=from&&r.bday<=to&&pass(r,FF)})}
 function nrSum(list){var a=0,c=0;list.forEach(function(r){a+=netAV(r);c+=r.carpet});return{n:list.length,v:c?a/c:null}}
 function rs(v){return v==null?"–":"₹"+fmt(Math.round(v))}
-// 3-month rolling ₹/sq ft within the current filters; a point needs 3+ bookings; mix note when the project or configuration mix moves
+// monthly ₹/sq ft within the current filters: each point is that month's bookings only; months with 1–2 bookings are
+// drawn hollow and faded (one unusual unit can move them), months with none show "–"; mix note when the mix moves
 function nrTrendCard(P){
   var ms=monthsIn(P);if(ms.length>24)ms=ms.slice(-24);
-  var pts=ms.map(function(k){var a=ymAdd(k,-2),L=nrRows(F,monStart(a),Math.min(monEnd(k),today())),x=nrSum(L),c={};L.forEach(function(r){var key=(F.proj?"":r.proj+" ")+(r.cfg||"Not entered");c[key]=(c[key]||0)+1});
-    var top="",tn=0;for(var q in c)if(c[q]>tn){tn=c[q];top=q}return{k:k,lab:ymLab(k),n:x.n,v:x.n>=3?x.v:null,raw:x.v,top:top,share:x.n?tn/x.n:0}});
+  var pts=ms.map(function(k){var L=nrRows(F,monStart(k),Math.min(monEnd(k),today())),x=nrSum(L),c={};L.forEach(function(r){var key=(F.proj?"":r.proj+" ")+(r.cfg||"Not entered");c[key]=(c[key]||0)+1});
+    var top="",tn=0;for(var q in c)if(c[q]>tn){tn=c[q];top=q}return{k:k,lab:ymLab(k),n:x.n,v:x.n?x.v:null,few:x.n>0&&x.n<3,top:top,share:x.n?tn/x.n:0}});
   var vals=pts.filter(function(p){return p.v!=null}).map(function(p){return p.v});
-  if(!vals.length)return card("nrT","Net realisation trend","3-month rolling","",empty("Fewer than 3 bookings with value and carpet area in each window"),"auto");
+  if(!vals.length)return card("nrT","Net realisation by month","","",empty("No booking in these months has both agreement value and carpet area"),"auto");
   var lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals),pad=Math.max((hi-lo)*.25,hi*.02);lo-=pad;hi+=pad;
   var W=100,H=100,n=pts.length,x=function(i){return(i+.5)/n*W},y=function(v){return H-(v-lo)/(hi-lo)*H};
   var svg='<svg viewBox="0 0 100 100" preserveAspectRatio="none" class="nrs">';
-  for(var i=1;i<n;i++)if(pts[i].v!=null&&pts[i-1].v!=null)svg+='<line x1="'+x(i-1)+'" y1="'+y(pts[i-1].v)+'" x2="'+x(i)+'" y2="'+y(pts[i].v)+'"/>';
+  // a segment touching a thin month is dashed
+  for(var i=1;i<n;i++)if(pts[i].v!=null&&pts[i-1].v!=null)svg+='<line'+(pts[i].few||pts[i-1].few?' class="thin"':"")+' x1="'+x(i-1)+'" y1="'+y(pts[i-1].v)+'" x2="'+x(i)+'" y2="'+y(pts[i].v)+'"/>';
   svg+='</svg>';
   var lab=pts.map(function(p,i){var l=(x(i)).toFixed(2)+"%";
-    return(p.v!=null?'<span class="nrd" style="left:'+l+';top:'+y(p.v).toFixed(1)+'%" title="'+esc(p.lab)+': '+rs(p.v)+' per sq ft over '+p.n+' bookings ('+esc(ymLab(ymAdd(p.k,-2)))+' – '+esc(p.lab)+')"></span><span class="nrv" style="left:'+l+';top:'+y(p.v).toFixed(1)+'%">'+(p.v/1000).toFixed(1)+'k</span>':'<span class="nrnone" style="left:'+l+'" title="'+p.n+' bookings: too few">–</span>')+
+    return(p.v!=null?'<span class="nrd'+(p.few?" few":"")+'" style="left:'+l+';top:'+y(p.v).toFixed(1)+'%" title="'+esc(p.lab)+': '+rs(p.v)+' per sq ft over '+p.n+' booking'+(p.n>1?"s":"")+(p.few?" (too few to read as a trend)":"")+'"></span><span class="nrv'+(p.few?" few":"")+'" style="left:'+l+';top:'+y(p.v).toFixed(1)+'%">'+(p.v/1000).toFixed(1)+'k</span>':'<span class="nrnone" style="left:'+l+'" title="'+p.n+' bookings: too few">–</span>')+
       '<span class="nrx" style="left:'+l+'">'+esc(p.lab.replace(/ \d\d$/,""))+'<b class="'+(p.n<3?"few":"")+'">'+p.n+'</b></span>'}).join("");
   // mix note: the dominant project / configuration share moved a lot between the first and last valid windows
   var ok=pts.filter(function(p){return p.n>=3}),note="";
   if(!F.proj)note="All projects together: the project mix changes from month to month. Pick a project to compare like with like.";
   else if(ok.length>1){var f=ok[0],l=ok[ok.length-1];if(f.top!==l.top||Math.abs(f.share-l.share)>.25)note="The configuration mix shifted ("+esc(f.top)+" "+Math.round(f.share*100)+"% of bookings in "+esc(f.lab)+", "+esc(l.top)+" "+Math.round(l.share*100)+"% in "+esc(l.lab)+"), so part of the change is mix, not price."}
-  return card("nrT","Net realisation trend","₹ per sq ft · 3-month rolling · after 2.25% CP brokerage","",
-    '<div class="nrp">'+svg+lab+'</div><div class="nrk"><span>Number under each month = bookings in its 3-month window</span><span><b class="few">2</b> = too few to show</span></div>'+(note?'<div class="nrnote">'+note+'</div>':""),"auto");
+  return card("nrT","Net realisation by month","₹ per sq ft · after 2.25% CP brokerage","",
+    '<div class="nrp">'+svg+lab+'</div><div class="nrk"><span>Number under each month = bookings that month</span><span><i class="nrhol"></i>1–2 bookings: read with care</span></div>'+(note?'<div class="nrnote">'+note+'</div>':""),"auto");
 }
 // like for like: project × configuration, direct vs indirect (after brokerage)
 function nrMixCard(P){
@@ -1286,7 +1327,7 @@ function groupSer(ser){
   var byQ=Math.ceil(ser.keys.length/3)<=24,g={},order=[],QL=["Jan–Mar","Apr–Jun","Jul–Sep","Oct–Dec"];
   ser.keys.forEach(function(k){var y=Math.floor(k/100),gk=byQ?y*10+Math.ceil((k%100)/3):y;
     if(!g[gk]){g[gk]={ks:[],s:blank()};order.push(gk)}var a=g[gk].s,b=ser.B[k];g[gk].ks.push(k);
-    a.fresh+=b.fresh;a.rev+=b.rev;a.gross+=b.gross;a.cx+=b.cx;a.hot+=b.hot;a.cpWalk+=b.cpWalk;a.av+=b.av;a.avx+=b.avx;a.avR+=b.avR;a.ca+=b.ca;Object.keys(b.cps).forEach(function(c){a.cps[c]=1});a.tat=a.tat.concat(b.tat)});
+    a.fresh+=b.fresh;a.rev+=b.rev;a.gross+=b.gross;a.cx+=b.cx;a.hot+=b.hot;a.cpWalk+=b.cpWalk;a.av+=b.av;a.avx+=b.avx;a.avR+=b.avR;a.ca+=b.ca;a.nR+=b.nR;Object.keys(b.cps).forEach(function(c){a.cps[c]=1});a.tat=a.tat.concat(b.tat)});
   return{unit:byQ?"quarter":"year",list:order.map(function(gk){var x=g[gk],yy=String(Math.floor(gk/10)).slice(2);fin(x.s);return{lab:byQ?"Q"+(gk%10)+" "+yy:String(gk),full:byQ?QL[gk%10-1]+" "+yy:String(gk),s:x.s,ks:x.ks}})};
 }
 function grpTarget(MM,ks){var sum=0,any=false;ks.forEach(function(k){if(MM&&MM[k]!=null){sum+=MM[k];any=true}});return any?sum:null}
@@ -1424,7 +1465,7 @@ function siteSrcCard(P,mode){
   return card("sSrcCard","Source & channel partners","",togs("ssrc",[["src","Source"],["cp","CP firms"]],mode),ks.length?'<table><thead><tr><th>Source</th><th>Fresh</th><th></th><th>Net bkg</th><th>Conv</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No walk-ins in this period"));
 }
 /* ---------- site head (phase A): records, team, CP scorecard, data to fix ---------- */
-var HAS_NAMES=false,HAS_ID=false,TIME_OK=false,HAS_BK=false,REC_CTX=null;
+var HAS_NAMES=false,HAS_ID=false,TIME_OK=false,HAS_BK=false,REC_CTX=null,RATE_OUT=[];
 // Form No as a matching key, same rule as the server: "INQ-02919" = "inq 2919" = "INQ2919"
 function fkey(v){return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").replace(/\d+/g,function(n){return String(+n)})}
 var REC={fresh:"Fresh walk-ins",conv:"Fresh walk-ins · who booked",rev:"Unique revisits",net:"Booking register",cx:"Cancellations",tat:"Waiting time",nr:"Booking register · value",tatb:"Booking register · TAT"};
@@ -1600,7 +1641,7 @@ function renderFocus(P,S,PS,TG,ser,weekly,serM){
   var stTxt=o.a?(o.a.pc>=100?"Target achieved":o.a.st==="good"?"On pace for target":o.a.st==="warn"?"Slightly behind pace":"Behind pace"):(o.st==="good"?"Better than "+(PS?PS.P.label:"before"):o.st==="bad"?"Worse than "+(PS?PS.P.label:"before"):"");
   var ans='<section class="card fa" style="--fc:'+colors[c]+'"><div><div class="fa-label">'+esc(m.label)+' · '+esc(P.label)+'</div><div class="fa-num">'+o.big+(o.unit?'<small>'+esc(o.unit)+'</small>':"")+'</div>'+(stTxt?'<div class="fa-state">'+si(o.st)+esc(stTxt)+'</div>':"")+'<div class="fa-line">'+esc(o.sub)+(o.sub2&&o.sub2!==o.sub?'<br>'+esc(o.sub2):"")+(o.dt&&o.sub2!==o.dt?'<br>'+esc(o.dt):"")+'</div><div class="fa-def"><b>'+esc(m.fx)+'</b><br>'+esc(m.def)+'</div></div><button class="reset fa-x" data-unfocus>Close focus ✕</button></section>';
   var mid,right;
-  if(m.id==="nr"&&!m.ph){el.innerHTML=ans+nrTrendCard(P)+nrMixCard(P);return}
+  if(m.id==="nr"&&!m.ph){el.innerHTML=ans+(F.proj?nrTrendCard(P):nrProjCard(P))+nrMixCard(P);return}
   if(m.inv){
     var G=invBy(F.proj,"proj"),ks=Object.keys(G).sort(function(a,b){return G[b].Unsold-G[a].Unsold});
     mid=card("fMid","Unsold by project","as of now","",'<div class="lg"><span><i class="c-sold"></i>Sold</span><span><i class="c-hold"></i>On hold</span><span><i class="c-uns"></i>Unsold</span></div><table><thead><tr><th>Project</th><th></th><th>Unsold</th><th>Units</th></tr></thead><tbody>'+ks.map(function(k){var g=G[k];return drow("proj",k,'<td>'+esc(k)+'</td><td class="bar"><div class="stk"><i class="c-sold" style="width:'+g.Sold/g.tot*100+'%"></i><i class="c-hold" style="width:'+g["On hold"]/g.tot*100+'%"></i><i class="c-uns" style="width:'+g.Unsold/g.tot*100+'%"></i></div></td><td>'+fmt(g.Unsold)+'</td><td>'+fmt(g.tot)+'</td>',F.proj===k)}).join("")+'</tbody></table>');
@@ -1764,7 +1805,7 @@ function dataChecks(){
   if(DATA.bookingError)out.push({lvl:2,title:"Booking details could not be read",text:DATA.bookingError+". Bookings are taken from the Walk-in sheet until this is fixed.",fix:"Check the Booking details tab in All Data.xlsx: its heading row (within the first 10 rows) must include “Overall Status”."});
   else if(HAS_BK&&Q.bk){var B=Q.bk,nb=B.booked+B.cancelled,un=ROWS.filter(function(r){return r.bkRow&&!r.linked}),st=Object.keys(B.statuses).map(function(k){return k+" "+fmt(B.statuses[k])}).join(" · ");
     out.push({lvl:un.length?1:0,title:fmt(nb-un.length)+" of "+fmt(nb)+" bookings matched a walk-in",text:"Bookings come from Booking details. A booking is linked when its Form No (column B) is in Walk-in column A; linked bookings get source, CP firm and first-visit date from the walk-in.",
-      lines:[st].concat(un.filter(function(r){return!r.id}).length?[fmt(un.filter(function(r){return!r.id}).length)+" bookings have no Form No (column B)"]:[]).concat(un.filter(function(r){return r.id}).length?["Form No not in the Walk-in sheet: "+un.filter(function(r){return r.id}).slice(0,12).map(function(r){return r.id}).join(", ")+(un.filter(function(r){return r.id}).length>12?" and "+(un.filter(function(r){return r.id}).length-12)+" more":"")]:[]).concat(B.noStatus?[fmt(B.noStatus)+" rows have a Booking Date but no Overall Status, so they are not counted"]:[]).concat(B.cxBeforeBk&&B.cxBeforeBk.length?[fmt(B.cxBeforeBk.length)+" cancellations are dated before their booking, so they are counted in the booking month: "+B.cxBeforeBk.slice(0,8).map(function(x){return(x.id||"no Form No")+" (row "+x.row+")"}).join(", ")]:[]).concat(B.noValue?[fmt(B.noValue)+" bookings have no agreement value (AH)"]:[]).concat(B.noCarpet?[fmt(B.noCarpet)+" bookings have no carpet area (AD)"]:[]),
+      lines:[st].concat(un.filter(function(r){return!r.id}).length?[fmt(un.filter(function(r){return!r.id}).length)+" bookings have no Form No (column B)"]:[]).concat(un.filter(function(r){return r.id}).length?["Form No not in the Walk-in sheet: "+un.filter(function(r){return r.id}).slice(0,12).map(function(r){return r.id}).join(", ")+(un.filter(function(r){return r.id}).length>12?" and "+(un.filter(function(r){return r.id}).length-12)+" more":"")]:[]).concat(B.noStatus?[fmt(B.noStatus)+" rows have a Booking Date but no Overall Status, so they are not counted"]:[]).concat(RATE_OUT.length?[fmt(RATE_OUT.length)+" bookings have a ₹/sq ft more than 40% away from their project’s usual rate, so they are left out of realisation (sales value keeps them). Check agreement value (AH) and carpet area (AD): "+RATE_OUT.slice(0,8).map(function(r){return(r.id||"no Form No")+" ₹"+fmt(Math.round(r.av/r.carpet))}).join(", ")+(RATE_OUT.length>8?" and "+(RATE_OUT.length-8)+" more":"")]:[]).concat(B.cxBeforeBk&&B.cxBeforeBk.length?[fmt(B.cxBeforeBk.length)+" cancellations are dated before their booking, so they are counted in the booking month: "+B.cxBeforeBk.slice(0,8).map(function(x){return(x.id||"no Form No")+" (row "+x.row+")"}).join(", ")]:[]).concat(B.noValue?[fmt(B.noValue)+" bookings have no agreement value (AH)"]:[]).concat(B.noCarpet?[fmt(B.noCarpet)+" bookings have no carpet area (AD)"]:[]),
       fix:un.length?"Correct the Form No on these bookings so it matches the Walk-in sheet.":""})}
   // 1. dates after today
   var fu=Q.future;
@@ -1977,7 +2018,7 @@ function cmdHtml(){
     '<div class="m2lg">'+(TG.b?'<span><i class="tg"></i>Target pace</span>':"")+'<span><i class="ac"></i>Actual</span><span><i class="fc"></i>At current pace</span></div></div></div>'+
     '<div class="m2kpis'+(HAS_BK?" four":"")+'">'+kpi("Net bookings",S.net,TG.b,bs,gb,fcB,vs(S.net,L.net),M.pB)+kpi("Fresh walk-ins",S.fresh,TG.w,ws,gw,fcW,vs(S.fresh,L.fresh),M.pW)+
     '<div class="m2kpi"><div class="m2kl">Walk-in to booking</div><div class="m2kv">'+fp(S.conv)+'</div><div class="m2pb"><i class="ok" style="width:'+Math.min(100,(S.conv||0)*5).toFixed(1)+'%;background:linear-gradient(90deg,#FDE68A,#FCD34D)"></i></div><div class="m2ks"><span>'+fmt(S.net)+' net bookings ÷ '+fmt(S.fresh)+' fresh walk-ins</span>'+(S.conv!=null&&L.conv!=null?vs(S.conv,L.conv,1):"")+'</div></div>'+
-    (HAS_BK?'<div class="m2kpi"><div class="m2kl">Sales value</div><div class="m2kv" title="₹'+fmt(Math.round(S.sv||0))+' excl. GST and stamp duty">'+fcr(S.sv)+'</div><div class="m2pb" style="visibility:hidden"></div><div class="m2ks"><span class="m2nw"><b>'+(S.rpsf?"₹"+fmt(Math.round(S.rpsf)):"–")+'</b> /sq ft</span>'+(S.tatM!=null?'<span class="m2nw">TAT <b>'+Math.round(S.tatM)+'</b> days</span>':"")+vs(S.sv,L.sv,0,fcr)+'</div></div>':"")+
+    (HAS_BK?'<div class="m2kpi"><div class="m2kl">Sales value</div><div class="m2kv" title="₹'+fmt(Math.round(S.sv||0))+' excl. GST and stamp duty">'+fcr(S.sv)+'</div><div class="m2pb" style="visibility:hidden"></div><div class="m2ks">'+(F.proj&&S.rpsf?'<span class="m2nw"><b>₹'+fmt(Math.round(S.rpsf))+'</b> /sq ft</span>':"")+''+(S.tatM!=null?'<span class="m2nw">TAT <b>'+Math.round(S.tatM)+'</b> days</span>':"")+vs(S.sv,L.sv,0,fcr)+'</div></div>':"")+
     '</div></section>';
   // ② needs your attention
   var items=m2Attention(M,PR,fl),nR=items.filter(function(i){return i.lvl===2}).length,nA=items.length-nR,show=ui.attAll?items:items.slice(0,3);
@@ -1994,7 +2035,7 @@ function cmdHtml(){
   var all2=rows.concat(mute);
   var tbl='<table class="m2tbl"><thead><tr><th>Project</th><th>Net bookings vs target</th><th>Fresh walk-ins vs target</th><th>Conv.</th>'+(HAS_BK?'<th>Sales value</th>':"")+'<th></th></tr></thead><tbody>'+
     all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'" tabindex="0"';return'<tr class="'+(x.mute?"mute":"m2row")+(sel===x.p?" on":"")+'"'+at+'><td class="m2pj">'+esc(x.p)+'</td><td>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</td><td>'+m2Bar(x.s.fresh,x.tg.w,M.cW)+'</td><td>'+fp(x.s.conv)+'</td>'+(HAS_BK?'<td class="m2sv">'+(x.mute?"–":'<b>'+fcr(x.s.sv)+'</b>'+(x.s.rpsf?'<small>₹'+fmt(Math.round(x.s.rpsf))+'/sq ft</small>':""))+'</td>':"")+'<td><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></td></tr>'}).join("")+'</tbody>'+
-    (!sel?'<tfoot><tr><td class="m2pj">Total</td><td>'+m2Bar(S.net,TG.b,M.pB)+'</td><td>'+m2Bar(S.fresh,TG.w,M.pW)+'</td><td>'+fp(S.conv)+'</td>'+(HAS_BK?'<td class="m2sv"><b>'+fcr(S.sv)+'</b>'+(S.rpsf?'<small>₹'+fmt(Math.round(S.rpsf))+'/sq ft</small>':"")+'</td>':"")+'<td></td></tr></tfoot>':"")+'</table>';
+    (!sel?'<tfoot><tr><td class="m2pj">Total</td><td>'+m2Bar(S.net,TG.b,M.pB)+'</td><td>'+m2Bar(S.fresh,TG.w,M.pW)+'</td><td>'+fp(S.conv)+'</td>'+(HAS_BK?'<td class="m2sv"><b>'+fcr(S.sv)+'</b></td>':"")+'<td></td></tr></tfoot>':"")+'</table>';
   var cards='<div class="m2cards">'+all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'"';return'<div class="m2pc'+(x.mute?" mute":"")+(sel===x.p?" on":"")+'"'+at+'><div class="m2ph"><b>'+esc(x.p)+'</b><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></div><div class="m2pr"><span>Bookings</span>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</div><div class="m2pr"><span>Walk-ins</span>'+m2Bar(x.s.fresh,x.tg.w,M.cW)+'</div>'+(HAS_BK&&!x.mute&&x.s.gross?'<div class="m2pv"><b>'+fcr(x.s.sv)+'</b>'+(x.s.rpsf?' · ₹'+fmt(Math.round(x.s.rpsf))+'/sq ft':"")+'</div>':"")+'</div>'}).join("")+'</div>';
   var proj='<section class="card m2proj" id="ccProj"><div class="m2ch"><h2>Projects this month</h2><span class="sub">'+(sel?esc(lab(sel))+" selected":"vs target · biggest gap first · tap a project to focus the page")+'</span>'+
     (sel?togs("pcmp",[["one",esc(lab(sel))+" only"],["all","All projects"]],all?"all":"one"):"")+'</div>'+(all2.length?tbl+cards:empty("No walk-ins, bookings or targets for "+M.name+" yet"))+
