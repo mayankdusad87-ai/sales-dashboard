@@ -718,10 +718,10 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 .elab{width:44px;font-size:12.5px;color:var(--muted);font-weight:600}
 .einp{flex:1 1 220px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
 .einp.sm{flex:0 0 auto}
-.chips{flex:1 1 300px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:5px 6px;background:var(--card);min-height:38px}
-.chip{display:inline-flex;align-items:center;gap:2px;background:var(--sel);border-radius:999px;padding:3px 4px 3px 10px;font-size:12.5px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.chip button{border:0;background:transparent;color:var(--muted);font-size:15px;line-height:1;cursor:pointer;padding:0 5px;border-radius:999px}
-.chip button:hover{color:var(--bad)}
+.echips{flex:1 1 300px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:5px 6px;background:var(--card);min-height:38px}
+.echip{display:inline-flex;align-items:center;gap:2px;background:var(--sel);border-radius:999px;padding:3px 4px 3px 10px;font-size:12.5px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.echip button{border:0;background:transparent;color:var(--muted);font-size:15px;line-height:1;cursor:pointer;padding:0 5px;border-radius:999px}
+.echip button:hover{color:var(--bad)}
 .chipin{flex:1 1 160px;border:0;outline:0;background:transparent;color:var(--ink);font:inherit;padding:4px}
 .egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px}
 .echk{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;min-height:28px}
@@ -2281,7 +2281,7 @@ function emlList(){
 }
 function emlEditor(){var d=EML.ed,all=d.projects.indexOf("*")>=0,projs=projList().filter(function(p){return p&&p!=="All"}).sort();
   var people=ADM.m.filter(function(m){return m.active}).map(function(m){return'<option value="'+esc(m.email)+'">'+esc(m.full_name||"")+'</option>'}).join("");
-  var chips=EM_LISTS.map(function(l){return'<div class="erow"><label class="elab">'+l[1]+'</label><div class="chips">'+d[l[0]].map(function(e,i){return'<span class="chip">'+esc(e)+'<button type="button" data-adm="emchipx" data-l="'+l[0]+'" data-i="'+i+'" aria-label="Remove '+esc(e)+'">×</button></span>'}).join("")+
+  var chips=EM_LISTS.map(function(l){return'<div class="erow"><label class="elab">'+l[1]+'</label><div class="echips">'+d[l[0]].map(function(e,i){return'<span class="echip">'+esc(e)+'<button type="button" data-adm="emchipx" data-l="'+l[0]+'" data-i="'+i+'" aria-label="Remove '+esc(e)+'">×</button></span>'}).join("")+
     '<input class="chipin" data-l="'+l[0]+'" list="emPeople" type="email" placeholder="'+(d[l[0]].length?"Add another":"Add a person or any email")+'" aria-label="Add '+l[1]+' recipient"></div></div>'}).join("");
   var days="";for(var i=1;i<=28;i++)days+='<option value="'+i+'"'+(i===d.day_of_month?" selected":"")+'>'+emOrd(i)+'</option>';
   var hrs="";for(var k=6;k<=22;k++)hrs+='<option value="'+k+'"'+(k===d.send_hour?" selected":"")+'>'+emHour(k)+'</option>';
