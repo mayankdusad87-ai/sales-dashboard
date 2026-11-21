@@ -637,9 +637,52 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 /* sign-in, account menu, admin */
 /* until the saved sign-in is checked, show nothing (no flash of the loading screen or the dashboard) */
 .booting .app,.booting #loading{visibility:hidden}
-.aok{color:var(--good);font-weight:600;font-size:12.5px;margin-bottom:8px}.aok:empty{display:none}
-.alinks{display:flex;justify-content:space-between;gap:8px;margin-top:12px}
-.alinks button,.box .alinks button{width:auto;background:none;color:var(--bar2);padding:2px 0;font-weight:600;font-size:12.5px}
+/* sign-in page: brand backdrop with drifting glows and a skyline, frosted-glass card */
+.auth{position:fixed;inset:0;z-index:55;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px 16px;color:#fff;
+  background:radial-gradient(120% 90% at 12% 10%,#5A1F1C 0%,rgba(90,31,28,0) 55%),radial-gradient(90% 80% at 95% 90%,#7A1F1A 0%,rgba(122,31,26,0) 60%),linear-gradient(160deg,#1E1718 0%,#2A2324 45%,#3A1416 100%)}
+.aorb{position:fixed;border-radius:50%;filter:blur(70px);opacity:.55;pointer-events:none;animation:aDrift 18s ease-in-out infinite alternate}
+.aorb.a1{width:420px;height:420px;background:#E8432E;left:-120px;top:-80px}
+.aorb.a2{width:360px;height:360px;background:#F59E0B;right:-100px;top:30%;opacity:.28;animation-duration:22s}
+.aorb.a3{width:300px;height:300px;background:#9E1B22;left:35%;bottom:-140px;animation-duration:26s}
+@keyframes aDrift{to{transform:translate(40px,30px) scale(1.08)}}
+.askyline{position:fixed;left:0;right:0;bottom:0;width:100%;height:30vh;fill:rgba(255,255,255,.045);pointer-events:none}
+.awrap{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:56px;align-items:center;width:100%;max-width:1040px}
+.astory .alogo{height:54px;width:auto;margin-bottom:26px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.35))}
+.astory h1{margin:0;font-size:52px;line-height:1.02;letter-spacing:-1.5px;font-weight:800;background:linear-gradient(100deg,#fff 30%,#FCD34D 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.astory p{margin:16px 0 22px;max-width:440px;font-size:16px;line-height:1.55;color:rgba(255,255,255,.78)}
+.astory ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.astory li{font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px)}
+.aglass{position:relative;padding:30px 28px 22px;border-radius:22px;background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,.06));
+  border:1px solid rgba(255,255,255,.22);box-shadow:0 30px 60px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25);
+  -webkit-backdrop-filter:blur(22px) saturate(140%);backdrop-filter:blur(22px) saturate(140%);animation:aRise .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes aRise{from{opacity:0;transform:translateY(16px) scale(.98)}}
+.aglass .alogo.m{display:none;height:40px;width:auto;margin:0 auto 18px}
+.aglass h2{margin:0 0 6px;font-size:22px;letter-spacing:-.3px}
+.aglass>p{margin:0 0 20px;color:rgba(255,255,255,.72);font-size:13.5px;line-height:1.5}
+.afield{position:relative;display:block;margin-bottom:12px}
+.afield svg{position:absolute;left:14px;top:50%;width:18px;height:18px;transform:translateY(-50%);fill:none;stroke:rgba(255,255,255,.6);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.afield input{width:100%;height:48px;padding:0 46px 0 44px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.22);color:#fff;font:inherit;font-size:15px;outline:none;transition:border-color .2s,box-shadow .2s,background .2s}
+.afield input::placeholder{color:rgba(255,255,255,.5)}
+.afield input:focus{border-color:#FCD34D;background:rgba(0,0,0,.3);box-shadow:0 0 0 4px rgba(252,211,77,.18)}
+.afield input[hidden]{display:none}.afield:has(input[hidden]){display:none}
+.aeye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;border-radius:9px;background:none;cursor:pointer;display:grid;place-items:center}
+.aeye svg{position:static;transform:none;width:19px;height:19px}.aeye:hover{background:rgba(255,255,255,.08)}.aeye.on svg{stroke:#FCD34D}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.auth .err{color:#FFC2B8;min-height:18px;font-size:12.5px;margin:2px 0 6px}
+.aok{color:#BBF7D0;font-weight:600;font-size:12.5px;margin-bottom:8px}.aok:empty{display:none}
+.asubmit{width:100%;height:48px;border:0;border-radius:12px;cursor:pointer;color:#fff;font:inherit;font-size:15px;font-weight:700;letter-spacing:.2px;
+  background:linear-gradient(135deg,#E8432E 0%,#B3261E 55%,#7A1F1A 100%);box-shadow:0 10px 24px rgba(232,67,46,.35),inset 0 1px 0 rgba(255,255,255,.25);transition:transform .15s,box-shadow .2s,filter .2s}
+.asubmit:hover{filter:brightness(1.08);box-shadow:0 14px 30px rgba(232,67,46,.45),inset 0 1px 0 rgba(255,255,255,.25)}.asubmit:active{transform:translateY(1px)}
+.asubmit:disabled{opacity:.6;cursor:default}
+.asubmit:focus-visible,.alinks button:focus-visible,.aeye:focus-visible{outline:2px solid #FCD34D;outline-offset:2px}
+.alinks{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
+.alinks button{width:auto;border:0;background:none;color:#FCD34D;padding:2px 0;font:inherit;font-weight:600;font-size:13px;cursor:pointer}
+.alinks button:hover{text-decoration:underline}
+.afoot{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12);font-size:11.5px;color:rgba(255,255,255,.6)}
+.afoot svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8}
+@media (max-width:860px){.awrap{grid-template-columns:1fr;max-width:420px;gap:0}.astory{display:none}.aglass .alogo.m{display:block}.aglass{padding:26px 20px 18px}}
+@media (prefers-reduced-motion:reduce){.aorb,.aglass{animation:none}}
+/* account menu, admin */
 .acct{position:relative}
 .acctm{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:var(--card);color:var(--ink);border-radius:12px;box-shadow:var(--shadow2);padding:12px;min-width:230px}
 .acctm b{display:block;font-size:13px}.acctm small{display:block;color:var(--muted);font-size:12px;margin:2px 0 10px;word-break:break-all}
@@ -905,19 +948,30 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
     <button type="submit">Open dashboard</button>
   </form>
 </div>
-<div class="overlay" id="auth" style="display:none">
-  <form class="box" id="authForm" novalidate>
-    <img class="gatelogo" src="assets/logo.png" alt="Raghav Realty">
-    <h2 id="authT">Sign in to the Control Tower</h2>
-    <p id="authP">Use the email your admin gave access to.</p>
-    <input type="email" id="authEmail" autocomplete="username" placeholder="Email">
-    <input type="password" id="authPass" autocomplete="current-password" placeholder="Password">
-    <input type="password" id="authPass2" autocomplete="new-password" placeholder="Repeat password" hidden>
-    <div class="err" id="authErr" role="alert"></div>
-    <div class="aok" id="authOk" role="status"></div>
-    <button type="submit" id="authBtn">Sign in</button>
-    <div class="alinks" id="authLinks"></div>
-  </form>
+<div class="auth" id="auth" style="display:none">
+  <i class="aorb a1"></i><i class="aorb a2"></i><i class="aorb a3"></i>
+  <svg class="askyline" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><path d="M0 220V150h60v-40h40v40h30V80h70v140h20V120h50v-30h30v30h40V60h20V40h40v20h20v160h30V130h60v90h20V100h40V70h50v30h20v120h40V140h60v-40h30v40h50V90h70v130h20V60h20V30h40v30h20v160h30V120h50v100h40V140h60v80Z"/></svg>
+  <div class="awrap">
+    <section class="astory" aria-hidden="true">
+      <img src="assets/logo-dark.png" alt="" class="alogo">
+      <h1>Control Tower</h1>
+      <p>Bookings, walk-ins, targets and realisation for every Raghav project, live from the sales sheets.</p>
+      <ul><li>Live from the sheet</li><li>Your projects only</li><li>Customer details protected</li></ul>
+    </section>
+    <form class="aglass" id="authForm" novalidate>
+      <img src="assets/logo-dark.png" alt="Raghav Realty" class="alogo m">
+      <h2 id="authT">Sign in to the Control Tower</h2>
+      <p id="authP">Use the email your admin gave access to.</p>
+      <label class="afield"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h15A1.5 1.5 0 0 1 21 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5zm1.7.1 7.3 5.6 7.3-5.6"/></svg><span class="sr">Email</span><input type="email" id="authEmail" autocomplete="username" placeholder="Work email"></label>
+      <label class="afield"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10.5V8a6 6 0 0 1 12 0v2.5M5 10.5h14v10H5zM12 14.5v2.5"/></svg><span class="sr">Password</span><input type="password" id="authPass" autocomplete="current-password" placeholder="Password"><button type="button" class="aeye" data-eye="authPass" aria-label="Show password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
+      <label class="afield"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10.5V8a6 6 0 0 1 12 0v2.5M5 10.5h14v10H5zM9 15.5l2 2 4-4"/></svg><span class="sr">Repeat password</span><input type="password" id="authPass2" autocomplete="new-password" placeholder="Repeat password" hidden></label>
+      <div class="err" id="authErr" role="alert"></div>
+      <div class="aok" id="authOk" role="status"></div>
+      <button type="submit" id="authBtn" class="asubmit">Sign in</button>
+      <div class="alinks" id="authLinks"></div>
+      <div class="afoot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5.5c0 4.3 3 8 7 9.5 4-1.5 7-5.2 7-9.5V6z"/></svg>Access is set by your admin. Data stays in India.</div>
+    </form>
+  </div>
 </div>
 <div class="overlay ld" id="loading" role="status" aria-live="polite">
   <i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i>
@@ -2248,6 +2302,7 @@ function authErrText(m){m=String(m||"");if(/invalid login/i.test(m))return"Wrong
   if(/database error|not been given access/i.test(m))return"This email has not been given access. Ask the admin to add you first.";if(/already registered|already been registered/i.test(m))return"An account already exists for this email. Sign in, or use Forgot password.";
   if(/rate limit|too many/i.test(m))return"Too many attempts. Wait a few minutes and try again.";return m}
 function authBusy(b){$("authBtn").disabled=b}
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-eye]");if(!b)return;var i=$(b.getAttribute("data-eye")),show=i.type==="password";i.type=show?"text":"password";b.classList.toggle("on",show);b.setAttribute("aria-label",show?"Hide password":"Show password")});
 $("authForm").addEventListener("submit",function(e){e.preventDefault();if(!SB)return;
   var em=$("authEmail").value.trim().toLowerCase(),pw=$("authPass").value,pw2=$("authPass2").value,err=$("authErr"),ok=$("authOk");err.textContent="";ok.textContent="";
   var bad=function(t){err.textContent=t};
