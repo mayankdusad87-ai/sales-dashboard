@@ -635,6 +635,8 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 .box button{width:100%;padding:9px;border:0;border-radius:8px;background:var(--bar2);color:#fff;font-weight:700;cursor:pointer}
 .err{color:var(--bad);font-weight:600;min-height:18px;font-size:12.5px}
 /* sign-in, account menu, admin */
+/* until the saved sign-in is checked, show nothing (no flash of the loading screen or the dashboard) */
+.booting .app,.booting #loading{visibility:hidden}
 .aok{color:var(--good);font-weight:600;font-size:12.5px;margin-bottom:8px}.aok:empty{display:none}
 .alinks{display:flex;justify-content:space-between;gap:8px;margin-top:12px}
 .alinks button,.box .alinks button{width:auto;background:none;color:var(--bar2);padding:2px 0;font-weight:600;font-size:12.5px}
@@ -850,7 +852,7 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 @media (prefers-reduced-motion:reduce){.app.detail .focus,.app.leaving .focus,.app.leaving .dbar,.app.back .tiles,.app.back .vis{animation:none!important}}
 </style>
 </head>
-<body>
+<body class="booting">
 <div class="app">
   <header class="hdr">
     <h1 class="brand"><span class="plate"><img src="assets/logo.png" alt="Raghav Realty" width="104" height="30"></span><small>Sales Dashboard</small></h1>
@@ -2264,7 +2266,7 @@ $("authForm").addEventListener("submit",function(e){e.preventDefault();if(!SB)re
   }).catch(function(x){authBusy(false);bad(authErrText(x&&x.message))})});
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-amode]");if(b){e.preventDefault();authShow(b.getAttribute("data-amode"))}});
 // account button: "Sign in" when signed out (optional mode), or the person's menu
-function acctPaint(){var b=$("acct");if(!SB){b.hidden=true;return}b.hidden=false;b.textContent=SESSION?(ME&&ME.name?ME.name.split(" ")[0]:"Account"):"Sign in"}
+function acctPaint(){var b=$("acct");if(!SB||!SESSION){b.hidden=true;return}b.hidden=false;b.textContent=ME&&ME.name?ME.name.split(" ")[0]:"Account"}
 $("acct").onclick=function(e){e.stopPropagation();if(!SESSION){authShow("signin");return}var m=$("acctMenu");
   if(!m.hidden){m.hidden=true;return}m.innerHTML='<b>'+esc(ME&&ME.name||"Signed in")+'</b><small>'+esc(SESSION.user&&SESSION.user.email||"")+'</small><button type="button" id="signout">Sign out</button>';m.hidden=false;
   $("signout").onclick=function(){SB.auth.signOut()}};
@@ -2382,8 +2384,10 @@ if(SB){
     if(ev==="SIGNED_IN"){var had=!!SESSION;SESSION=s;if(!had&&AMODE!=="reset"){$("auth").style.display="none";ldStart();load()}return}
     if(ev==="TOKEN_REFRESHED"||ev==="USER_UPDATED"){SESSION=s;return}
     if(ev==="SIGNED_OUT"){SESSION=null;ME=null;location.reload()}});
-  SB.auth.getSession().then(function(r){SESSION=r.data.session;acctPaint();if(AMODE!=="reset"){ldStart();load()}}).catch(function(){ldStart();load()});
-}else{ldStart();load()}
+  // signed out: the sign-in page comes first (no loading screen); signed in: loading screen, then the Control Tower
+  var boot=function(){document.body.classList.remove("booting")};
+  SB.auth.getSession().then(function(r){SESSION=r.data.session;acctPaint();boot();if(AMODE==="reset")return;if(SESSION){ldStart();load()}else authShow("signin")}).catch(function(){boot();authShow("signin")});
+}else{document.body.classList.remove("booting");ldStart();load()}
 })();
 </script>
 </body>
