@@ -690,7 +690,7 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 .adm{display:none;margin:0 14px 20px}
 .app.admtab .tiles,.app.admtab .vis,.app.admtab .focus,.app.admtab .cmd,.app.admtab .flt,.app.admtab .bar-m,.app.admtab #hwarn{display:none!important}
 .app.admtab .adm{display:block}.app.admtab{height:auto!important}
-.adm .card{margin-bottom:12px;padding:14px 18px}
+.adm .card{margin-bottom:12px;padding:14px 18px;min-height:0!important;display:block}
 .adm h2{margin:0 0 4px;font-size:16px}.adm .sub{color:var(--muted);font-size:12.5px;margin-bottom:12px}
 .admadd{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .admadd input{flex:1 1 200px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
@@ -706,7 +706,37 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 .agrid tr.all td{font-weight:700;border-bottom:2px solid var(--line)}
 .aact{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .alog td{white-space:normal;text-align:left;font-size:12px;height:auto;padding:6px 4px;vertical-align:top}
-.atoast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:8px 16px;border-radius:999px;font-weight:600;font-size:13px;z-index:60}
+.agrid input.cov{opacity:.4;cursor:not-allowed}
+.atag.ok{background:#DCFCE7;color:#15803D}.atag.bad{background:#FEE2E2;color:#B91C1C;margin-left:0}
+.aseg{display:inline-flex;background:var(--well);border-radius:999px;padding:3px;margin:0 0 12px;gap:2px}
+.aseg button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:999px;cursor:pointer}
+.aseg button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.aseg.sm{margin:0}.aseg.sm button{padding:5px 12px;font-size:12px}
+.egroup{border-top:1px solid var(--line);padding:12px 0 4px;margin-top:10px}
+.eh{font-weight:700;font-size:13px;margin-bottom:8px}
+.erow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.elab{width:44px;font-size:12.5px;color:var(--muted);font-weight:600}
+.einp{flex:1 1 220px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
+.einp.sm{flex:0 0 auto}
+.chips{flex:1 1 300px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:5px 6px;background:var(--card);min-height:38px}
+.chip{display:inline-flex;align-items:center;gap:2px;background:var(--sel);border-radius:999px;padding:3px 4px 3px 10px;font-size:12.5px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.chip button{border:0;background:transparent;color:var(--muted);font-size:15px;line-height:1;cursor:pointer;padding:0 5px;border-radius:999px}
+.chip button:hover{color:var(--bad)}
+.chipin{flex:1 1 160px;border:0;outline:0;background:transparent;color:var(--ink);font:inherit;padding:4px}
+.egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px}
+.echk{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;min-height:28px}
+.echk input{width:17px;height:17px;accent-color:var(--bar2);flex:none}
+.echk.all{grid-column:1/-1;font-weight:700}.echk.cov{opacity:.45;cursor:not-allowed}
+.echk.wide{flex-wrap:wrap;gap:4px 7px}.echk.wide .dim{font-size:12px}
+.emodal{position:fixed;inset:0;background:rgba(20,14,15,.55);z-index:70;display:flex;align-items:center;justify-content:center;padding:16px}
+.emodal[hidden]{display:none}
+.ebox{background:var(--card);border-radius:14px;width:min(760px,100%);height:min(90vh,1000px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.ebar{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.eacts{display:flex;gap:8px;align-items:center}
+.eframe{flex:1;background:#F3EFEE;display:flex;justify-content:center;overflow:hidden}
+.eframe iframe{border:0;width:100%;height:100%;background:#F3EFEE}.eframe.ph iframe{width:380px;max-width:100%;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+@media (max-width:560px){.elab{width:100%}.ebox{height:94vh}}
+.atoast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:8px 16px;border-radius:999px;font-weight:600;font-size:13px;z-index:80}
 
 /* branded loading screen */
 .ld{flex-direction:column;gap:20px;overflow:hidden;background:radial-gradient(120% 90% at 20% 0%,#4A2326 0%,#2A1E21 45%,#141012 100%);color:#fff;transition:opacity .55s ease,transform .55s ease,filter .55s ease}
@@ -981,10 +1011,11 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
     <div class="prog"><i id="ldBar"></i></div>
     <p class="ldstep" id="loadMsg">Connecting to the Google Sheet…</p>
   </div>
-  <div class="ldfoot">Live from All Data · personal details never loaded</div>
+  <div class="ldfoot">Live from All Data · phone, email and remarks never loaded</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="lib/report.js"></script>
 <script>
 (function(){
 "use strict";
@@ -2160,7 +2191,7 @@ setInterval(function(){var c=document.getElementById("ccClock");if(c)c.textConte
 /* ---------- main render ---------- */
 var charts=[];
 /* ---------- admin: people, their rights per project, and a change log (writes go to Supabase; only admins may) ---------- */
-var ADM={m:[],a:[],log:[],open:"",loaded:false,busy:false,err:""};
+var ADM={m:[],a:[],log:[],open:"",loaded:false,busy:false,err:"",view:"people"};
 function toast(t){var d=document.createElement("div");d.className="atoast";d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},1800)}
 function admLoad(){if(!SB||!SESSION)return;ADM.busy=true;
   Promise.all([SB.from("members").select("*").order("email"),SB.from("access").select("*"),SB.from("audit_log").select("*").order("at",{ascending:false}).limit(40)]).then(function(r){
@@ -2173,14 +2204,19 @@ function admRender(){var el=$("adm");if(!SB||!SESSION||!(ME&&ME.admin)){el.inner
   var projs=projList().filter(function(p){return p&&p!=="All"}).sort();
   var rows=ADM.m.map(function(m){var open=ADM.open===m.email,me=SESSION.user&&SESSION.user.email===m.email;
     var tr='<tr><td><b>'+esc(m.full_name||m.email)+'</b>'+(m.is_admin?'<span class="atag adm1">Admin</span>':"")+(m.active?"":'<span class="atag off">Switched off</span>')+'<div class="dim" style="font-size:12px">'+esc(m.email)+'</div></td><td style="white-space:normal">'+esc(m.is_admin&&!ADM.a.some(function(x){return x.email===m.email})?"Admin: sees everything":admSummary(m.email))+'</td><td><button class="abtn ghost" data-adm="open" data-em="'+esc(m.email)+'">'+(open?"Close":"Edit rights")+'</button></td></tr>';
-    if(open){var R=admRights(m.email),cb=function(p,k){var on=R[p]&&R[p][k];return'<input type="checkbox" data-acc="'+k+'" data-em="'+esc(m.email)+'" data-pj="'+esc(p)+'"'+(on?" checked":"")+' aria-label="'+(k==="management"?"Management":"Site Head")+' for '+esc(p==="*"?"all projects":p)+'">'};
+    if(open){var R=admRights(m.email),cb=function(p,k){var on=R[p]&&R[p][k],lab=(k==="management"?"Management":"Site Head")+' for '+esc(p==="*"?"all projects":p);
+        // "All projects" ticked: each project is already covered, so its tick shows greyed out and can't be changed
+        if(p!=="*"&&R["*"]&&R["*"][k])return'<input type="checkbox" class="cov" checked disabled title="Covered by All projects" aria-label="'+lab+', covered by All projects">';
+        return'<input type="checkbox" data-acc="'+k+'" data-em="'+esc(m.email)+'" data-pj="'+esc(p)+'"'+(on?" checked":"")+' aria-label="'+lab+'">'};
       tr+='<tr><td colspan="3"><div class="agrid"><table><thead><tr><th>Project</th><th>Management</th><th>Site Head</th></tr></thead><tbody><tr class="all"><td>All projects, including future ones</td><td>'+cb("*","management")+'</td><td>'+cb("*","site_head")+'</td></tr>'+
         projs.map(function(p){return'<tr><td>'+esc(p)+'</td><td>'+cb(p,"management")+'</td><td>'+cb(p,"site_head")+'</td></tr>'}).join("")+'</tbody></table>'+
-        '<div class="note">Management = Control Tower and Management tabs. Site Head = Site Head tab, including customer names. Changes save at once and apply the next time the person loads the dashboard.</div>'+
+        '<div class="note">Management = Control Tower and Management tabs. Site Head = Site Head tab, including customer names. Greyed ticks are covered by “All projects”. Changes save at once and apply the next time the person loads the dashboard.</div>'+
         '<div class="aact"><button class="abtn ghost" data-adm="copy" data-em="'+esc(m.email)+'">Copy invite message</button>'+(me?"":'<button class="abtn ghost" data-adm="active" data-em="'+esc(m.email)+'">'+(m.active?"Switch off access":"Switch access back on")+'</button><button class="abtn danger" data-adm="remove" data-em="'+esc(m.email)+'">Remove person</button>')+'</div></div></td></tr>'}
     return tr}).join("");
   var logRows=ADM.log.map(function(l){return'<tr><td style="white-space:nowrap">'+esc(new Date(l.at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}))+'</td><td>'+esc(l.actor||"system")+'</td><td>'+esc(admLogText(l))+'</td></tr>'}).join("");
-  el.innerHTML=(ADM.err?'<section class="card hwarn" role="alert">'+esc(ADM.err)+'</section>':"")+
+  var seg='<div class="aseg" role="tablist" aria-label="Admin sections"><button role="tab" data-adm="view" data-v="people" aria-selected="'+(ADM.view!=="email")+'">People and rights</button><button role="tab" data-adm="view" data-v="email" aria-selected="'+(ADM.view==="email")+'">Emails</button></div>';
+  if(ADM.view==="email"){el.innerHTML=seg+emlRender();return}
+  el.innerHTML=seg+(ADM.err?'<section class="card hwarn" role="alert">'+esc(ADM.err)+'</section>':"")+
     '<section class="card"><h2>People and rights</h2><div class="sub">Add a person, then tick what they may see for each project. They create their own password with "Create account" on the sign-in screen.</div>'+
     '<form class="admadd" id="admAdd"><input type="email" id="admEmail" placeholder="Email" required><input type="text" id="admName" placeholder="Full name"><button class="abtn" type="submit">Add person</button></form>'+
     '<table class="admt" style="margin-top:12px"><thead><tr><th>Person</th><th>Can see</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></section>'+
@@ -2202,12 +2238,97 @@ document.addEventListener("change",function(e){var c=e.target;if(!c.matches||!c.
   var em=c.getAttribute("data-em"),pj=c.getAttribute("data-pj"),k=c.getAttribute("data-acc"),R=admRights(em)[pj]||{management:false,site_head:false},row={email:em,project:pj,management:!!R.management,site_head:!!R.site_head};row[k]=c.checked;
   admSave(!row.management&&!row.site_head?SB.from("access").delete().eq("email",em).eq("project",pj):SB.from("access").upsert(row))});
 function admAction(x){var a=x.getAttribute("data-adm"),em=x.getAttribute("data-em");
+  if(a==="view"){ADM.view=x.getAttribute("data-v");admRender();return}
+  if(/^em/.test(a)){emlAction(a,x);return}
   if(a==="open"){ADM.open=ADM.open===em?"":em;admRender();return}
   if(a==="copy"){var m=ADM.m.filter(function(z){return z.email===em})[0]||{},msg="Hi"+(m.full_name?" "+m.full_name.split(" ")[0]:"")+", you now have access to the Raghav Realty Control Tower.\n\nOpen "+location.origin+location.pathname+" and choose \"Create account\". Use this email: "+em+"\nYou will get an email to confirm it; after that, sign in with your new password.";
     (navigator.clipboard?navigator.clipboard.writeText(msg):Promise.reject()).then(function(){toast("Invite message copied")},function(){window.prompt("Copy this message:",msg)});return}
   if(a==="active"){var m2=ADM.m.filter(function(z){return z.email===em})[0];admSave(SB.from("members").update({active:!m2.active}).eq("email",em),m2.active?"Access switched off":"Access switched back on");return}
   if(a==="remove"){if(!confirm("Remove "+em+" and all their rights? They will no longer be able to sign in to see data."))return;ADM.open="";admSave(SB.from("members").delete().eq("email",em),"Removed "+em)}}
 document.addEventListener("click",function(e){var x=e.target.closest&&e.target.closest("[data-adm]");if(x){e.preventDefault();admAction(x)}});
+/* ---------- admin: scheduled management emails (setups in Supabase "email_jobs", sends logged in "email_sends") ---------- */
+var EML={jobs:[],sends:[],loaded:false,busy:false,err:"",missing:false,ed:null,prev:null,phone:false};
+var EM_SEC=[["decisions","Decisions for you","up to 3 things that need the reader, worst first"],["cards","Project cards","one card per project against its usual month; quiet projects on one line"],["channel","Channel partners","share of bookings through CPs"],["realisation","₹ per sq ft","per project, and CP vs direct after brokerage"]];
+var EM_LISTS=[["to_list","To"],["cc_list","Cc"],["bcc_list","Bcc"]];
+function emlLoad(){if(!SB||!SESSION)return;EML.busy=true;
+  Promise.all([SB.from("email_jobs").select("*").order("name"),SB.from("email_sends").select("*").order("at",{ascending:false}).limit(30)]).then(function(r){
+    EML.busy=false;var e=r.filter(function(x){return x.error})[0];EML.missing=!!(e&&(e.error.code==="42P01"||/does not exist|schema cache/i.test(e.error.message||"")));
+    EML.err=e&&!EML.missing?e.error.message:"";EML.jobs=r[0].data||[];EML.sends=r[1].data||[];EML.loaded=true;if(tab==="admin"&&ADM.view==="email")admRender()})}
+function emHour(h){return(h%12||12)+":00 "+(h<12?"AM":"PM")}
+function emOrd(d){return d+(d%10===1&&d!==11?"st":d%10===2&&d!==12?"nd":d%10===3&&d!==13?"rd":"th")}
+function emProj(p){return!p||p.indexOf("*")>=0?"All projects":p.join(", ")}
+function emYms(){var out=[],y=SalesReport.lastFullMonth();for(var i=0;i<6;i++){var Y=+y.slice(0,4),M=+y.slice(5,7)-1-i;Y+=Math.floor(M/12);M=((M%12)+12)%12;out.push(Y+"-"+(M<9?"0":"")+(M+1))}return out}
+function emBlank(){return{id:null,name:"Monthly sales report",active:true,projects:["*"],to_list:[],cc_list:[],bcc_list:[],day_of_month:1,send_hour:9,sections:{decisions:true,cards:true,channel:true,realisation:true},ym:SalesReport.lastFullMonth()}}
+// read what is typed on the editor into the draft before anything re-draws it
+function emlSync(){var d=EML.ed;if(!d||!$("emName"))return;d.name=$("emName").value;d.active=$("emActive").checked;d.day_of_month=+$("emDay").value;d.send_hour=+$("emHour").value;d.ym=$("emYm").value;
+  EM_SEC.forEach(function(s){var c=$("emS_"+s[0]);if(c)d.sections[s[0]]=c.checked});
+  if($("emAll").checked)d.projects=["*"];else d.projects=[].slice.call(document.querySelectorAll("[data-emp]")).filter(function(c){return c.checked}).map(function(c){return c.getAttribute("data-emp")});
+  EM_LISTS.forEach(function(l){var i=document.querySelector('.chipin[data-l="'+l[0]+'"]');if(i&&i.value.trim())emAddChip(l[0],i.value)})}
+function emAddChip(l,v){var d=EML.ed,bad=[];String(v).split(/[,;\s]+/).forEach(function(s){s=s.trim().toLowerCase();if(!s)return;if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s)){bad.push(s);return}if(d[l].indexOf(s)<0)d[l].push(s)});if(bad.length)toast("Not an email: "+bad.join(", "));return!bad.length}
+function emlRender(){
+  if(!EML.loaded){if(!EML.busy)emlLoad();return'<section class="card"><h2>Emails</h2><div class="sub">Loading…</div></section>'}
+  if(EML.missing)return'<section class="card hwarn" role="alert"><h2>One step first</h2><div class="sub" style="margin:0">Run <b>supabase/email.sql</b> once in Supabase → SQL Editor, then open this tab again.</div></section>';
+  var h=(EML.err?'<section class="card hwarn" role="alert">'+esc(EML.err)+'</section>':"")+(EML.ed?emlEditor():emlList());
+  var hist=EML.sends.map(function(s){return'<tr><td style="white-space:nowrap">'+esc(new Date(s.at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}))+'</td><td>'+esc(s.job_name||"")+'</td><td>'+esc(s.period?ymLab(+s.period.replace("-","")):"")+'</td><td>'+(s.kind==="test"?"Test to "+esc(s.sent_by||""):"Scheduled · "+fmt(s.to_count||0)+" recipients")+'</td><td>'+(s.ok?'<span class="atag ok">Sent</span>':'<span class="atag bad" title="'+esc(s.error||"")+'">Failed</span> <span class="dim">'+esc((s.error||"").slice(0,80))+'</span>')+'</td></tr>'}).join("");
+  return h+'<section class="card"><h2>Send history</h2><div class="sub">Every email sent from here, latest 30.</div><table class="alog"><tbody>'+(hist||'<tr><td>Nothing sent yet.</td></tr>')+'</tbody></table></section>';
+}
+function emlList(){
+  var rows=EML.jobs.map(function(j){var n=(j.to_list||[]).length,c=(j.cc_list||[]).length,b=(j.bcc_list||[]).length;
+    return'<tr><td><b>'+esc(j.name)+'</b>'+(j.active?'<span class="atag ok">On</span>':'<span class="atag off">Paused</span>')+'<div class="dim" style="font-size:12px">'+esc(emProj(j.projects))+'</div></td><td style="white-space:normal">'+(n?"To "+n:'<span style="color:var(--bad)">No recipient</span>')+(c?" · Cc "+c:"")+(b?" · Bcc "+b:"")+'<div class="dim" style="font-size:12px">'+esc(emOrd(j.day_of_month)+" of each month, "+emHour(j.send_hour)+" IST")+'</div></td><td><button class="abtn ghost" data-adm="emedit" data-id="'+esc(j.id)+'">Edit</button></td></tr>'}).join("");
+  return'<section class="card"><h2>Scheduled emails</h2><div class="sub">Each email reports the last full month for the projects you pick, from noreply@raghavgroup.in. Automatic monthly sending is switched on in the next step; until then use “Send test to me” to check one.</div>'+
+    '<button class="abtn" data-adm="emnew">New email</button>'+
+    (rows?'<table class="admt" style="margin-top:12px"><thead><tr><th>Email</th><th>Recipients · schedule</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="note" style="margin-top:10px">No emails set up yet.</div>')+'</section>';
+}
+function emlEditor(){var d=EML.ed,all=d.projects.indexOf("*")>=0,projs=projList().filter(function(p){return p&&p!=="All"}).sort();
+  var people=ADM.m.filter(function(m){return m.active}).map(function(m){return'<option value="'+esc(m.email)+'">'+esc(m.full_name||"")+'</option>'}).join("");
+  var chips=EM_LISTS.map(function(l){return'<div class="erow"><label class="elab">'+l[1]+'</label><div class="chips">'+d[l[0]].map(function(e,i){return'<span class="chip">'+esc(e)+'<button type="button" data-adm="emchipx" data-l="'+l[0]+'" data-i="'+i+'" aria-label="Remove '+esc(e)+'">×</button></span>'}).join("")+
+    '<input class="chipin" data-l="'+l[0]+'" list="emPeople" type="email" placeholder="'+(d[l[0]].length?"Add another":"Add a person or any email")+'" aria-label="Add '+l[1]+' recipient"></div></div>'}).join("");
+  var days="";for(var i=1;i<=28;i++)days+='<option value="'+i+'"'+(i===d.day_of_month?" selected":"")+'>'+emOrd(i)+'</option>';
+  var hrs="";for(var k=6;k<=22;k++)hrs+='<option value="'+k+'"'+(k===d.send_hour?" selected":"")+'>'+emHour(k)+'</option>';
+  var yms=emYms().map(function(y){return'<option value="'+y+'"'+(y===d.ym?" selected":"")+'>'+ymLab(+y.replace("-",""))+'</option>'}).join("");
+  var pj='<label class="echk all"><input type="checkbox" id="emAll"'+(all?" checked":"")+'> All projects, including future ones</label>'+projs.map(function(p){var on=all||d.projects.indexOf(p)>=0;return'<label class="echk'+(all?" cov":"")+'"><input type="checkbox" data-emp="'+esc(p)+'"'+(on?" checked":"")+(all?' disabled title="Covered by All projects"':"")+'> '+esc(p)+'</label>'}).join("");
+  var secs=EM_SEC.map(function(s){return'<label class="echk wide"><input type="checkbox" id="emS_'+s[0]+'"'+(d.sections[s[0]]!==false?" checked":"")+'> <b>'+s[1]+'</b> <span class="dim">'+s[2]+'</span></label>'}).join("");
+  return'<section class="card" id="emEd"><h2>'+(d.id?"Edit email":"New email")+'</h2><div class="sub">Headline, the 4 numbers (net bookings, sales value, walk-ins, conversion) and the link to the Control Tower are always in. Pick the rest below.</div>'+
+    '<div class="erow"><label class="elab" for="emName">Name</label><input id="emName" class="einp" maxlength="120" value="'+esc(d.name)+'"><label class="echk" style="margin-left:8px"><input type="checkbox" id="emActive"'+(d.active?" checked":"")+'> On</label></div>'+
+    '<datalist id="emPeople">'+people+'</datalist><div class="egroup"><div class="eh">Recipients</div>'+chips+'<div class="note">Pick from the people list or type any email; press Enter after each.</div></div>'+
+    '<div class="egroup"><div class="eh">Projects in this email</div><div class="egrid">'+pj+'</div></div>'+
+    '<div class="egroup"><div class="eh">When</div><div class="erow"><label class="elab" for="emDay">Day</label><select id="emDay" class="einp sm">'+days+'</select><label class="elab" for="emHour" style="width:auto;margin-left:6px">at</label><select id="emHour" class="einp sm">'+hrs+'</select><span class="dim">India time · reports the month before</span></div></div>'+
+    '<div class="egroup"><div class="eh">Sections</div>'+secs+'</div>'+
+    '<div class="egroup"><div class="erow"><label class="elab" for="emYm">Preview month</label><select id="emYm" class="einp sm">'+yms+'</select><span class="dim">for Preview and Send test only</span></div></div>'+
+    '<div class="aact"><button class="abtn" data-adm="emsave">Save</button><button class="abtn ghost" data-adm="emprev">Preview</button><button class="abtn ghost" data-adm="emtest">Send test to me</button><button class="abtn ghost" data-adm="emback">Back</button>'+(d.id?'<button class="abtn danger" data-adm="emdel">Delete</button>':"")+'</div></section>';
+}
+function emPayload(d){return{id:d.id,name:d.name.trim()||"Sales report",projects:d.projects,sections:d.sections,ym:d.ym}}
+function emPreview(){var d=EML.ed,o;try{o=SalesReport.build(DATA,{ym:d.ym,projects:d.projects,sections:d.sections,url:location.origin+location.pathname})}catch(e){toast("Could not build the preview");console.error(e);return}
+  EML.prev=o;var m=$("emModal");if(!m){m=document.createElement("div");m.id="emModal";m.className="emodal";document.body.appendChild(m)}
+  m.innerHTML='<div class="ebox" role="dialog" aria-modal="true" aria-label="Email preview"><div class="ebar"><div><div class="dim" style="font-size:11.5px">Subject</div><b>'+esc(o.subject)+'</b></div><div class="eacts"><div class="aseg sm"><button data-emv="d" aria-selected="'+!EML.phone+'">Desktop</button><button data-emv="p" aria-selected="'+EML.phone+'">Phone</button></div><button class="abtn ghost" data-emx="1" aria-label="Close preview">Close</button></div></div><div class="eframe'+(EML.phone?" ph":"")+'"><iframe title="Email preview" sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe></div></div>';
+  m.querySelector("iframe").srcdoc=o.html;m.hidden=false}
+document.addEventListener("click",function(e){var t=e.target;if(!t.closest)return;var m=$("emModal");if(!m||m.hidden)return;
+  if(t.closest("[data-emx]")||t===m){m.hidden=true;return}
+  var v=t.closest("[data-emv]");if(v){EML.phone=v.getAttribute("data-emv")==="p";emPreview()}});
+document.addEventListener("keydown",function(e){var m=$("emModal");if(e.key==="Escape"&&m&&!m.hidden)m.hidden=true;
+  var i=e.target;if(i.classList&&i.classList.contains("chipin")&&(e.key==="Enter"||e.key===","||e.key===";")){e.preventDefault();if(!i.value.trim())return;emlSync();admRender();var n=document.querySelector('.chipin[data-l="'+i.getAttribute("data-l")+'"]');if(n)n.focus()}});
+document.addEventListener("change",function(e){var c=e.target;if(c.id==="emAll"){emlSync();admRender()}
+  // a pick from the people list adds the chip at once
+  else if(c.classList&&c.classList.contains("chipin")&&/@/.test(c.value)&&ADM.m.some(function(m){return m.email===c.value.trim().toLowerCase()})){emlSync();admRender()}});
+function emlAction(a,x){
+  if(a==="emnew"){EML.ed=emBlank();admRender();return}
+  if(a==="emedit"){var j=EML.jobs.filter(function(z){return z.id===x.getAttribute("data-id")})[0];if(!j)return;
+    EML.ed={id:j.id,name:j.name,active:j.active,projects:(j.projects||["*"]).slice(),to_list:(j.to_list||[]).slice(),cc_list:(j.cc_list||[]).slice(),bcc_list:(j.bcc_list||[]).slice(),day_of_month:j.day_of_month,send_hour:j.send_hour,sections:Object.assign({decisions:true,cards:true,channel:true,realisation:true},j.sections||{}),ym:SalesReport.lastFullMonth()};admRender();return}
+  if(a==="emback"){EML.ed=null;admRender();return}
+  emlSync();var d=EML.ed;if(!d)return;
+  if(a==="emchipx"){d[x.getAttribute("data-l")].splice(+x.getAttribute("data-i"),1);admRender();return}
+  if(!d.projects.length){toast("Pick at least one project");admRender();return}
+  if(a==="emprev"){admRender();emPreview();return}
+  if(a==="emsave"){if(!d.name.trim()){toast("Give the email a name");return}if(d.active&&!d.to_list.length){toast("Add at least one To recipient, or switch it off");admRender();return}
+    var row={name:d.name.trim(),active:d.active,projects:d.projects,to_list:d.to_list,cc_list:d.cc_list,bcc_list:d.bcc_list,day_of_month:d.day_of_month,send_hour:d.send_hour,sections:d.sections};
+    (d.id?SB.from("email_jobs").update(row).eq("id",d.id).select():SB.from("email_jobs").insert(row).select()).then(function(r){if(r.error){toast("Not saved: "+r.error.message);return}toast("Saved");if(r.data&&r.data[0])d.id=r.data[0].id;emlLoad()});return}
+  if(a==="emdel"){if(!confirm("Delete “"+d.name+"”? Its send history stays."))return;SB.from("email_jobs").delete().eq("id",d.id).then(function(r){if(r.error){toast("Not deleted: "+r.error.message);return}toast("Deleted");EML.ed=null;emlLoad()});return}
+  if(a==="emtest"){if(x.disabled)return;x.disabled=true;x.textContent="Sending…";
+    fetch("/api/email",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+SESSION.access_token},body:JSON.stringify({action:"test",job:emPayload(d)})})
+      .then(function(r){return r.json().catch(function(){return{message:"Server said "+r.status}}).then(function(j){return{ok:r.ok,j:j}})})
+      .then(function(o){toast(o.ok?"Test sent to "+o.j.to:"Not sent: "+(o.j.message||o.j.error||"unknown"));emlLoad()},function(){toast("Not sent: no connection")})
+      .then(function(){x.disabled=false;x.textContent="Send test to me"});return}
+}
 function render(){
   if(!DATA)return;
   $("tabAdm").setAttribute("aria-selected",tab==="admin");APP.classList.toggle("admtab",tab==="admin");
@@ -2248,7 +2369,7 @@ function render(){
   if(det)$("dtitle").textContent=tab==="site"?(REC[focus]||M(focus).label):M(focus).label;
   drawCharts();
   var q=DATA.Q;
-  $("srcnote").innerHTML='<span>Source: '+esc(DATA.file||"All Data.xlsx")+' — Walk-in, Closing Targets, Sourcing Targets, Inventory Status</span><span>'+fmt(q.rows)+' walk-in rows · '+fmt(INV.length)+' units</span>'+(q.noVisitDate||q.noFreshRevisit?'<span title="Rows the sheet is missing values for">Data gaps: '+fmt(q.noVisitDate)+' without visit date, '+fmt(q.noFreshRevisit)+' without Fresh/Revisit</span>':"")+'<span>Personal details are never loaded.</span>';
+  $("srcnote").innerHTML='<span>Source: '+esc(DATA.file||"All Data.xlsx")+' — Walk-in, Closing Targets, Sourcing Targets, Inventory Status</span><span>'+fmt(q.rows)+' walk-in rows · '+fmt(INV.length)+' units</span>'+(q.noVisitDate||q.noFreshRevisit?'<span title="Rows the sheet is missing values for">Data gaps: '+fmt(q.noVisitDate)+' without visit date, '+fmt(q.noFreshRevisit)+' without Fresh/Revisit</span>':"")+'<span>Customer names are shown only to Site Head users. Phone, email and remarks are never loaded.</span>';
 }
 function drawCharts(){charts.forEach(function(c){var el=document.querySelector(c[0]);if(el){colChart(el,c[1],c[2]);if(c[2].ach){var a=el.parentNode.querySelector(".achp");if(a)achChart(a,c[1],el)}}})}
 // achievement % by month, in its own panel under the bars (never a second axis on the bar chart):

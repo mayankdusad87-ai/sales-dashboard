@@ -33,6 +33,14 @@ async function whoIs(token) {
 
 const CACHE_MS = (+process.env.CACHE_SECONDS || 300) * 1000;
 let cache = { at: 0, body: null, pending: null };
+// the cleaned dataset, from memory when it is fresh enough (shared with api/email.js)
+async function getData(fresh) {
+  if (!cache.body || fresh || Date.now() - cache.at > CACHE_MS) {
+    if (!cache.pending) cache.pending = load().then((b) => { cache = { at: Date.now(), body: b, pending: null }; return b; }, (e) => { cache.pending = null; throw e; });
+    await cache.pending;
+  }
+  return cache.body;
+}
 
 function client() {
   const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
@@ -130,10 +138,7 @@ module.exports = async (req, res) => {
   }
   try {
     const fresh = req.query && req.query.fresh === "1";
-    if (!cache.body || fresh || Date.now() - cache.at > CACHE_MS) {
-      if (!cache.pending) cache.pending = load().then((b) => { cache = { at: Date.now(), body: b, pending: null }; return b; }, (e) => { cache.pending = null; throw e; });
-      await cache.pending;
-    }
+    await getData(fresh);
     // signed in: only that person's projects; old mode: everything, with names only behind the shared password
     if (me) return send(res, 200, scope(cache.body, me));
     if (!cache.pub) cache.pub = JSON.stringify(pass ? cache.body : Object.assign({}, cache.body, { NM: null }));
@@ -145,3 +150,8 @@ module.exports = async (req, res) => {
     res.end(JSON.stringify({ error: "load", message: String(e.message || e) }));
   }
 };
+
+// shared with api/email.js
+module.exports.getData = getData;
+module.exports.whoIs = whoIs;
+module.exports.SB = { url: SB_URL, anon: SB_ANON };
