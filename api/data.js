@@ -4,6 +4,32 @@
 const { JWT } = require("google-auth-library");
 const XLSX = require("xlsx");
 const { cleanAll, TABS } = require("../lib/clean");
+const { scope } = require("../lib/scope");
+
+// Sign-in (Supabase). The URL and anon key are public by design; they can be overridden in Vercel.
+const SB_URL = process.env.SUPABASE_URL || "https://iqazttfvyaihzktfvuzq.supabase.co";
+const SB_ANON = process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxYXp0dGZ2eWFpaHprdGZ2dXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUyMzM2MTQsImV4cCI6MjExMDgwOTYxNH0.iGGgHGRH-kE1_QibRoiy3sz8_6M0rE_f0KnPi94zmx4";
+// LOGIN_REQUIRED=1 in Vercel: nobody sees data without signing in. Until then, signing in is optional.
+const LOGIN = process.env.LOGIN_REQUIRED === "1";
+
+// who is calling, and what they may see (checked against Supabase with the caller's own token)
+const who = new Map();
+async function whoIs(token) {
+  const hit = who.get(token);
+  if (hit && Date.now() - hit.at < 60000) return hit.me;
+  const h = { apikey: SB_ANON, Authorization: "Bearer " + token };
+  const u = await fetch(SB_URL + "/auth/v1/user", { headers: h });
+  if (!u.ok) return null;
+  const user = await u.json();
+  const email = String(user.email || "").toLowerCase();
+  const m = await fetch(SB_URL + "/rest/v1/members?select=email,full_name,is_admin,active,access(project,management,site_head)&email=eq." + encodeURIComponent(email), { headers: h });
+  const rows = m.ok ? await m.json() : [];
+  const r = rows[0];
+  const me = !r || !r.active ? { email: email, none: true } : { email: email, name: r.full_name, admin: r.is_admin, access: r.access || [] };
+  if (who.size > 500) who.clear();
+  who.set(token, { at: Date.now(), me: me });
+  return me;
+}
 
 const CACHE_MS = (+process.env.CACHE_SECONDS || 300) * 1000;
 let cache = { at: 0, body: null, pending: null };
@@ -65,23 +91,42 @@ async function load() {
   const missing = Object.values(TABS).filter((n) => !find(n));
   const data = cleanAll(
     { walkin: tab(TABS.walkin), closing: tab(TABS.closing), sourcing: tab(TABS.sourcing), inventory: tab(TABS.inventory), bookings },
-    // customer names are sent only when the dashboard is password-protected
-    { asOf: new Date().toISOString(), file: meta.name, names: !!process.env.DASHBOARD_PASSWORD }
+    // customer names are read here but only ever sent to signed-in people with Site Head rights (see lib/scope.js),
+    // or to everyone behind the old shared password
+    { asOf: new Date().toISOString(), file: meta.name, names: true }
   );
   data.sheetModified = meta.modifiedTime;
   data.missingTabs = missing;
   data.bookingSource = bookings ? "Booking details" : "";
   if (bookingError) data.bookingError = bookingError;
-  return JSON.stringify(data);
+  return data;
+}
+
+function send(res, code, body) {
+  res.statusCode = code;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "private, no-store");
+  res.end(typeof body === "string" ? body : JSON.stringify(body));
 }
 
 module.exports = async (req, res) => {
   const pass = process.env.DASHBOARD_PASSWORD;
-  if (pass && req.headers["x-dashboard-key"] !== pass) {
-    res.statusCode = 401;
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ error: "password" }));
-    return;
+  const auth = String(req.headers.authorization || "");
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  let me = null;
+  try {
+    if (token) {
+      me = await whoIs(token);
+      if (!me) return send(res, 401, { error: "login" });
+      if (me.none) return send(res, 403, { error: "noaccess", email: me.email });
+    } else if (LOGIN) {
+      return send(res, 401, { error: "login" });
+    } else if (pass && req.headers["x-dashboard-key"] !== pass) {
+      return send(res, 401, { error: "password" });
+    }
+  } catch (e) {
+    console.error(e);
+    return send(res, 502, { error: "auth", message: "Could not check the sign-in. Try again in a minute." });
   }
   try {
     const fresh = req.query && req.query.fresh === "1";
@@ -89,10 +134,10 @@ module.exports = async (req, res) => {
       if (!cache.pending) cache.pending = load().then((b) => { cache = { at: Date.now(), body: b, pending: null }; return b; }, (e) => { cache.pending = null; throw e; });
       await cache.pending;
     }
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.setHeader("Cache-Control", "private, no-store");
-    res.end(cache.body);
+    // signed in: only that person's projects; old mode: everything, with names only behind the shared password
+    if (me) return send(res, 200, scope(cache.body, me));
+    if (!cache.pub) cache.pub = JSON.stringify(pass ? cache.body : Object.assign({}, cache.body, { NM: null }));
+    return send(res, 200, cache.pub);
   } catch (e) {
     console.error(e);
     res.statusCode = 500;

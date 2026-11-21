@@ -634,6 +634,34 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 .box input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);margin-bottom:10px}
 .box button{width:100%;padding:9px;border:0;border-radius:8px;background:var(--bar2);color:#fff;font-weight:700;cursor:pointer}
 .err{color:var(--bad);font-weight:600;min-height:18px;font-size:12.5px}
+/* sign-in, account menu, admin */
+.aok{color:var(--good);font-weight:600;font-size:12.5px;margin-bottom:8px}.aok:empty{display:none}
+.alinks{display:flex;justify-content:space-between;gap:8px;margin-top:12px}
+.alinks button,.box .alinks button{width:auto;background:none;color:var(--bar2);padding:2px 0;font-weight:600;font-size:12.5px}
+.acct{position:relative}
+.acctm{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:var(--card);color:var(--ink);border-radius:12px;box-shadow:var(--shadow2);padding:12px;min-width:230px}
+.acctm b{display:block;font-size:13px}.acctm small{display:block;color:var(--muted);font-size:12px;margin:2px 0 10px;word-break:break-all}
+.acctm button{width:100%;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px;font-weight:600;cursor:pointer;color:var(--ink)}
+.adm{display:none;margin:0 14px 20px}
+.app.admtab .tiles,.app.admtab .vis,.app.admtab .focus,.app.admtab .cmd,.app.admtab .flt,.app.admtab .bar-m,.app.admtab #hwarn{display:none!important}
+.app.admtab .adm{display:block}.app.admtab{height:auto!important}
+.adm .card{margin-bottom:12px;padding:14px 18px}
+.adm h2{margin:0 0 4px;font-size:16px}.adm .sub{color:var(--muted);font-size:12.5px;margin-bottom:12px}
+.admadd{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.admadd input{flex:1 1 200px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
+.abtn{border:0;border-radius:8px;padding:8px 14px;font:inherit;font-weight:700;cursor:pointer;background:var(--bar2);color:#fff}
+.abtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}.abtn.danger{background:var(--card);color:var(--bad);border:1px solid var(--line)}
+.abtn:disabled{opacity:.5;cursor:default}
+.admt td,.admt th{text-align:left}.admt td{height:40px}
+.atag{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;background:var(--sel);color:var(--ink);margin-left:6px}
+.atag.off{background:var(--well);color:var(--muted)}.atag.adm1{background:var(--bar2);color:#fff}
+.agrid{margin:8px 0 12px;background:var(--well);border-radius:10px;padding:10px 12px}
+.agrid table td{height:32px}.agrid td:first-child,.agrid th:first-child{text-align:left}.agrid td,.agrid th{text-align:center}
+.agrid input{width:18px;height:18px;accent-color:var(--bar2);cursor:pointer}
+.agrid tr.all td{font-weight:700;border-bottom:2px solid var(--line)}
+.aact{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.alog td{white-space:normal;text-align:left;font-size:12px;height:auto;padding:6px 4px;vertical-align:top}
+.atoast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:8px 16px;border-radius:999px;font-weight:600;font-size:13px;z-index:60}
 
 /* branded loading screen */
 .ld{flex-direction:column;gap:20px;overflow:hidden;background:radial-gradient(120% 90% at 20% 0%,#4A2326 0%,#2A1E21 45%,#141012 100%);color:#fff;transition:opacity .55s ease,transform .55s ease,filter .55s ease}
@@ -830,11 +858,13 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
       <button role="tab" id="tabCmd" aria-selected="true" data-tab="cmd">Command<span class="tl2"> Centre</span></button>
       <button role="tab" id="tabMgmt" aria-selected="false" data-tab="mgmt">Management</button>
       <button role="tab" id="tabSite" aria-selected="false" data-tab="site">Site Head</button>
+      <button role="tab" id="tabAdm" aria-selected="false" data-tab="admin" hidden>Admin</button>
     </div>
     <span class="sp"></span>
     <span class="live" id="live"><i></i><span id="liveTxt">Loading…</span></span>
     <button class="tbtn" id="refresh" title="Load the latest data from the sheet">Refresh</button>
     <button class="tbtn" id="theme" title="Switch light / dark">Theme</button>
+    <span class="acct"><button class="tbtn" id="acct" hidden>Sign in</button><span class="acctm" id="acctMenu" hidden></span></span>
   </header>
 
   <div class="dbar" id="dbar"><button class="dback" id="dback" aria-label="Back to dashboard"><span aria-hidden="true">‹</span> Back</button><span class="dtitle" id="dtitle"></span></div>
@@ -857,6 +887,7 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
   <main class="cmd" id="cmd" style="display:none" aria-label="Command Centre"></main>
   <main class="vis" id="vis"></main>
   <main class="focus" id="focus" style="display:none" aria-live="polite"></main>
+  <main class="adm" id="adm" aria-label="Admin"></main>
   <footer class="srcnote" id="srcnote"></footer>
 </div>
 <div class="tip" id="tip"></div>
@@ -872,6 +903,20 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
     <button type="submit">Open dashboard</button>
   </form>
 </div>
+<div class="overlay" id="auth" style="display:none">
+  <form class="box" id="authForm" novalidate>
+    <img class="gatelogo" src="assets/logo.png" alt="Raghav Realty">
+    <h2 id="authT">Sign in to the Control Tower</h2>
+    <p id="authP">Use the email your admin gave access to.</p>
+    <input type="email" id="authEmail" autocomplete="username" placeholder="Email">
+    <input type="password" id="authPass" autocomplete="current-password" placeholder="Password">
+    <input type="password" id="authPass2" autocomplete="new-password" placeholder="Repeat password" hidden>
+    <div class="err" id="authErr" role="alert"></div>
+    <div class="aok" id="authOk" role="status"></div>
+    <button type="submit" id="authBtn">Sign in</button>
+    <div class="alinks" id="authLinks"></div>
+  </form>
+</div>
 <div class="overlay ld" id="loading" role="status" aria-live="polite">
   <i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i>
   <div class="ldcard">
@@ -883,6 +928,7 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
   <div class="ldfoot">Live from All Data · personal details never loaded</div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 (function(){
 "use strict";
@@ -972,6 +1018,8 @@ function ingest(d){
   INV=d.INV.map(function(r){return{proj:r[0],unit:r[1],floor:r[2],grp:r[3],st:r[4],area:r[5],type:r[6]}});
 }
 function pass(r,FF){
+  // each tab shows only the projects this person has that right for
+  if(ALLOW){var A=tab==="site"?ALLOW.st:ALLOW.mg;if(A&&!A.has(r.proj))return false}
   if(FF.proj&&r.proj!==FF.proj)return false;
   if(FF.cm&&r.cm!==FF.cm)return false;
   if(FF.sm&&r.sm!==FF.sm)return false;
@@ -1116,7 +1164,8 @@ function personList(key,T){var c={},t=today()-400;ROWS.forEach(function(r){if(r[
 function renderFilters(){
   setOpts($("fPer"),[["mtd","This month"],["lm","Last month"],["l30","Last 30 days"],["qtd","This quarter"],["fy","This FY to date"],["lfy","Last FY"],["l12","Last 12 months"],["all","All time"]].concat(recentMonths(18)),F.per);
   var pj=projList().map(function(p){return[p,lab(p)]});
-  setOpts($("fProj"),tab==="site"?pj.filter(function(o){return o[0]!=="All"}):[["","All projects"]].concat(pj),F.proj);
+  if(ALLOW){var AL=tab==="site"?ALLOW.st:ALLOW.mg;if(AL)pj=pj.filter(function(o){return AL.has(o[0])})}
+  setOpts($("fProj"),tab==="site"?pj.filter(function(o){return o[0]!=="All"}):[["",ALLOW&&ALLOW.mg?"All my projects":"All projects"]].concat(pj),F.proj);
   setOpts($("fCm"),[["","All"]].concat(personList("cm",CT).map(function(x){return[x,x]})),F.cm);
   setOpts($("fSm"),[["","All"]].concat(personList("sm",ST).map(function(x){return[x,x]})),F.sm);
   setOpts($("fSrc"),[["","All"],["Direct","Direct"],["Indirect","Indirect (Channel Partner)"]].concat(uniq("src").filter(function(s){return!isCP(s)}).map(function(s){return[s,s]})),F.src);
@@ -2054,8 +2103,59 @@ setInterval(function(){var c=document.getElementById("ccClock");if(c)c.textConte
 
 /* ---------- main render ---------- */
 var charts=[];
+/* ---------- admin: people, their rights per project, and a change log (writes go to Supabase; only admins may) ---------- */
+var ADM={m:[],a:[],log:[],open:"",loaded:false,busy:false,err:""};
+function toast(t){var d=document.createElement("div");d.className="atoast";d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},1800)}
+function admLoad(){if(!SB||!SESSION)return;ADM.busy=true;
+  Promise.all([SB.from("members").select("*").order("email"),SB.from("access").select("*"),SB.from("audit_log").select("*").order("at",{ascending:false}).limit(40)]).then(function(r){
+    ADM.busy=false;var e=r.filter(function(x){return x.error})[0];ADM.err=e?e.error.message:"";ADM.m=r[0].data||[];ADM.a=r[1].data||[];ADM.log=r[2].data||[];ADM.loaded=true;if(tab==="admin")admRender()})}
+function admRights(email){var o={};ADM.a.forEach(function(x){if(x.email===email)o[x.project]=x});return o}
+function admSummary(email){var R=admRights(email),mg=[],st=[];for(var p in R){if(R[p].management)mg.push(p==="*"?"all projects":p);if(R[p].site_head)st.push(p==="*"?"all projects":p)}
+  return(mg.length?"Management: "+mg.join(", "):"")+(mg.length&&st.length?" · ":"")+(st.length?"Site Head: "+st.join(", "):"")||"No rights yet"}
+function admRender(){var el=$("adm");if(!SB||!SESSION||!(ME&&ME.admin)){el.innerHTML='<section class="card"><h2>Admin</h2><div class="sub">Sign in as an admin to manage people.</div></section>';return}
+  if(!ADM.loaded){el.innerHTML='<section class="card"><h2>People and rights</h2><div class="sub">Loading…</div></section>';if(!ADM.busy)admLoad();return}
+  var projs=projList().filter(function(p){return p&&p!=="All"}).sort();
+  var rows=ADM.m.map(function(m){var open=ADM.open===m.email,me=SESSION.user&&SESSION.user.email===m.email;
+    var tr='<tr><td><b>'+esc(m.full_name||m.email)+'</b>'+(m.is_admin?'<span class="atag adm1">Admin</span>':"")+(m.active?"":'<span class="atag off">Switched off</span>')+'<div class="dim" style="font-size:12px">'+esc(m.email)+'</div></td><td style="white-space:normal">'+esc(m.is_admin&&!ADM.a.some(function(x){return x.email===m.email})?"Admin: sees everything":admSummary(m.email))+'</td><td><button class="abtn ghost" data-adm="open" data-em="'+esc(m.email)+'">'+(open?"Close":"Edit rights")+'</button></td></tr>';
+    if(open){var R=admRights(m.email),cb=function(p,k){var on=R[p]&&R[p][k];return'<input type="checkbox" data-acc="'+k+'" data-em="'+esc(m.email)+'" data-pj="'+esc(p)+'"'+(on?" checked":"")+' aria-label="'+(k==="management"?"Management":"Site Head")+' for '+esc(p==="*"?"all projects":p)+'">'};
+      tr+='<tr><td colspan="3"><div class="agrid"><table><thead><tr><th>Project</th><th>Management</th><th>Site Head</th></tr></thead><tbody><tr class="all"><td>All projects, including future ones</td><td>'+cb("*","management")+'</td><td>'+cb("*","site_head")+'</td></tr>'+
+        projs.map(function(p){return'<tr><td>'+esc(p)+'</td><td>'+cb(p,"management")+'</td><td>'+cb(p,"site_head")+'</td></tr>'}).join("")+'</tbody></table>'+
+        '<div class="note">Management = Control Tower and Management tabs. Site Head = Site Head tab, including customer names. Changes save at once and apply the next time the person loads the dashboard.</div>'+
+        '<div class="aact"><button class="abtn ghost" data-adm="copy" data-em="'+esc(m.email)+'">Copy invite message</button>'+(me?"":'<button class="abtn ghost" data-adm="active" data-em="'+esc(m.email)+'">'+(m.active?"Switch off access":"Switch access back on")+'</button><button class="abtn danger" data-adm="remove" data-em="'+esc(m.email)+'">Remove person</button>')+'</div></div></td></tr>'}
+    return tr}).join("");
+  var logRows=ADM.log.map(function(l){return'<tr><td style="white-space:nowrap">'+esc(new Date(l.at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}))+'</td><td>'+esc(l.actor||"system")+'</td><td>'+esc(admLogText(l))+'</td></tr>'}).join("");
+  el.innerHTML=(ADM.err?'<section class="card hwarn" role="alert">'+esc(ADM.err)+'</section>':"")+
+    '<section class="card"><h2>People and rights</h2><div class="sub">Add a person, then tick what they may see for each project. They create their own password with "Create account" on the sign-in screen.</div>'+
+    '<form class="admadd" id="admAdd"><input type="email" id="admEmail" placeholder="Email" required><input type="text" id="admName" placeholder="Full name"><button class="abtn" type="submit">Add person</button></form>'+
+    '<table class="admt" style="margin-top:12px"><thead><tr><th>Person</th><th>Can see</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></section>'+
+    '<section class="card"><h2>Change log</h2><div class="sub">Who gave or removed access, and when (latest 40).</div><table class="alog"><tbody>'+(logRows||'<tr><td>No changes yet.</td></tr>')+'</tbody></table></section>';
+}
+function admLogText(l){var d=l.detail||{},a=d.after||d,b=d.before;
+  if(/^access/.test(l.action)){var w=(a.management?"Management":"")+(a.management&&a.site_head?" + ":"")+(a.site_head?"Site Head":"");var pj=a.project==="*"?"all projects":a.project;
+    if(/delete/.test(l.action))return"Removed all rights on "+pj+" for "+a.email;return(w?"Gave "+w:"Removed rights")+" on "+pj+" to "+a.email}
+  if(/insert/.test(l.action))return"Added "+(a.full_name?a.full_name+" ("+a.email+")":a.email);
+  if(/delete/.test(l.action))return"Removed "+a.email;
+  if(b&&b.active!==a.active)return(a.active?"Switched access back on for ":"Switched off access for ")+a.email;
+  return"Updated "+a.email}
+function admSave(p,okText){ADM.busy=true;return p.then(function(r){ADM.busy=false;if(r&&r.error){toast("Not saved: "+r.error.message);ADM.loaded=false;admRender();return}toast(okText||"Saved");admLoad()})}
+document.addEventListener("submit",function(e){if(e.target.id!=="admAdd")return;e.preventDefault();
+  var em=$("admEmail").value.trim().toLowerCase(),nm=$("admName").value.trim();if(!/^\S+@\S+\.\S+$/.test(em)){toast("Enter a valid email");return}
+  if(ADM.m.some(function(m){return m.email===em})){ADM.open=em;admRender();return}
+  ADM.open=em;admSave(SB.from("members").insert({email:em,full_name:nm||null}),"Added "+em+". Now tick their rights.")});
+document.addEventListener("change",function(e){var c=e.target;if(!c.matches||!c.matches("[data-acc]"))return;
+  var em=c.getAttribute("data-em"),pj=c.getAttribute("data-pj"),k=c.getAttribute("data-acc"),R=admRights(em)[pj]||{management:false,site_head:false},row={email:em,project:pj,management:!!R.management,site_head:!!R.site_head};row[k]=c.checked;
+  admSave(!row.management&&!row.site_head?SB.from("access").delete().eq("email",em).eq("project",pj):SB.from("access").upsert(row))});
+function admAction(x){var a=x.getAttribute("data-adm"),em=x.getAttribute("data-em");
+  if(a==="open"){ADM.open=ADM.open===em?"":em;admRender();return}
+  if(a==="copy"){var m=ADM.m.filter(function(z){return z.email===em})[0]||{},msg="Hi"+(m.full_name?" "+m.full_name.split(" ")[0]:"")+", you now have access to the Raghav Realty Control Tower.\n\nOpen "+location.origin+location.pathname+" and choose \"Create account\". Use this email: "+em+"\nYou will get an email to confirm it; after that, sign in with your new password.";
+    (navigator.clipboard?navigator.clipboard.writeText(msg):Promise.reject()).then(function(){toast("Invite message copied")},function(){window.prompt("Copy this message:",msg)});return}
+  if(a==="active"){var m2=ADM.m.filter(function(z){return z.email===em})[0];admSave(SB.from("members").update({active:!m2.active}).eq("email",em),m2.active?"Access switched off":"Access switched back on");return}
+  if(a==="remove"){if(!confirm("Remove "+em+" and all their rights? They will no longer be able to sign in to see data."))return;ADM.open="";admSave(SB.from("members").delete().eq("email",em),"Removed "+em)}}
+document.addEventListener("click",function(e){var x=e.target.closest&&e.target.closest("[data-adm]");if(x){e.preventDefault();admAction(x)}});
 function render(){
   if(!DATA)return;
+  $("tabAdm").setAttribute("aria-selected",tab==="admin");APP.classList.toggle("admtab",tab==="admin");
+  if(tab==="admin"){["tabCmd","tabMgmt","tabSite"].forEach(function(i){$(i).setAttribute("aria-selected","false")});admRender();return}
   renderFilters();
   var P=period(F.per),Pv=prevOf(P),weekly=!!P.month;
   var S=stats(F,P),PS=Pv?stats(F,Pv):null;if(PS)PS.P=Pv;
@@ -2129,14 +2229,67 @@ function ldStart(){var el=$("loading");el.classList.remove("out");el.style.displ
 function ldDone(){clearInterval(ldT);var el=$("loading");if(el.style.display==="none")return;$("ldBar").style.width="100%";$("loadMsg").textContent="Ready";
   setTimeout(function(){el.classList.add("out");var a=document.querySelector(".app");a.classList.add("enter");setTimeout(function(){el.style.display="none";a.classList.remove("enter")},1100)},250)}
 function ldFail(msg){clearInterval(ldT);var m=$("loadMsg");m.className="ldstep bad";m.textContent=msg}
+/* ---------- sign-in (Supabase): each person has their own login; the server trims data to their rights ---------- */
+var SB_URL="https://iqazttfvyaihzktfvuzq.supabase.co",SB_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxYXp0dGZ2eWFpaHprdGZ2dXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUyMzM2MTQsImV4cCI6MjExMDgwOTYxNH0.iGGgHGRH-kE1_QibRoiy3sz8_6M0rE_f0KnPi94zmx4";
+var SB=null,SESSION=null,ME=null,ALLOW=null,AMODE="signin";
+try{if(window.supabase)SB=window.supabase.createClient(SB_URL,SB_ANON,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})}catch(e){SB=null}
+function authShow(mode,msg){AMODE=mode;$("loading").style.display="none";$("gate").style.display="none";$("auth").style.display="";
+  var T={signin:["Sign in to the Control Tower","Use the email your admin gave access to.","Sign in"],signup:["Create your account","Your admin must add your email first. Choose a password of at least 8 characters.","Create account"],
+    forgot:["Reset your password","We will email you a link to set a new password.","Send reset link"],reset:["Set a new password","At least 8 characters.","Save password"],
+    noaccess:["No access yet",msg||"Your account has no projects yet. Ask the admin to give you access.","Sign out"]}[mode];
+  $("authT").textContent=T[0];$("authP").textContent=T[1];$("authBtn").textContent=T[2];
+  $("authEmail").hidden=mode==="reset"||mode==="noaccess";$("authPass").hidden=mode==="forgot"||mode==="noaccess";$("authPass2").hidden=!(mode==="signup"||mode==="reset");
+  $("authPass").autocomplete=mode==="signin"?"current-password":"new-password";$("authErr").textContent="";$("authOk").textContent="";
+  $("authLinks").innerHTML=mode==="signin"?'<button type="button" data-amode="signup">Create account</button><button type="button" data-amode="forgot">Forgot password?</button>':mode==="noaccess"?"":'<button type="button" data-amode="signin">Back to sign in</button>';
+  setTimeout(function(){var el=!$("authEmail").hidden?$("authEmail"):!$("authPass").hidden?$("authPass"):$("authBtn");el.focus()},30)}
+function authErrText(m){m=String(m||"");if(/invalid login/i.test(m))return"Wrong email or password.";if(/not confirmed/i.test(m))return"Confirm your email first: open the link we sent you, then sign in.";
+  if(/database error|not been given access/i.test(m))return"This email has not been given access. Ask the admin to add you first.";if(/already registered|already been registered/i.test(m))return"An account already exists for this email. Sign in, or use Forgot password.";
+  if(/rate limit|too many/i.test(m))return"Too many attempts. Wait a few minutes and try again.";return m}
+function authBusy(b){$("authBtn").disabled=b}
+$("authForm").addEventListener("submit",function(e){e.preventDefault();if(!SB)return;
+  var em=$("authEmail").value.trim().toLowerCase(),pw=$("authPass").value,pw2=$("authPass2").value,err=$("authErr"),ok=$("authOk");err.textContent="";ok.textContent="";
+  var bad=function(t){err.textContent=t};
+  if(AMODE==="noaccess"){SB.auth.signOut();return}
+  if(AMODE!=="reset"&&!/^\S+@\S+\.\S+$/.test(em))return bad("Enter your email.");
+  if((AMODE==="signup"||AMODE==="reset")&&pw.length<8)return bad("Use at least 8 characters.");
+  if((AMODE==="signup"||AMODE==="reset")&&pw!==pw2)return bad("The two passwords are not the same.");
+  if(AMODE==="signin"&&!pw)return bad("Enter your password.");
+  authBusy(true);var back=location.origin+location.pathname;
+  var p=AMODE==="signin"?SB.auth.signInWithPassword({email:em,password:pw}):AMODE==="signup"?SB.auth.signUp({email:em,password:pw,options:{emailRedirectTo:back}}):
+    AMODE==="forgot"?SB.auth.resetPasswordForEmail(em,{redirectTo:back}):SB.auth.updateUser({password:pw});
+  p.then(function(r){authBusy(false);if(r.error)return bad(authErrText(r.error.message));
+    if(AMODE==="signup"&&!r.data.session)ok.textContent="Almost done: open the confirmation link we emailed you, then sign in.";
+    else if(AMODE==="forgot")ok.textContent="If this email has an account, a reset link is on its way.";
+    else if(AMODE==="reset"){ok.textContent="Password saved.";history.replaceState(null,"",back);setTimeout(function(){$("auth").style.display="none";ldStart();load()},600)}
+  }).catch(function(x){authBusy(false);bad(authErrText(x&&x.message))})});
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-amode]");if(b){e.preventDefault();authShow(b.getAttribute("data-amode"))}});
+// account button: "Sign in" when signed out (optional mode), or the person's menu
+function acctPaint(){var b=$("acct");if(!SB){b.hidden=true;return}b.hidden=false;b.textContent=SESSION?(ME&&ME.name?ME.name.split(" ")[0]:"Account"):"Sign in"}
+$("acct").onclick=function(e){e.stopPropagation();if(!SESSION){authShow("signin");return}var m=$("acctMenu");
+  if(!m.hidden){m.hidden=true;return}m.innerHTML='<b>'+esc(ME&&ME.name||"Signed in")+'</b><small>'+esc(SESSION.user&&SESSION.user.email||"")+'</small><button type="button" id="signout">Sign out</button>';m.hidden=false;
+  $("signout").onclick=function(){SB.auth.signOut()}};
+document.addEventListener("click",function(e){if(!e.target.closest(".acct"))$("acctMenu").hidden=true});
+// what this person may see: tabs and projects (the server already removed everything else)
+function applyRights(me){ME=me||null;
+  if(!ME){ALLOW=null;$("tabAdm").hidden=true;["tabCmd","tabMgmt","tabSite"].forEach(function(i){$(i).hidden=false});acctPaint();return}
+  ALLOW={mg:ME.mg==="*"?null:new Set(ME.mg),st:ME.st==="*"?null:new Set(ME.st),mgNone:ME.mg!=="*"&&!ME.mg.length,stNone:ME.st!=="*"&&!ME.st.length};
+  $("tabCmd").hidden=$("tabMgmt").hidden=ALLOW.mgNone;$("tabSite").hidden=ALLOW.stNone;$("tabAdm").hidden=!ME.admin;
+  if((tab==="cmd"||tab==="mgmt")&&ALLOW.mgNone)tab=ALLOW.stNone?(ME.admin?"admin":"cmd"):"site";
+  if(tab==="site"&&ALLOW.stNone)tab=ALLOW.mgNone?(ME.admin?"admin":"cmd"):"cmd";
+  if(tab==="admin"&&!ME.admin)tab="cmd";
+  if(ALLOW.mg&&F.proj&&!ALLOW.mg.has(F.proj)&&tab!=="site")F.proj="";
+  acctPaint()}
 function load(fresh){
-  var key=store("dashKey")||"";
-  return fetch("api/data"+(fresh?"?fresh=1":""),{headers:key?{"x-dashboard-key":key}:{},cache:"no-store"}).then(function(r){
-    if(r.status===401){$("loading").style.display="none";$("gate").style.display="";if(key)$("gateErr").textContent="That password did not work.";$("gatePass").focus();throw new Error("password")}
+  var key=store("dashKey")||"",hd={};if(key)hd["x-dashboard-key"]=key;if(SESSION&&SESSION.access_token)hd.Authorization="Bearer "+SESSION.access_token;
+  return fetch("api/data"+(fresh?"?fresh=1":""),{headers:hd,cache:"no-store"}).then(function(r){
+    if(r.status===403)return r.json().catch(function(){return{}}).then(function(j){authShow("noaccess",(j.email?j.email+" has":"Your account has")+" no projects yet. Ask the admin to give you access.");throw new Error("password")});
+    if(r.status===401)return r.json().catch(function(){return{}}).then(function(j){
+      if(j.error==="login"){if(SESSION){SB.auth.signOut()}authShow("signin");throw new Error("password")}
+      $("loading").style.display="none";$("gate").style.display="";if(key)$("gateErr").textContent="That password did not work.";$("gatePass").focus();throw new Error("password")});
     if(!r.ok)return r.json().catch(function(){return{}}).then(function(j){throw new Error(j.message||("Server error "+r.status))});
     return r.json();
   }).then(function(d){
-    loadErr="";ingest(d);lastLoad=Date.now();$("gate").style.display="none";
+    loadErr="";ingest(d);applyRights(d.me);lastLoad=Date.now();$("gate").style.display="none";$("auth").style.display="none";
     if(tab==="site"&&(!F.proj||F.proj==="All"))F.proj=siteProj();
     render();setLive();ldDone();
   }).catch(function(e){if(e.message==="password")return;loadErr="Could not load data";setLive();if(!DATA){ldFail("Could not load the data: "+e.message+". Try again in a minute.")}});
@@ -2162,9 +2315,10 @@ document.addEventListener("mouseout",function(e){if(!kpBtn||kpPinned)return;var 
 window.addEventListener("scroll",function(){if(kpBtn&&!isPhone()&&CAN_HOVER.matches)kpClose(false)},{passive:true});
 window.addEventListener("popstate",function(){if(focus)closeDetail()});
 $("dback").onclick=goBack;
-function setTab(t){tab=t;focus=null;if(t==="site"&&(!F.proj||F.proj==="All"))F.proj=siteProj();render()}
+function setTab(t){if(ALLOW&&((t==="site"&&ALLOW.stNone)||((t==="cmd"||t==="mgmt")&&ALLOW.mgNone)))return;if(t==="admin"&&!(ME&&ME.admin))return;
+  if(t!=="site"&&ALLOW&&ALLOW.mg&&F.proj&&!ALLOW.mg.has(F.proj))F.proj="";tab=t;focus=null;if(t==="site"&&(!F.proj||F.proj==="All"))F.proj=siteProj();render()}
 // a site head works on a real project: "All" in column B is not one
-function siteProj(){var p=projList().filter(function(x){return x!=="All"});return p[0]||""}
+function siteProj(){var p=projList().filter(function(x){return x!=="All"&&(!ALLOW||!ALLOW.st||ALLOW.st.has(x))});return p[0]||""}
 document.addEventListener("click",function(e){
   var t=e.target,x;
   if(t.closest("#kclose")||t.id==="kscrim"){kpClose(true);return}
@@ -2220,8 +2374,16 @@ var rz;window.addEventListener("resize",function(){clearTimeout(rz);rz=setTimeou
 setInterval(function(){if(!document.hidden)load()},REFRESH_MS);
 document.addEventListener("visibilitychange",function(){if(!document.hidden&&Date.now()-lastLoad>REFRESH_MS)load()});
 setInterval(setLive,60000);
-window.__dash={F:F,render:render,setTab:setTab,focus:function(id){focus=id||null;render()},ui:ui,stats:function(){return stats(F,period(F.per)).tot},targets:function(){return targets(F,period(F.per))}};
-ldStart();load();
+window.__dash={F:F,render:render,setTab:setTab,rights:function(me){applyRights(me);render()},focus:function(id){focus=id||null;render()},ui:ui,stats:function(){return stats(F,period(F.per)).tot},targets:function(){return targets(F,period(F.per))}};
+// start: wait for a saved sign-in (if any), then load; react to sign-in, sign-out and password-reset links
+if(SB){
+  SB.auth.onAuthStateChange(function(ev,s){
+    if(ev==="PASSWORD_RECOVERY"){SESSION=s;authShow("reset");return}
+    if(ev==="SIGNED_IN"){var had=!!SESSION;SESSION=s;if(!had&&AMODE!=="reset"){$("auth").style.display="none";ldStart();load()}return}
+    if(ev==="TOKEN_REFRESHED"||ev==="USER_UPDATED"){SESSION=s;return}
+    if(ev==="SIGNED_OUT"){SESSION=null;ME=null;location.reload()}});
+  SB.auth.getSession().then(function(r){SESSION=r.data.session;acctPaint();if(AMODE!=="reset"){ldStart();load()}}).catch(function(){ldStart();load()});
+}else{ldStart();load()}
 })();
 </script>
 </body>
