@@ -2248,7 +2248,7 @@ function admAction(x){var a=x.getAttribute("data-adm"),em=x.getAttribute("data-e
 document.addEventListener("click",function(e){var x=e.target.closest&&e.target.closest("[data-adm]");if(x){e.preventDefault();admAction(x)}});
 /* ---------- admin: scheduled management emails (setups in Supabase "email_jobs", sends logged in "email_sends") ---------- */
 var EML={jobs:[],sends:[],loaded:false,busy:false,err:"",missing:false,ed:null,prev:null,phone:false};
-var EM_SEC=[["decisions","Decisions for you","up to 3 things that need the reader, worst first"],["cards","Project cards","one card per project against its usual month; quiet projects on one line"],["channel","Channel partners","share of bookings through CPs"],["realisation","₹ per sq ft","per project, and CP vs direct after brokerage"]];
+var EM_SEC=[["decisions","Decisions for you","up to 3 things that need the reader, worst first"],["cards","Needs attention","a card only for projects with a problem: what is off and what to ask"],["channel","Channel partners","share of bookings through CPs"],["realisation","₹ per sq ft","column in the project table, against the last 3 months; price cut vs mix checked per configuration"]];
 var EM_LISTS=[["to_list","To"],["cc_list","Cc"],["bcc_list","Bcc"]];
 function emlLoad(){if(!SB||!SESSION)return;EML.busy=true;
   Promise.all([SB.from("email_jobs").select("*").order("name"),SB.from("email_sends").select("*").order("at",{ascending:false}).limit(30)]).then(function(r){
