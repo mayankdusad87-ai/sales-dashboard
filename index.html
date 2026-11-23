@@ -1083,11 +1083,11 @@ function ingest(d){
     d.BK.rows.forEach(function(b){var w=b[0]>=0?ROWS[b[0]]:null,o={};
       if(w)Object.assign(o,w);else f.forEach(function(k){o[k]=D[k]?"":-1});
       o.kind=3;o.vday=-1;o.uniq=false;o.wait=-1;o.won=0;o.bk=1;o.bday=b[2];o.cx=b[3];o.cday=b[4];o.av=b[5];o.carpet=b[6];
-      if(b[1])o.proj=b[1];if(b[7])o.cm=b[7];if(b[8])o.sm=b[8];if(b[9]){o.cp=b[9];o.src="Channel Partner"}else if(!w)o.src="Not linked";
+      if(b[1])o.proj=b[1];if(b[7])o.cm=b[7];if(b[8])o.sm=b[8];// channel of a booking comes from Booking details only: a CP firm in column R = Indirect, blank R = Direct
+      if(b[9]){o.cp=b[9];o.src="Channel Partner"}else{o.cp="";if(!w||isCP(o.src))o.src="Direct"}
       // configuration actually booked (Booking details AC), not the walk-in's preference
       if(b.length>12)o.cfg=b[12]||"";
-      // channel of the booking: a CP firm on the booking (or a CP walk-in) = indirect; other linked bookings = direct
-      o.chan=isCP(o.src)?"Indirect":w?"Direct":"Unknown";
+      o.chan=b[9]?"Indirect":"Direct";
       o.id=b[10];o.fv=b[11];o.linked=!!w;o.nm=w?w.nm:"";o.bkRow=1;
       (byK[fkey(b[10])]||[]).forEach(function(r){if(!b[3]){r.won=1;r.wonDay=b[2]}else if(!r.won)r.won=2});
       BKR.push(o)});
@@ -1454,7 +1454,7 @@ function nrMixCard(P){
   var rows=ks.map(function(k){var g=G[k],p=k.split("\u0001");return'<tr><td>'+(p.length>1?'<b>'+esc(p[0])+'</b> · ':"")+esc(p[p.length-1])+'</td><td>'+cell(g.a)+'</td><td>'+cell(g.d)+'</td><td>'+cell(g.i)+'</td><td>'+gap(g)+'</td></tr>'}).join("");
   var D=nrSum(all.d),I=nrSum(all.i),gp=D.n&&I.n?(I.v-D.v)/D.v*100:null,unk=all.a.length-all.d.length-all.i.length;
   var head='<div class="nrcmp"><div><small>Direct</small><b>'+rs(D.v)+'</b><i>'+D.n+' bookings</i></div><div><small>Indirect (CP), after brokerage</small><b>'+rs(I.v)+'</b><i>'+I.n+' bookings</i></div><div class="'+(gp!=null&&gp<-2?"lo":"")+'"><small>Indirect vs direct</small><b>'+(gp==null?"–":(gp>0?"+":"")+gp.toFixed(1)+"%")+'</b><i>'+(gp==null?"":gp<0?"CP bookings earn less per sq ft":"CP bookings earn more per sq ft")+'</i></div></div>';
-  return card("nrM","Like for like",esc(P.label)+(F.proj?" · "+esc(F.proj):" · by project and configuration"),"",head+'<table class="nrtab"><thead><tr><th>'+(F.proj?"Configuration":"Project · configuration")+'</th><th>All</th><th>Direct</th><th>Indirect</th><th>Gap</th></tr></thead><tbody>'+rows+'</tbody></table><div class="note">₹ per sq ft; small number = bookings. Grey = fewer than 3 bookings. Configuration from Booking details (AC). Indirect = channel partner bookings, after 2.25% brokerage.'+(unk?" "+unk+" bookings with no matching walk-in and no CP firm are in “All” only.":"")+'</div>',"auto");
+  return card("nrM","Like for like",esc(P.label)+(F.proj?" · "+esc(F.proj):" · by project and configuration"),"",head+'<table class="nrtab"><thead><tr><th>'+(F.proj?"Configuration":"Project · configuration")+'</th><th>All</th><th>Direct</th><th>Indirect</th><th>Gap</th></tr></thead><tbody>'+rows+'</tbody></table><div class="note">₹ per sq ft; small number = bookings. Grey = fewer than 3 bookings. Configuration from Booking details (AC). Indirect = bookings with a CP firm in Booking details column R, after 2.25% brokerage; Direct = column R blank.'+(unk?" "+unk+" bookings with no matching walk-in and no CP firm are in “All” only.":"")+'</div>',"auto");
 }
 /* ---------- management cards ---------- */
 // long periods: group months into quarters (or years) so all history fits instead of cutting to the last 24 months
@@ -1945,7 +1945,7 @@ function dataChecks(){
   // booking tracker: is it connected, and how many bookings match a walk-in by Form No
   if(DATA.bookingError)out.push({lvl:2,title:"Booking details could not be read",text:DATA.bookingError+". Bookings are taken from the Walk-in sheet until this is fixed.",fix:"Check the Booking details tab in All Data.xlsx: its heading row (within the first 10 rows) must include “Overall Status”."});
   else if(HAS_BK&&Q.bk){var B=Q.bk,nb=B.booked+B.cancelled,un=ROWS.filter(function(r){return r.bkRow&&!r.linked}),st=Object.keys(B.statuses).map(function(k){return k+" "+fmt(B.statuses[k])}).join(" · ");
-    out.push({lvl:un.length?1:0,title:fmt(nb-un.length)+" of "+fmt(nb)+" bookings matched a walk-in",text:"Bookings come from Booking details. A booking is linked when its Form No (column B) is in Walk-in column A; linked bookings get source, CP firm and first-visit date from the walk-in.",
+    out.push({lvl:un.length?1:0,title:fmt(nb-un.length)+" of "+fmt(nb)+" bookings matched a walk-in",text:"Bookings come from Booking details. A booking is linked when its Form No (column B) is in Walk-in column A; linked bookings get the first-visit date and customer details from the walk-in. Direct or Indirect comes from Booking details column R (CP firm): filled = Indirect, blank = Direct.",
       lines:[st].concat(un.filter(function(r){return!r.id}).length?[fmt(un.filter(function(r){return!r.id}).length)+" bookings have no Form No (column B)"]:[]).concat(un.filter(function(r){return r.id}).length?["Form No not in the Walk-in sheet: "+un.filter(function(r){return r.id}).slice(0,12).map(function(r){return r.id}).join(", ")+(un.filter(function(r){return r.id}).length>12?" and "+(un.filter(function(r){return r.id}).length-12)+" more":"")]:[]).concat(B.noStatus?[fmt(B.noStatus)+" rows have a Booking Date but no Overall Status, so they are not counted"]:[]).concat(RATE_OUT.length?[fmt(RATE_OUT.length)+" bookings have a ₹/sq ft more than 40% away from their project’s usual rate, so they are left out of realisation (sales value keeps them). Check agreement value (AH) and carpet area (AD): "+RATE_OUT.slice(0,8).map(function(r){return(r.id||"no Form No")+" ₹"+fmt(Math.round(r.av/r.carpet))}).join(", ")+(RATE_OUT.length>8?" and "+(RATE_OUT.length-8)+" more":"")]:[]).concat(B.cxBeforeBk&&B.cxBeforeBk.length?[fmt(B.cxBeforeBk.length)+" cancellations are dated before their booking, so they are counted in the booking month: "+B.cxBeforeBk.slice(0,8).map(function(x){return(x.id||"no Form No")+" (row "+x.row+")"}).join(", ")]:[]).concat(B.noValue?[fmt(B.noValue)+" bookings have no agreement value (AH)"]:[]).concat(B.noCarpet?[fmt(B.noCarpet)+" bookings have no carpet area (AD)"]:[]),
       fix:un.length?"Correct the Form No on these bookings so it matches the Walk-in sheet.":""})}
   // 1. dates after today
