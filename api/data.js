@@ -64,6 +64,8 @@ async function workbook(auth, id) {
   return { meta, wb: XLSX.read(Buffer.from(file.data), { type: "buffer", cellDates: true, dense: true }) };
 }
 const rowsOf = (ws) => XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "", blankrows: false });
+// Booking details keeps blank rows and starts at A1, so a row index + 1 is the row number seen in Google Sheets
+const sheetRows = (ws) => { const r = XLSX.utils.decode_range(ws["!ref"] || "A1"); r.s.r = 0; r.s.c = 0; return XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "", blankrows: true, range: r }); };
 
 async function load() {
   const id = process.env.SHEET_FILE_ID;
@@ -83,14 +85,14 @@ async function load() {
   const known = Object.values(TABS).map((n) => n.toLowerCase());
   const cands = wb.SheetNames.filter((n) => !known.includes(n.trim().toLowerCase()))
     .sort((a, b) => (/booking/i.test(b) ? 1 : 0) - (/booking/i.test(a) ? 1 : 0));
-  for (const n of cands) { const rows = rowsOf(wb.Sheets[n]); if (hasStatus(rows)) { bookings = rows; break; } }
+  for (const n of cands) { const rows = sheetRows(wb.Sheets[n]); if (hasStatus(rows)) { bookings = rows; break; } }
   const bid = bookings ? "" : process.env.BOOKING_FILE_ID;
   if (!bookings && cands.some((n) => /booking/i.test(n))) bookingError = "The “" + cands.find((n) => /booking/i.test(n)) + "” tab has no “Overall Status” heading in its first 10 rows";
   if (bid) {
     try {
       const b = (await workbook(auth, bid)).wb;
       for (const n of b.SheetNames) {
-        const rows = rowsOf(b.Sheets[n]);
+        const rows = sheetRows(b.Sheets[n]);
         if (hasStatus(rows)) { bookings = rows; bookingError = ""; break; }
       }
       if (!bookings) bookingError = "No tab with an “Overall Status” heading in Booking details";
