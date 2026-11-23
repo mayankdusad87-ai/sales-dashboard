@@ -1,6 +1,7 @@
 // POST /api/email — admins only.
 //   { action: "preview", job }  -> { subject, html, period, stats }
 //   { action: "test", job }     -> sends that email to the signed-in admin only, from noreply@raghavgroup.in
+//   { action: "send", job }     -> sends the SAVED setup (job.id) to its To/Cc/Bcc for job.ym; recipients come from the database, not the screen
 // "job" is the email setup as it stands on the admin screen (saved or not): name, projects, sections, ym (optional).
 // Every test send is written to email_sends. Scheduled sending (Phase 3) will reuse buildFor().
 const { getData, whoIs, SB } = require("./data");
@@ -58,12 +59,45 @@ module.exports = async (req, res) => {
   const job = clean(body.job);
 
   let out;
-  try { out = await buildFor(job); } catch (e) {
+  if (body.action !== "send") try { out = await buildFor(job); } catch (e) {
     console.error(e);
     return send(res, 500, { error: "build", message: "Could not build the report: " + String(e.message || e).slice(0, 200) });
   }
 
   if (body.action === "preview") return send(res, 200, { subject: out.subject, html: out.html, period: out.period, stats: out.stats });
+
+  if (body.action === "send") {
+    // the saved setup decides who gets it and what is in it; the screen only picks the month
+    if (!job.id) return send(res, 400, { error: "unsaved", message: "Save the email first." });
+    let saved;
+    try {
+      const r = await fetch(SB.url + "/rest/v1/email_jobs?select=*&id=eq." + job.id, { headers: { apikey: SB.anon, Authorization: "Bearer " + token } });
+      saved = r.ok ? (await r.json())[0] : null;
+    } catch (e) { saved = null; }
+    if (!saved) return send(res, 404, { error: "job", message: "This email setup was not found. Reload the page." });
+    const ok1 = (l) => (Array.isArray(l) ? l : []).map((s) => String(s).trim().toLowerCase()).filter((s) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s));
+    const to = ok1(saved.to_list), cc = ok1(saved.cc_list).filter((e) => to.indexOf(e) < 0), bcc = ok1(saved.bcc_list).filter((e) => to.indexOf(e) < 0 && cc.indexOf(e) < 0);
+    if (!to.length) return send(res, 400, { error: "to", message: "Add at least one To recipient and save." });
+    if (to.length + cc.length + bcc.length > 50) return send(res, 400, { error: "many", message: "At most 50 recipients in one email." });
+    const key = process.env.RESEND_API_KEY;
+    if (!key) return send(res, 500, { error: "config", message: "RESEND_API_KEY is not set in Vercel." });
+    const real = clean({ id: saved.id, name: saved.name, projects: saved.projects, sections: saved.sections, ym: job.ym });
+    let built;
+    try { built = await buildFor(real); } catch (e) { return send(res, 500, { error: "build", message: "Could not build the report: " + String(e.message || e).slice(0, 200) }); }
+    let ok = false, err = "";
+    try {
+      const msg = { from: FROM, to, subject: built.subject, html: built.html, headers: { "X-Entity-Ref-ID": "ct-send-" + Date.now() } };
+      if (cc.length) msg.cc = cc;
+      if (bcc.length) msg.bcc = bcc;
+      const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify(msg) });
+      const j = await r.json().catch(() => ({}));
+      ok = r.ok;
+      if (!ok) err = String(j.message || j.error || "Resend said " + r.status).slice(0, 300);
+    } catch (e) { err = String(e.message || e).slice(0, 300); }
+    const count = to.length + cc.length + bcc.length;
+    await logSend(token, { job_id: saved.id, job_name: saved.name, period: built.period, kind: "manual", to_count: count, ok, error: err || null, sent_by: me.email });
+    return ok ? send(res, 200, { sent: true, count, subject: built.subject }) : send(res, 502, { error: "send", message: err });
+  }
 
   if (body.action === "test") {
     const key = process.env.RESEND_API_KEY;
