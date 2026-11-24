@@ -217,6 +217,7 @@ select:hover{border-color:var(--bar1)}
 .vis.site>#sTrend,.vis.site>#sTeam,.vis.site>#sSrcCard{height:340px}
 .vis.site>#sCp,.vis.site>#sFix,.vis.site>#sDisc{grid-column:1/-1}
 .m2nt{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.m2nt b{font-size:13px}.m2nt span{font-size:12px;opacity:.75}.m2ntn{font-size:12.5px;line-height:1.45;padding:8px 12px;margin:8px 0 0;border-radius:10px;background:var(--warnbg)}
+.pjm{display:block;font-size:11px;opacity:.75;white-space:nowrap;font-weight:400}
 .dsc{border-top:1px solid rgba(0,0,0,.1)}.dsc summary{cursor:pointer;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;min-height:40px;padding:9px 2px}.dsc summary b{font-size:13px}.dsc summary span{font-size:12px;opacity:.8}.dsc summary .dn{margin-left:auto;font-weight:700;font-size:13px;opacity:1}.dsc .dtb{overflow-x:auto;padding-bottom:8px}.dsc td,.dsc th{text-align:left!important;white-space:nowrap}
 
 .cbd.auto{overflow:visible;flex:none}
@@ -1496,19 +1497,25 @@ function projCard(P){
   if(sel){if(all)keys=[sel].concat(keys.filter(function(k){return k!==sel}));else keys=[sel]}
   var mx=0;keys.forEach(function(k){if(S.G[k])mx=Math.max(mx,S.G[k].net)});
   // booking target per project = Closing Targets rows tagged with it in column C, for the months of the period;
-  // achievement compares net bookings in those same months only
-  var ms=monthsIn(P),PT={},tm=[],allT=0;
-  CT.forEach(function(x){if(ms.indexOf(x.ym)<0||!(x.t>0))return;allT+=x.t;if(!F.cm||x.m===F.cm){PT[x.p]=(PT[x.p]||0)+x.t;if(tm.indexOf(x.ym)<0)tm.push(x.ym)}});
-  var PP=clip(P,tm),SA=tm.length?stats(Object.assign({},F,{proj:""}),PP,function(r){return r.proj}).G:{},pace=achievePace(PP),totT=0,totA=0;
-  var achC=function(k){var tg=k==="All"?0:PT[k];if(!(tg>0))return'<td><span class="dim" title="No target tagged to this project in column C">–</span></td><td><span class="dim">–</span></td>';var a=(SA[k]||{net:0}).net,pc=a/tg*100;return'<td>'+fmt(tg)+'</td><td>'+pill(pc,stOf(pc,pace))+'</td>'};
-  var rows=keys.map(function(k){var s=S.G[k]||fin(blank()),u=iv[k];if(PT[k]>0&&k!=="All"){totT+=PT[k];totA+=(SA[k]||{net:0}).net}
+  // achievement counts net bookings only in the months where that same project has a target.
+  // With a source, CP firm or sourcing manager filter the bookings are only a part, so they are not set against the full target.
+  var noT=F.src||F.cp||F.sm,ms=monthsIn(P),PT={},PM={},tm=[],allT=0,NM={};
+  if(!noT)CT.forEach(function(x){if(ms.indexOf(x.ym)<0||!(x.t>0))return;allT+=x.t;if(!F.cm||x.m===F.cm){PT[x.p]=(PT[x.p]||0)+x.t;(PM[x.p]=PM[x.p]||{})[x.ym]=1;if(tm.indexOf(x.ym)<0)tm.push(x.ym)}});
+  tm.forEach(function(ym){NM[ym]=stats(Object.assign({},F,{proj:""}),{from:Math.max(P.from,monStart(ym)),to:Math.min(P.to,monEnd(ym))},function(r){return r.proj})});
+  var netIn=function(k,m){return m.reduce(function(a,ym){var g=k===null?NM[ym].tot:NM[ym].G[k];return a+(g?g.net:0)},0)};
+  var mons=function(k){return Object.keys(PM[k]).map(Number).sort()},paceOf=function(m){return achievePace(clip(P,m.slice()))};
+  var monLab=function(m){return m.length>1?ymLab(m[0])+"–"+ymLab(m[m.length-1])+(monthsIn({from:monStart(m[0]),to:monEnd(m[m.length-1])}).length>m.length?" ("+m.length+" months)":""):ymLab(m[0])};
+  var achCell=function(tg,a,m){var pc=a/tg*100,l=monLab(m);return'<td>'+fmt(tg)+'<small class="pjm">'+l+'</small></td><td title="'+fmt(a)+' net bookings in '+l+' against a target of '+fmt(tg)+'">'+pill(pc,stOf(pc,paceOf(m)))+'<small class="pjm">'+fmt(a)+' of '+fmt(tg)+'</small></td>'};
+  var noCell='<td><span class="dim">–</span></td><td><span class="dim">–</span></td>',totT=0,totA=0;
+  var achC=function(k){if(k==="All"||!(PT[k]>0))return noT?noCell:noCell.replace('class="dim"','class="dim" title="No target tagged to this project in column C"');return achCell(PT[k],netIn(k,mons(k)),mons(k))};
+  var rows=keys.map(function(k){var s=S.G[k]||fin(blank()),u=iv[k];
     return drow("proj",k,'<td title="'+esc(lab(k))+'">'+esc(lab(k))+'</td><td>'+fmt(s.fresh)+'</td><td>'+fmt(s.net)+'</td>'+achC(k)+'<td>'+fp(s.conv)+'</td><td>'+(HAS_BK?(s.av>0?fcr(s.sv):s.gross?'<span class="dim" title="Bookings have no agreement value (column AH)">–</span>':'<span class="dim">–</span>'):u?fmt(u.Unsold)+'<span class="dim">/'+fmt(u.tot)+'</span>':'<span class="dim">–</span>')+'</td>',F.proj===k)}).join("");
   var t=sel&&!all?(S.G[sel]||fin(blank())):S.tot,ti=inv(sel&&!all?sel:"");
   // total row: the picked project, or the whole company against every target row (tagged or "All")
-  var one=sel&&!all,ft=one?totT:Object.keys(PT).reduce(function(a,k){return a+PT[k]},0),fa=one?totA:(tm.length?stats(Object.assign({},F,{proj:""}),PP).tot.net:0);
-  var untag=PT.All>0&&!sel?'<div class="note">'+fmt(PT.All)+' of the '+fmt(allT)+' booking target is not tagged to a project yet (column C says “All”), so project achievement shows “–”.</div>':"";
+  var one=sel&&!all,ft=one?PT[sel]||0:Object.keys(PT).reduce(function(a,k){return a+PT[k]},0),fm=one?(PT[sel]>0?mons(sel):[]):tm.slice().sort(),fa=one?netIn(sel,fm):netIn(null,fm);
+  var untag=noT?'<div class="note">Targets are set per closing manager and project, so they are not compared while a source, CP firm or sourcing manager is picked.</div>':PT.All>0&&!sel?'<div class="note">'+fmt(PT.All)+' of the '+fmt(allT)+' booking target is not tagged to a project yet (column C says “All”), so project achievement shows “–”.</div>':"";
   var tg=sel?togs("pcmp",[["one",esc(lab(sel))+" only"],["all","All projects"]],all?"all":"one"):"";
-  return card("cProj","Projects",esc(P.label)+(sel&&!all?" · "+esc(lab(sel)):""),tg,keys.length?'<table><thead><tr><th>Project</th><th>Fresh</th><th>Net bkg</th><th>Target</th><th>Achieved</th><th>Conv</th><th>'+(HAS_BK?"Sales value":"Unsold")+'</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>'+(sel&&!all?esc(lab(sel))+" total":"Total")+'</td><td>'+fmt(t.fresh)+'</td><td>'+fmt(t.net)+'</td><td>'+(ft?fmt(ft):'<span class="dim">–</span>')+'</td><td>'+(ft?pill(fa/ft*100,stOf(fa/ft*100,pace)):'<span class="dim">–</span>')+'</td><td>'+fp(t.conv)+'</td><td>'+(HAS_BK?fcr(t.sv):fmt(ti.Unsold)+'<span class="dim">/'+fmt(ti.tot)+'</span>')+'</td></tr></tfoot></table>'+untag:empty("No walk-ins in this period"));
+  return card("cProj","Projects",esc(P.label)+(sel&&!all?" · "+esc(lab(sel)):"")+(noT?" · targets hidden for this filter":""),tg,keys.length?'<table><thead><tr><th>Project</th><th>Fresh</th><th>Net bkg</th><th>Target</th><th>Achieved</th><th>Conv</th><th>'+(HAS_BK?"Sales value":"Unsold")+'</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>'+(sel&&!all?esc(lab(sel))+" total":"Total")+'</td><td>'+fmt(t.fresh)+'</td><td>'+fmt(t.net)+'</td>'+(ft?achCell(ft,fa,fm):noCell)+'<td>'+fp(t.conv)+'</td><td>'+(HAS_BK?fcr(t.sv):fmt(ti.Unsold)+'<span class="dim">/'+fmt(ti.tot)+'</span>')+'</td></tr></tfoot></table>'+untag:empty("No walk-ins in this period"));
 }
 // limit a period to the months that have targets, so actuals and targets cover the same months
 function clip(P,tm){if(!tm.length)return P;tm.sort();var a=tm[0],b=tm[tm.length-1];return{from:Math.max(P.from,monStart(a)),to:Math.min(P.to,monEnd(b)),full:{to:monEnd(b)},label:a===b?ymLab(a):ymLab(a)+"–"+ymLab(b),clipped:monStart(a)>P.from||monEnd(b)<P.full.to}}
@@ -1564,10 +1571,11 @@ function channelCard(P,mode,site){
     body='<div class="lg"><span><i class="c-dir"></i>Direct</span><span><i class="c-ind"></i>Indirect</span><span class="dim">share of net bookings</span></div><table><thead><tr><th>Project</th><th></th><th>Indirect</th><th>Net</th></tr></thead><tbody>'+ks.map(function(k){var x=pj[k],t=x.D+x.I;
       return drow("proj",k,'<td>'+esc(lab(k))+'</td><td class="bar"><div class="stk"><i class="c-dir" style="width:'+(t?x.D/t*100:0)+'%"></i><i class="c-ind" style="width:'+(t?x.I/t*100:0)+'%"></i></div></td><td>'+fp(pct(x.I,t),0)+'</td><td>'+fmt(t)+'</td>',F.proj===k)}).join("")+'</tbody></table>';
   }else{
-    var S3=stats(Object.assign({},F,{cp:""}),P,function(r){return isCP(r.src)?r.cp:"\u0000"});delete S3.G["\u0000"];
+    // like Split and By project, the Source filter does not apply here
+    var S3=stats(Object.assign({},F,{cp:"",src:""}),P,function(r){return isCP(r.src)?r.cp:"\u0000"});delete S3.G["\u0000"];
     var cps=Object.keys(S3.G).filter(function(k){return k}).sort(function(a,b){return S3.G[b].net-S3.G[a].net||S3.G[b].fresh-S3.G[a].fresh}).slice(0,15),mx=0;
     cps.forEach(function(k){mx=Math.max(mx,S3.G[k].fresh)});
-    body=cps.length?'<table><thead><tr><th>CP firm</th><th>Fresh</th><th></th><th>Net bkg</th><th>Conv</th></tr></thead><tbody>'+cps.map(function(k){var s=S3.G[k];return drow("cp",k,'<td title="'+esc(k)+'">'+esc(k)+'</td><td>'+fmt(s.fresh)+'</td><td class="bar">'+hbar(s.fresh,mx)+'</td><td>'+fmt(s.net)+'</td><td>'+fp(s.conv)+'</td>',F.cp===k)}).join("")+'</tbody></table><div class="note">Top 15 by bookings. Click a firm to filter.</div>':empty("No channel-partner walk-ins in this period");
+    body=cps.length?'<table><thead><tr><th>CP firm</th><th>Fresh</th><th></th><th>Net bkg</th><th>Conv</th></tr></thead><tbody>'+cps.map(function(k){var s=S3.G[k];return drow("cp",k,'<td title="'+esc(k)+'">'+esc(k)+'</td><td>'+fmt(s.fresh)+'</td><td class="bar">'+hbar(s.fresh,mx)+'</td><td>'+fmt(s.net)+'</td><td>'+fp(s.conv)+'</td>',F.cp===k)}).join("")+'</tbody></table><div class="note">Top 15 by bookings. Click a firm to filter.'+(F.src&&F.src!=="Indirect"?" The Source filter is not applied to this list.":"")+'</div>':empty("No channel-partner walk-ins or bookings for this selection");
   }
   return card(site?"sSrcCard":"cChan",site?"Source & channel partners":"Direct vs Indirect","",togs(site?"ssrc":"chan",[["split","Split"],["proj","By project"],["cp","CP firms"]],mode),body);
 }
@@ -2560,7 +2568,7 @@ document.addEventListener("click",function(e){
   if((x=t.closest("[data-ui]"))){ui[x.getAttribute("data-ui")]=x.getAttribute("data-uv");if(x.getAttribute("data-ui")==="fdim")ui.fdimPicked=1;render();return}
   if((x=t.closest("[data-x]"))){F[x.getAttribute("data-x")]="";ui.fdimPicked=0;render();return}
   if((x=t.closest("[data-per]"))){F.per=normPer(x.getAttribute("data-per"));render();return}
-  if((x=t.closest("tr[data-f]"))){var f=x.getAttribute("data-f"),v=x.getAttribute("data-v");if(tab==="site"&&f==="proj")return;F[f]=F[f]===v?"":v;render();return}
+  if((x=t.closest("tr[data-f]"))){var f=x.getAttribute("data-f"),v=x.getAttribute("data-v");if(tab==="site"&&f==="proj")return;F[f]=F[f]===v?"":v;if(f==="cp"&&F.cp&&F.src!=="Indirect")F.src="";render();return}
 });
 document.addEventListener("keydown",function(e){
   if(e.key==="Enter"&&e.target.matches&&e.target.matches("tr[data-f],tr[data-cproj]")){e.target.click()}
