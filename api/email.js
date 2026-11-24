@@ -84,12 +84,21 @@ module.exports = async (req, res) => {
     const real = clean({ id: saved.id, name: saved.name, projects: saved.projects, sections: saved.sections, ym: job.ym });
     let built;
     try { built = await buildFor(real); } catch (e) { return send(res, 500, { error: "build", message: "Could not build the report: " + String(e.message || e).slice(0, 200) }); }
+    // the same email for the same month cannot go out twice within 10 minutes, whoever clicks
+    try {
+      const since = new Date(Date.now() - 6e5).toISOString();
+      const r = await fetch(SB.url + "/rest/v1/email_sends?select=at,sent_by&kind=eq.manual&ok=is.true&job_id=eq." + saved.id + "&period=eq." + built.period + "&at=gte." + encodeURIComponent(since) + "&limit=1", { headers: { apikey: SB.anon, Authorization: "Bearer " + token } });
+      const last = r.ok ? (await r.json())[0] : null;
+      if (last) return send(res, 409, { error: "already", message: "Already sent in the last 10 minutes by " + (last.sent_by || "an admin") + ". Wait 10 minutes to send it again." });
+    } catch (e) { console.error("recent send check", e); }
+    // two clicks at the same instant: the email service itself drops the second one
+    const once = "ct-" + saved.id + "-" + built.period + "-" + Math.floor(Date.now() / 6e5);
     let ok = false, err = "";
     try {
-      const msg = { from: FROM, to, subject: built.subject, html: built.html, headers: { "X-Entity-Ref-ID": "ct-send-" + Date.now() } };
+      const msg = { from: FROM, to, subject: built.subject, html: built.html, headers: { "X-Entity-Ref-ID": once } };
       if (cc.length) msg.cc = cc;
       if (bcc.length) msg.bcc = bcc;
-      const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify(msg) });
+      const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json", "Idempotency-Key": once }, body: JSON.stringify(msg) });
       const j = await r.json().catch(() => ({}));
       ok = r.ok;
       if (!ok) err = String(j.message || j.error || "Resend said " + r.status).slice(0, 300);
