@@ -216,6 +216,7 @@ select:hover{border-color:var(--bar1)}
 .vis.site{grid-template-rows:none;grid-auto-rows:auto}
 .vis.site>#sTrend,.vis.site>#sTeam,.vis.site>#sSrcCard{height:340px}
 .vis.site>#sCp,.vis.site>#sFix,.vis.site>#sDisc{grid-column:1/-1}
+.m2nt{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.m2nt b{font-size:13px}.m2nt span{font-size:12px;opacity:.75}.m2ntn{font-size:12.5px;line-height:1.45;padding:8px 12px;margin:8px 0 0;border-radius:10px;background:var(--warnbg)}
 .dsc{border-top:1px solid rgba(0,0,0,.1)}.dsc summary{cursor:pointer;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;min-height:40px;padding:9px 2px}.dsc summary b{font-size:13px}.dsc summary span{font-size:12px;opacity:.8}.dsc summary .dn{margin-left:auto;font-weight:700;font-size:13px;opacity:1}.dsc .dtb{overflow-x:auto;padding-bottom:8px}.dsc td,.dsc th{text-align:left!important;white-space:nowrap}
 
 .cbd.auto{overflow:visible;flex:none}
@@ -2052,14 +2053,17 @@ function m2Owners(M,p){
     var top=function(o){var k=Object.keys(o).sort(function(a,b){return o[b]-o[a]})[0];return k?[k]:[]};if(!cm.length)cm=top(c);if(!sm.length)sm=top(s)}
   return{cm:cm,sm:sm};
 }
+// 30% or more of the month's fresh walk-ins have no project: walk-ins can't be judged project by project (same limit as the email)
+function m2Untag(M){var u=DATA.UNT&&DATA.UNT[M.ym];if(u==null&&!DATA.UNT){var n=0,k=0;ROWS.forEach(function(r){if(r.kind!==0||r.vday<M.ms||r.vday>M.T)return;n++;if(!r.proj||r.proj==="All")k++});u=n?k/n*100:0}return u>=30?u:0}
+function m2Walk(x,M){return M.nt&&!x.mute?'<div class="m2nt"><b>Not tagged</b><span>'+fmt(x.s.fresh)+' tagged'+(x.tg.w?' · target '+fmt(x.tg.w):' · no target')+'</span></div>':m2Bar(x.s.fresh,x.tg.w,M.cW)}
 function m2Proj(M){
   var P={from:M.ms,to:M.T},FF=Object.assign({},F,{proj:""}),S=stats(FF,P,function(r){return isProj(r.proj)?r.proj:"__none"}).G,keys={};
   Object.keys(S).forEach(function(k){var s=S[k];if(s.fresh||s.gross||s.cx||s.rev)keys[k]=1});
   CT.concat(ST).forEach(function(r){if(r.ym===M.ym&&isProj(r.p)&&r.t>0)keys[r.p]=1});
   delete keys.__none;
-  var list=Object.keys(keys).map(function(p){var s=S[p]||fin(blank()),tg=m2Targets(M,p),bs=m2St(s.net,tg.b,M.cB),ws=m2St(s.fresh,tg.w,M.cW);
-    var stall=s.gross===0&&s.fresh>=8&&M.d>=7,st=stall?["Stalled","r"]:bs.k==="met"?["Target met ✓","g"]:bs.k==="behind"?["Behind","r"]:bs.k==="slight"?["Slightly behind","y"]:ws.k==="behind"?["Walk-ins low","y"]:bs.k==="ok"?["On pace","g"]:(ws.k==="ok"||ws.k==="met")?["Walk-ins on pace","g"]:["No target","m"];
-    return{p:p,s:s,tg:tg,bs:bs,ws:ws,st:st,gb:tg.b?tg.b*M.cB-s.net:-1e9,gw:tg.w?(tg.w*M.cW-s.fresh)/tg.w:-1e9}});
+  var list=Object.keys(keys).map(function(p){var s=S[p]||fin(blank()),tg=m2Targets(M,p),bs=m2St(s.net,tg.b,M.cB),ws=M.nt?{k:"none"}:m2St(s.fresh,tg.w,M.cW);
+    var stall=!M.nt&&s.gross===0&&s.fresh>=8&&M.d>=7,st=stall?["Stalled","r"]:bs.k==="met"?[M.nt?"Bookings met ✓":"Target met ✓","g"]:bs.k==="behind"?["Behind","r"]:bs.k==="slight"?["Slightly behind","y"]:ws.k==="behind"?["Walk-ins low","y"]:bs.k==="ok"?["On pace","g"]:(ws.k==="ok"||ws.k==="met")?["Walk-ins on pace","g"]:[M.nt&&tg.w?"No booking target":"No target","m"];
+    return{p:p,s:s,tg:tg,bs:bs,ws:ws,st:st,gb:tg.b?tg.b*M.cB-s.net:-1e9,gw:tg.w&&!M.nt?(tg.w*M.cW-s.fresh)/tg.w:-1e9}});
   list.sort(function(a,b){return(b.gb-a.gb)||(b.gw-a.gw)||(b.s.fresh-a.s.fresh)});
   var unt={b:0,w:0,n:0};
   if(!F.sm&&!F.src&&!F.cp)CT.forEach(function(r){if(r.ym===M.ym&&!isProj(r.p)&&r.t>0&&(!F.cm||r.m===F.cm)){unt.b+=r.t;unt.n++}});
@@ -2072,10 +2076,10 @@ function m2LastBk(p,T){var lb=0;ROWS.forEach(function(r){if(r.proj===p&&r.bk&&r.
 function m2Box(lab,a,t,e,bad){var w=t?Math.min(100,a/t*100):0;return'<div class="m2box"><div class="m2bl">'+lab+'</div><div class="m2bv">'+fmt(a)+(t?' <small>/ '+fmt(t)+' · '+n1(e)+' expected by now</small>':' <small>no target</small>')+'</div>'+(t?'<div class="m2mb"><i class="'+bad+'" style="width:'+w.toFixed(1)+'%"></i><b style="left:'+(e/t*100).toFixed(1)+'%"></b></div>':"")+'</div>'}
 function m2Drill(M,x,co){var s=x.s,tg=x.tg,lb=m2LastBk(x.p,M.T),cl=function(k){return k==="behind"?"r":k==="slight"?"y":"g"};
   var src=function(R,sheet){return R.length?sheet+", "+M.sh+" "+String(Math.floor(M.ym/100))+" · "+R.length+" row"+(R.length>1?"s":"")+" ("+m2Uniq(R.map(function(r){return pn(r.m)})).join(", ")+")":"no target row for "+x.p};
-  return'<div class="m2dk">'+m2Box("Net bookings vs target",s.net,tg.b,x.bs.e,cl(x.bs.k))+m2Box("Fresh walk-ins vs target",s.fresh,tg.w,x.ws.e,cl(x.ws.k))+'</div>'+
+  return'<div class="m2dk">'+m2Box("Net bookings vs target",s.net,tg.b,x.bs.e,cl(x.bs.k))+(M.nt?'<div class="m2box"><div class="m2bl">Fresh walk-ins vs target</div><div class="m2bv">Not tagged <small>'+fmt(s.fresh)+' tagged'+(tg.w?' · target '+fmt(tg.w):"")+'</small></div></div>':m2Box("Fresh walk-ins vs target",s.fresh,tg.w,x.ws.e,cl(x.ws.k)))+'</div>'+
     '<ul class="m2facts"><li><span>Last booking</span><b>'+(lb?dl(lb)+(ymd(lb)[0]!==ymd(M.T)[0]?" "+ymd(lb)[0]:"")+" ("+(M.today-lb)+" days ago)":"none on record")+'</b></li>'+
     (HAS_BK?'<li><span>Sales value this month</span><b>'+(s.gross?fcr(s.sv)+(s.rpsf?" · ₹"+fmt(Math.round(s.rpsf))+" per sq ft":"")+(s.tatM!=null?" · booked "+Math.round(s.tatM)+" days after first visit (median)":""):"no bookings yet")+'</b></li>':"")+
-    '<li><span>Conversion this month</span><b>'+(s.conv==null?"no fresh walk-ins this month":fp(s.conv)+(F.proj||co==null?"":" vs company "+fp(co)))+'</b></li>'+
+    '<li><span>Conversion this month</span><b>'+(M.nt?"not judged: "+Math.round(M.nt)+"% of walk-ins have no project":s.conv==null?"no fresh walk-ins this month":fp(s.conv)+(F.proj||co==null?"":" vs company "+fp(co)))+'</b></li>'+
     '<li><span>Top reason walk-ins didn’t book (column AP)</span><b>'+esc(m2Lost(x.p,M))+'</b></li>'+
     '<li><span>Booking target from</span><b>'+esc(src(tg.bR,"Closing Targets"))+'</b></li>'+
     '<li><span>Walk-in target from</span><b>'+esc(src(tg.wR,"Sourcing Targets"))+'</b></li></ul>'+
@@ -2091,7 +2095,7 @@ function m2Attention(M,PR,flags){var items=[];
   // activity problems that need no target: more cancellations than bookings, walk-ins dried up
   PR.list.forEach(function(x){if(F.proj&&x.p!==F.proj)return;var s=x.s,o=m2Owners(M,x.p);
     if(s.net<0)items.push({lvl:2,score:70,title:x.p+" has more cancellations than bookings this month ("+s.cx+" cancelled, "+s.gross+" booked).",own:{cm:o.cm,sm:[]},x:x});
-    if(s.fresh===0&&M.d>=7&&(x.tg.w||m2Recent(x.p,M)))items.push({lvl:1,score:25,title:x.p+" hasn’t had a fresh walk-in this month.",own:{cm:[],sm:o.sm},x:x});
+    if(!M.nt&&s.fresh===0&&M.d>=7&&(x.tg.w||m2Recent(x.p,M)))items.push({lvl:1,score:25,title:x.p+" hasn’t had a fresh walk-in this month.",own:{cm:[],sm:o.sm},x:x});
   });
   // pace can't be judged without a target
   if(F.proj){var me=PR.list.filter(function(x){return x.p===F.proj})[0];
@@ -2136,10 +2140,10 @@ function m2Chart(M,tgt){
   return'<div class="m2plot"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Net bookings added up day by day this month: '+now+' so far'+(tgt?", target "+tgt:"")+'">'+g+'</svg>'+lab+'</div><div class="m2x">'+xs+'</div>';
 }
 function cmdHtml(){
-  var M=m2Month();m2Pace(M);var D=cmdData(),fl=cmdFlags(D),dc=dataChecks();
+  var M=m2Month();m2Pace(M);M.nt=m2Untag(M);var D=cmdData(),fl=cmdFlags(D),dc=dataChecks();
   var S=stats(F,{from:M.ms,to:M.T}).tot,TG=m2Targets(M),PR=m2Proj(M);
   var lmY=ymAdd(M.ym,-1),L=stats(F,{from:monStart(lmY),to:Math.min(monStart(lmY)+M.d-1,monEnd(lmY))}).tot;
-  var bs=m2St(S.net,TG.b,M.pB),ws=m2St(S.fresh,TG.w,M.pW),gb=bs.e!=null?Math.round(bs.e-S.net):0,gw=ws.e!=null?Math.round(ws.e-S.fresh):0;
+  var bs=m2St(S.net,TG.b,M.pB),pnt=M.nt&&F.proj&&isProj(F.proj),ws=pnt?{k:"none"}:m2St(S.fresh,TG.w,M.pW),gb=bs.e!=null?Math.round(bs.e-S.net):0,gw=ws.e!=null?Math.round(ws.e-S.fresh):0;
   var bOK=bs.k==="ok"||bs.k==="met",wOK=ws.k==="ok"||ws.k==="met",fcB=M.fc(S.net,M.pB),fcW=M.fc(S.fresh,M.pW);
   var who=F.proj?esc(lab(F.proj)):"we";
   // ① the headline sentence
@@ -2170,8 +2174,8 @@ function cmdHtml(){
     '<div class="m2story"><div><h2 class="m2h">'+head+'</h2><p class="m2sub">'+sub+'</p><div class="m2day"><span>'+(M.d?'By day '+M.d+' you usually have <b>'+Math.round(M.pB*100)+'%</b> of a month’s bookings and <b>'+Math.round(M.pW*100)+'%</b> of its walk-ins'+(M.patB&&M.patW?(M.coPat?" (whole-company pattern, last 3 months; too little "+esc(lab(F.proj))+" history)":" (last 3 months)"):M.patB||M.patW?" (partly straight-line: little history)":" (straight-line: little history)"):"First day of the month: pace starts tomorrow")+'.</span></div></div>'+
     '<div class="m2chart"><div class="m2ct"><span>Net bookings so far, added up day by day'+(ctx?' · '+ctx:"")+'</span><span>'+(TG.b?"target "+TG.b:"no target")+'</span></div>'+m2Chart(M,TG.b)+
     '<div class="m2lg">'+(TG.b?'<span><i class="tg"></i>Target pace</span>':"")+'<span><i class="ac"></i>Actual</span><span><i class="fc"></i>At current pace</span></div></div></div>'+
-    '<div class="m2kpis'+(HAS_BK?" four":"")+'">'+kpi("Net bookings",S.net,TG.b,bs,gb,fcB,vs(S.net,L.net),M.pB)+kpi("Fresh walk-ins",S.fresh,TG.w,ws,gw,fcW,vs(S.fresh,L.fresh),M.pW)+
-    '<div class="m2kpi"><div class="m2kl">Walk-in to booking</div><div class="m2kv">'+fp(S.conv)+'</div><div class="m2pb"><i class="ok" style="width:'+Math.min(100,(S.conv||0)*5).toFixed(1)+'%;background:linear-gradient(90deg,#FDE68A,#FCD34D)"></i></div><div class="m2ks"><span>'+fmt(S.net)+' net bookings ÷ '+fmt(S.fresh)+' fresh walk-ins</span>'+(S.conv!=null&&L.conv!=null?vs(S.conv,L.conv,1):"")+'</div></div>'+
+    '<div class="m2kpis'+(HAS_BK?" four":"")+'">'+kpi("Net bookings",S.net,TG.b,bs,gb,fcB,vs(S.net,L.net),M.pB)+kpi("Fresh walk-ins",S.fresh,pnt?null:TG.w,ws,gw,fcW,pnt?"":vs(S.fresh,L.fresh),M.pW).replace('<span class="m2chip none">No target set</span>',pnt?'<span class="m2chip none">Not tagged</span>'+(TG.w?'<span class="m2nw">target '+fmt(TG.w)+'</span>':""):'<span class="m2chip none">No target set</span>')+
+    '<div class="m2kpi"><div class="m2kl">Walk-in to booking</div><div class="m2kv">'+(pnt?"–":fp(S.conv))+'</div><div class="m2pb"><i class="ok" style="width:'+(pnt?0:Math.min(100,(S.conv||0)*5)).toFixed(1)+'%;background:linear-gradient(90deg,#FDE68A,#FCD34D)"></i></div><div class="m2ks"><span>'+fmt(S.net)+' net bookings ÷ '+fmt(S.fresh)+' fresh walk-ins</span>'+(!pnt&&S.conv!=null&&L.conv!=null?vs(S.conv,L.conv,1):"")+'</div></div>'+
     (HAS_BK?'<div class="m2kpi"><div class="m2kl">Sales value</div><div class="m2kv" title="₹'+fmt(Math.round(S.sv||0))+' excl. GST and stamp duty">'+fcr(S.sv)+'</div><div class="m2pb" style="visibility:hidden"></div><div class="m2ks">'+(F.proj&&S.rpsf?'<span class="m2nw"><b>₹'+fmt(Math.round(S.rpsf))+'</b> /sq ft</span>':"")+''+(S.tatM!=null?'<span class="m2nw">TAT <b>'+Math.round(S.tatM)+'</b> days</span>':"")+vs(S.sv,L.sv,0,fcr)+'</div></div>':"")+
     '</div></section>';
   // ② needs your attention
@@ -2188,11 +2192,12 @@ function cmdHtml(){
   if(!sel&&PR.unt.n)mute.push({p:"Targets not yet tagged (“All”)",s:{net:0,fresh:0,conv:null},tg:{b:PR.unt.b||null,w:PR.unt.w||null},st:["Tag target","m"],mute:1});
   var all2=rows.concat(mute);
   var tbl='<table class="m2tbl"><thead><tr><th>Project</th><th>Net bookings vs target</th><th>Fresh walk-ins vs target</th><th>Conv.</th>'+(HAS_BK?'<th>Sales value</th>':"")+'<th></th></tr></thead><tbody>'+
-    all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'" tabindex="0"';return'<tr class="'+(x.mute?"mute":"m2row")+(sel===x.p?" on":"")+'"'+at+'><td class="m2pj">'+esc(x.p)+'</td><td>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</td><td>'+m2Bar(x.s.fresh,x.tg.w,M.cW)+'</td><td>'+fp(x.s.conv)+'</td>'+(HAS_BK?'<td class="m2sv">'+(x.mute?"–":'<b>'+fcr(x.s.sv)+'</b>'+(x.s.rpsf?'<small>₹'+fmt(Math.round(x.s.rpsf))+'/sq ft</small>':""))+'</td>':"")+'<td><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></td></tr>'}).join("")+'</tbody>'+
+    all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'" tabindex="0"';return'<tr class="'+(x.mute?"mute":"m2row")+(sel===x.p?" on":"")+'"'+at+'><td class="m2pj">'+esc(x.p)+'</td><td>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</td><td>'+m2Walk(x,M)+'</td><td>'+(M.nt?"–":fp(x.s.conv))+'</td>'+(HAS_BK?'<td class="m2sv">'+(x.mute?"–":'<b>'+fcr(x.s.sv)+'</b>'+(x.s.rpsf?'<small>₹'+fmt(Math.round(x.s.rpsf))+'/sq ft</small>':""))+'</td>':"")+'<td><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></td></tr>'}).join("")+'</tbody>'+
     (!sel?'<tfoot><tr><td class="m2pj">Total</td><td>'+m2Bar(S.net,TG.b,M.pB)+'</td><td>'+m2Bar(S.fresh,TG.w,M.pW)+'</td><td>'+fp(S.conv)+'</td>'+(HAS_BK?'<td class="m2sv"><b>'+fcr(S.sv)+'</b></td>':"")+'<td></td></tr></tfoot>':"")+'</table>';
-  var cards='<div class="m2cards">'+all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'"';return'<div class="m2pc'+(x.mute?" mute":"")+(sel===x.p?" on":"")+'"'+at+'><div class="m2ph"><b>'+esc(x.p)+'</b><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></div><div class="m2pr"><span>Bookings</span>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</div><div class="m2pr"><span>Walk-ins</span>'+m2Bar(x.s.fresh,x.tg.w,M.cW)+'</div>'+(HAS_BK&&!x.mute&&x.s.gross?'<div class="m2pv"><b>'+fcr(x.s.sv)+'</b>'+(x.s.rpsf?' · ₹'+fmt(Math.round(x.s.rpsf))+'/sq ft':"")+'</div>':"")+'</div>'}).join("")+'</div>';
+  var cards='<div class="m2cards">'+all2.map(function(x){var at=x.mute?"":' data-cproj="'+esc(x.p)+'"';return'<div class="m2pc'+(x.mute?" mute":"")+(sel===x.p?" on":"")+'"'+at+'><div class="m2ph"><b>'+esc(x.p)+'</b><span class="m2stt '+x.st[1]+'">'+x.st[0]+'</span></div><div class="m2pr"><span>Bookings</span>'+m2Bar(x.s.net,x.tg.b,M.cB)+'</div><div class="m2pr"><span>Walk-ins</span>'+m2Walk(x,M)+'</div>'+(HAS_BK&&!x.mute&&x.s.gross?'<div class="m2pv"><b>'+fcr(x.s.sv)+'</b>'+(x.s.rpsf?' · ₹'+fmt(Math.round(x.s.rpsf))+'/sq ft':"")+'</div>':"")+'</div>'}).join("")+'</div>';
   var proj='<section class="card m2proj" id="ccProj"><div class="m2ch"><h2>Projects this month</h2><span class="sub">'+(sel?esc(lab(sel))+" selected":"vs target · biggest gap first · tap a project to focus the page")+'</span>'+
     (sel?togs("pcmp",[["one",esc(lab(sel))+" only"],["all","All projects"]],all?"all":"one"):"")+'</div>'+(all2.length?tbl+cards:empty("No walk-ins, bookings or targets for "+M.name+" yet"))+
+    (M.nt?'<div class="m2ntn">'+(PR.none.fresh&&!sel?fmt(PR.none.fresh)+" of "+fmt(S.fresh):Math.round(M.nt)+"% of this month’s")+' fresh walk-ins have no project, so walk-ins can’t be judged by project. Fill column B in the Walk-in sheet.</div>':"")+
     '<div class="m2key"><span><b></b>where you’d usually be by now (bookings '+Math.round(M.cB*100)+'%, walk-ins '+Math.round(M.cW*100)+'%)</span><span>Targets: Closing Targets (bookings) and Sourcing Targets (walk-ins), rolled up by project</span></div></section>';
   // ④ one quiet line about data trust
   var dR=dc.filter(function(x){return x.lvl===2}).length,dA=dc.filter(function(x){return x.lvl===1}).length,lag=D.lastV?M.T-D.lastV:-1,bits=[];
