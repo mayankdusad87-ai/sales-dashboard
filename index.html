@@ -1032,6 +1032,8 @@ function pct(n,d){return d?n/d*100:null}
 function fp(v,dp){return v==null?"–":v.toFixed(dp==null?(Math.abs(v)<10?1:0):dp)+"%"}
 function median(a){if(!a.length)return null;var s=a.slice().sort(function(x,y){return x-y}),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2}
 function isCP(src){return /channel/i.test(src)}
+// channel of a row: bookings by Source Type (Booking details Q), walk-ins by Source (Walk-in Z)
+function chOf(r){return r.bkRow?r.chan:isCP(r.src)?"Indirect":"Direct"}
 
 /* ---------- dates ---------- */
 function today(){return Math.floor((Date.now()+5.5*36e5)/DAY)} // India time
@@ -1086,11 +1088,10 @@ function ingest(d){
     d.BK.rows.forEach(function(b){var w=b[0]>=0?ROWS[b[0]]:null,o={};
       if(w)Object.assign(o,w);else f.forEach(function(k){o[k]=D[k]?"":-1});
       o.kind=3;o.vday=-1;o.uniq=false;o.wait=-1;o.won=0;o.bk=1;o.bday=b[2];o.cx=b[3];o.cday=b[4];o.av=b[5];o.carpet=b[6];
-      // project, managers and channel come from Booking details only (column R filled = Indirect, blank = Direct)
-      o.proj=b[1];o.cm=b[7];o.sm=b[8];o.cp=b[9];o.src=b[9]?"Channel Partner":"Direct";
+      // project, managers and channel come from Booking details only; column Q (Source Type) decides the channel, R names the CP firm
+      o.proj=b[1];o.cm=b[7];o.sm=b[8];o.cp=b[9];o.chan=b[16]||"Not set";o.src=o.chan==="Indirect"?"Channel Partner":o.chan;
       // configuration actually booked (Booking details AC), not the walk-in's preference
       if(b.length>12)o.cfg=b[12]||"";
-      o.chan=b[9]?"Indirect":"Direct";
       o.id=b[10];o.fv=b[11];o.why=b[14]||"";o.linked=!o.why||o.why==="check";o.nm=w?w.nm:"";o.bkRow=1;
       (b[15]||[]).forEach(function(n){var r=WK[n];if(!r)return;if(!b[3]){r.won=1;r.wonDay=b[2]}else if(!r.won)r.won=2});
       BKR.push(o)});
@@ -1114,7 +1115,7 @@ function pass(r,FF){
   if(FF.cm&&r.cm!==FF.cm)return false;
   if(FF.sm&&r.sm!==FF.sm)return false;
   if(FF.cp&&r.cp!==FF.cp)return false;
-  if(FF.src){if(FF.src==="Direct"){if(isCP(r.src))return false}else if(FF.src==="Indirect"){if(!isCP(r.src))return false}else if(r.src!==FF.src)return false}
+  if(FF.src){if(FF.src==="Direct"||FF.src==="Indirect"){if(chOf(r)!==FF.src)return false}else if(r.src!==FF.src)return false}
   return true;
 }
 function blank(){return{fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],wt:[],cps:{},cpWalk:0,av:0,avx:0,avR:0,ca:0,nR:0}}
@@ -1258,7 +1259,7 @@ function renderFilters(){
   setOpts($("fProj"),tab==="site"?pj.filter(function(o){return o[0]!=="All"}):[["",ALLOW&&ALLOW.mg?"All my projects":"All projects"]].concat(pj),F.proj);
   setOpts($("fCm"),[["","All"]].concat(personList("cm",CT).map(function(x){return[x,x]})),F.cm);
   setOpts($("fSm"),[["","All"]].concat(personList("sm",ST).map(function(x){return[x,x]})),F.sm);
-  setOpts($("fSrc"),[["","All"],["Direct","Direct"],["Indirect","Indirect (Channel Partner)"]].concat(uniq("src").filter(function(s){return!isCP(s)}).map(function(s){return[s,s]})),F.src);
+  setOpts($("fSrc"),[["","All"],["Direct","Direct"],["Indirect","Indirect (Channel Partner)"]].concat(uniq("src").filter(function(s){return!isCP(s)&&s!=="Direct"}).map(function(s){return[s,s]})),F.src);
   var P=period(F.per),ch=[];
   ch.push(tab==="cmd"?'<span class="chip" title="The Command Centre always looks at the latest days; the Period filter does not apply">Live · '+dl(today())+'</span>':'<span class="chip" title="Period">'+esc(P.label)+'</span>');
   [["proj","Project"],["cm","Closing"],["sm","Sourcing"],["src","Source"],["cp","CP firm"]].forEach(function(k){if(F[k[0]]&&!(tab==="site"&&k[0]==="proj"))ch.push('<button class="chip" data-x="'+k[0]+'" title="Remove filter">'+k[1]+': <b>'+esc(lab(F[k[0]]))+'</b> ✕</button>')});
@@ -1457,7 +1458,7 @@ function nrMixCard(P){
   var rows=ks.map(function(k){var g=G[k],p=k.split("\u0001");return'<tr><td>'+(p.length>1?'<b>'+esc(p[0])+'</b> · ':"")+esc(p[p.length-1])+'</td><td>'+cell(g.a)+'</td><td>'+cell(g.d)+'</td><td>'+cell(g.i)+'</td><td>'+gap(g)+'</td></tr>'}).join("");
   var D=nrSum(all.d),I=nrSum(all.i),gp=D.n&&I.n?(I.v-D.v)/D.v*100:null,unk=all.a.length-all.d.length-all.i.length;
   var head='<div class="nrcmp"><div><small>Direct</small><b>'+rs(D.v)+'</b><i>'+D.n+' bookings</i></div><div><small>Indirect (CP), after brokerage</small><b>'+rs(I.v)+'</b><i>'+I.n+' bookings</i></div><div class="'+(gp!=null&&gp<-2?"lo":"")+'"><small>Indirect vs direct</small><b>'+(gp==null?"–":(gp>0?"+":"")+gp.toFixed(1)+"%")+'</b><i>'+(gp==null?"":gp<0?"CP bookings earn less per sq ft":"CP bookings earn more per sq ft")+'</i></div></div>';
-  return card("nrM","Like for like",esc(P.label)+(F.proj?" · "+esc(F.proj):" · by project and configuration"),"",head+'<table class="nrtab"><thead><tr><th>'+(F.proj?"Configuration":"Project · configuration")+'</th><th>All</th><th>Direct</th><th>Indirect</th><th>Gap</th></tr></thead><tbody>'+rows+'</tbody></table><div class="note">₹ per sq ft; small number = bookings. Grey = fewer than 3 bookings. Configuration from Booking details (AC). Indirect = bookings with a CP firm in Booking details column R, after 2.25% brokerage; Direct = column R blank.'+(unk?" "+unk+" bookings with no matching walk-in and no CP firm are in “All” only.":"")+'</div>',"auto");
+  return card("nrM","Like for like",esc(P.label)+(F.proj?" · "+esc(F.proj):" · by project and configuration"),"",head+'<table class="nrtab"><thead><tr><th>'+(F.proj?"Configuration":"Project · configuration")+'</th><th>All</th><th>Direct</th><th>Indirect</th><th>Gap</th></tr></thead><tbody>'+rows+'</tbody></table><div class="note">₹ per sq ft; small number = bookings. Grey = fewer than 3 bookings. Configuration from Booking details (AC). Direct or Indirect from Booking details column Q (Source Type); Indirect after 2.25% brokerage.'+(unk?" "+unk+" bookings with Source Type not set are in “All” only.":"")+'</div>',"auto");
 }
 /* ---------- management cards ---------- */
 // long periods: group months into quarters (or years) so all history fits instead of cutting to the last 24 months
@@ -1550,13 +1551,13 @@ function sourcingCard(P){
 function channelCard(P,mode,site){
   var FF=Object.assign({},F,{src:""}),body="";
   if(mode==="split"){
-    var S=stats(FF,P,function(r){return isCP(r.src)?"Indirect":"Direct"}),d=S.G.Direct||fin(blank()),n=S.G.Indirect||fin(blank());
+    var S=stats(FF,P,chOf),d=S.G.Direct||fin(blank()),n=S.G.Indirect||fin(blank());
     function line(k,a,b){var t=a+b;return'<div class="split"><span class="k">'+k+'</span><div class="stk" title="Direct '+fmt(a)+' · Indirect '+fmt(b)+'"><i class="c-dir" style="width:'+(t?a/t*100:0)+'%"></i><i class="c-ind" style="width:'+(t?b/t*100:0)+'%"></i></div><span class="v">'+fp(pct(b,t),0)+'</span></div>'}
     body='<div class="lg"><span><i class="c-dir"></i>Direct</span><span><i class="c-ind"></i>Indirect (CP)</span><span class="dim">right: indirect share</span></div>'+line("Walk-ins",d.fresh,n.fresh)+line("Bookings",d.net,n.net)+
       '<table style="margin-top:6px"><thead><tr><th>Channel</th><th>Fresh</th><th>Net bkg</th><th>Conv</th></tr></thead><tbody>'+[["Direct",d],["Indirect",n]].map(function(x){return drow("src",x[0],'<td>'+x[0]+'</td><td>'+fmt(x[1].fresh)+'</td><td>'+fmt(x[1].net)+'</td><td>'+fp(x[1].conv)+'</td>',F.src===x[0])}).join("")+'</tbody></table>'+
-      '<div class="note">'+fmt(S.tot.ncp)+' channel-partner firms brought at least one walk-in.</div>';
+      '<div class="note">'+fmt(S.tot.ncp)+' channel-partner firms brought at least one walk-in.'+(S.G["Not set"]?' <b>'+fmt(S.G["Not set"].net)+'</b> net bookings have no valid Source Type (column Q) and are in neither row.':"")+' Bookings by Source Type (Booking details Q); walk-ins by Source (Walk-in Z).</div>';
   }else if(mode==="proj"){
-    var S2=stats(Object.assign({},FF,{proj:""}),P,function(r){return r.proj+"\u0001"+(isCP(r.src)?"I":"D")}),pj={};
+    var S2=stats(Object.assign({},FF,{proj:""}),P,function(r){return r.proj+"\u0001"+chOf(r).charAt(0)}),pj={};
     for(var k in S2.G){var a=k.split("\u0001");pj[a[0]]=pj[a[0]]||{D:0,I:0,fd:0,fi:0};pj[a[0]][a[1]]+=S2.G[k].net;pj[a[0]]["f"+a[1].toLowerCase()]+=S2.G[k].fresh}
     var ks=Object.keys(pj).filter(function(k){return pj[k].D+pj[k].I+pj[k].fd+pj[k].fi>0}).sort(function(a,b){return(pj[b].D+pj[b].I)-(pj[a].D+pj[a].I)});
     body='<div class="lg"><span><i class="c-dir"></i>Direct</span><span><i class="c-ind"></i>Indirect</span><span class="dim">share of net bookings</span></div><table><thead><tr><th>Project</th><th></th><th>Indirect</th><th>Net</th></tr></thead><tbody>'+ks.map(function(k){var x=pj[k],t=x.D+x.I;
@@ -1726,15 +1727,15 @@ function cpCard(P){
   return card("sCp","Channel partner scorecard",esc(P.label)+" · click a firm to filter the page","",strip+'<div class="cpgrid"><div><h3 class="lh good">▲ Top CP firms <span>by net bookings, then walk-ins</span></h3>'+topT+'</div><div><h3 class="lh bad">▼ Watch list <span>last 90 days, with the reason</span></h3>'+watchT+'</div></div><div class="note">'+rules+'</div>',"auto");
 }
 // Booking details against Walk-in: things to check, worst first. Nothing here changes a figure.
-var DSC=[["noform","No Form No in Booking details","Fill column B. No TAT until then."],["notfound","Form No not in the Walk-in sheet","Correct column B, or add the walk-in."],["late","Walk-in is dated after the booking","Check the Form No or the dates. Left unmatched, so no TAT."],["revisit","Only revisits before the booking, no fresh walk-in","Check column AW in Walk-in."],["check","Form No used more than once, customer not certain","Names are blank or only similar, so the latest fresh walk-in is used."],
+var DSC=[["nodate","Left out: Booking Date blank or unreadable","Not counted as a booking until column AN is filled. Shown for every period."],["nostatus","Left out: Overall Status blank","Not counted until column Y is filled. Shown for every period."],["srcbad","Source Type is not Direct or Indirect","Counts in the total, but in neither channel. Correct column Q."],["cpmissing","Indirect, but CP name missing","Counts as Indirect. Fill column R."],["dirfirm","Direct, but a CP name is entered","Counts as Direct. Correct column Q or clear column R."],["noform","No Form No in Booking details","Fill column B. No TAT until then."],["notfound","Form No not in the Walk-in sheet","Correct column B, or add the walk-in."],["late","Walk-in is dated after the booking","Check the Form No or the dates. Left unmatched, so no TAT."],["revisit","Only revisits before the booking, no fresh walk-in","Check column AW in Walk-in."],["check","Form No used more than once, customer not certain","Names are blank or only similar, so the latest fresh walk-in is used."],
   ["multi","Same Form No on more than one booking","Two flats, or a wrong Form No?"],["dup","Entered twice on the same booking date","Check for hidden or filtered rows."],["status","Overall Status is not one of the two values","Anything with “cancel” counts as cancelled, the rest as booked."],["cxnodate","Cancelled, but no cancellation date","Fill column V. Counted on the booking date until then."],["cxbefore","Cancelled before it was booked","Correct column V or AN."],["blank","Blank in Booking details","Not filled from the Walk-in sheet any more."],
-  ["cpblank","CP firm blank, but the walk-in came from a CP","Counts as Direct. Fill column R if it was a CP sale."],["cpwalk","CP firm filled, but the walk-in is not from a CP","Counts as Indirect."],["cpdiff","Different CP firm","The booking keeps column R."],["cm","Different closing manager","The booking keeps column T."],["cmspell","Closing manager spelled differently","Use one spelling in both sheets."],["proj","Different project","May be fine: a customer can visit one project and book another."]];
+  ["cpblank","Direct booking, but the walk-in came from a CP","The booking keeps column Q."],["cpwalk","Indirect booking, but the walk-in is not from a CP","The booking keeps column Q."],["cpdiff","Different CP firm","The booking keeps column R."],["cm","Different closing manager","The booking keeps column T."],["cmspell","Closing manager spelled differently","Use one spelling in both sheets."],["proj","Different project","May be fine: a customer can visit one project and book another."]];
 function discCard(P){
   if(!HAS_BK)return"";
-  var A=ALLOW&&(tab==="site"?ALLOW.st:ALLOW.mg),L=(DATA.DISC||[]).filter(function(x){return x.bday>=P.from&&x.bday<=P.to&&(!F.proj||x.p===F.proj)&&!(A&&!A.has(x.p))}),G={};
+  var A=ALLOW&&(tab==="site"?ALLOW.st:ALLOW.mg),L=(DATA.DISC||[]).filter(function(x){return(x.bday<0||x.bday>=P.from&&x.bday<=P.to)&&(!F.proj||x.p===F.proj)&&!(A&&!A.has(x.p))}),G={};
   L.forEach(function(x){(G[x.t]=G[x.t]||[]).push(x)});
   var body=DSC.filter(function(d){return G[d[0]]}).map(function(d){var l=G[d[0]].sort(function(a,b){return b.bday-a.bday}),two=l.some(function(x){return x.w}),one=l.some(function(x){return x.b});
-    return'<details class="dsc"><summary><b>'+d[1]+'</b><span>'+d[2]+'</span><span class="dn">'+fmt(l.length)+'</span></summary><div class="dtb"><table><thead><tr><th>Form No</th><th>Sheet row</th><th>Project</th><th>Booked</th><th>Status</th>'+(one||two?'<th>Booking details</th>':"")+(two?'<th>Walk-in</th>':"")+'</tr></thead><tbody>'+l.map(function(x){return'<tr><td class="fno">'+esc(x.id||"–")+'</td><td>'+(x.row||"–")+'</td><td>'+esc(x.p||"–")+'</td><td>'+dly(x.bday)+'</td><td>'+(x.cx?"Cancelled":"Booked")+'</td>'+(one||two?'<td>'+esc(x.b||"–")+'</td>':"")+(two?'<td>'+esc(x.w||"–")+'</td>':"")+'</tr>'}).join("")+'</tbody></table></div></details>'}).join("");
+    return'<details class="dsc"><summary><b>'+d[1]+'</b><span>'+d[2]+'</span><span class="dn">'+fmt(l.length)+'</span></summary><div class="dtb"><table><thead><tr><th>Form No</th><th>Sheet row</th><th>Project</th><th>Booked</th><th>Status</th>'+(one||two?'<th>Booking details</th>':"")+(two?'<th>Walk-in</th>':"")+'</tr></thead><tbody>'+l.map(function(x){return'<tr><td class="fno">'+esc(x.id||"–")+'</td><td>'+(x.row||"–")+'</td><td>'+esc(x.p||"–")+'</td><td>'+(x.bday>0?dly(x.bday):"–")+'</td><td>'+(x.cx?"Cancelled":"Booked")+'</td>'+(one||two?'<td>'+esc(x.b||"–")+'</td>':"")+(two?'<td>'+esc(x.w||"–")+'</td>':"")+'</tr>'}).join("")+'</tbody></table></div></details>'}).join("");
   return card("sDisc","Booking details vs Walk-in",L.length?fmt(L.length)+" to check · bookings in "+esc(P.label):"","",body?'<div class="note" style="margin:0 0 8px">Bookings are counted from Booking details only. These are differences to check. One booking can be in more than one list.</div>'+body:empty("Nothing to check for bookings in this period"),"auto");
 }
 // data to fix: blank fields on this project's fresh walk-ins, by closing manager; plus sheet-wide issues
@@ -1810,7 +1811,7 @@ function renderFocus(P,S,PS,TG,ser,weekly,serM){
   // breakdown respects the filters: a filtered dimension shows only the picked value (with an "All" switch to compare)
   var DK={proj:"proj",cm:"cm",sm:"sm",chan:"src"},isF=function(d){return!!F[DK[d]]};
   var dim=ui.fdim;if(isF(dim)&&!ui.fdimPicked){var alt=FDIMS.map(function(x){return x[0]}).filter(function(d){return!isF(d)})[0];if(alt)dim=alt}
-  var keyFn=dim==="chan"?function(r){return isCP(r.src)?"Indirect":"Direct"}:function(r){return r[dim]};
+  var keyFn=dim==="chan"?chOf:function(r){return r[dim]};
   var selV=F[DK[dim]],cmpAll=ui.fcmp==="all",single=!!selV&&!cmpAll;
   var FF=Object.assign({},F);if(!single){if(dim==="chan")FF.src="";else FF[dim]=""}
   var G2=stats(FF,P,keyFn).G,ks2=Object.keys(G2).filter(function(k){var s=G2[k];return(s.fresh+s.gross+s.cx+s.rev)>0&&m.v(s)!=null&&(single||!m.min||(m.id==="conv"?s.fresh>=m.min:s.tat.length>=m.min))});
@@ -1957,7 +1958,7 @@ function dataChecks(){
   // booking tracker: is it connected, and how many bookings match a walk-in by Form No
   if(DATA.bookingError)out.push({lvl:2,title:"Booking details could not be read",text:DATA.bookingError+". Bookings are taken from the Walk-in sheet until this is fixed.",fix:"Check the Booking details tab in All Data.xlsx: its heading row (within the first 10 rows) must include “Overall Status”."});
   else if(HAS_BK&&Q.bk){var B=Q.bk,nb=B.booked+B.cancelled,un=ROWS.filter(function(r){return r.bkRow&&!r.linked}),st=Object.keys(B.statuses).map(function(k){return k+" "+fmt(B.statuses[k])}).join(" · ");
-    out.push({lvl:un.length?1:0,title:fmt(nb-un.length)+" of "+fmt(nb)+" bookings matched a walk-in",text:"Bookings come from Booking details. A booking is matched by exact Form No (column B = Walk-in column A). The first visit is that customer’s earliest fresh walk-in on or before the booking; where a Form No was reused, the customer name tells the customers apart. The walk-in gives only the first visit date, name and profile. Differences are listed on the Site Head tab under Booking details vs Walk-in. Direct or Indirect comes from Booking details column R (CP firm): filled = Indirect, blank = Direct.",
+    out.push({lvl:un.length?1:0,title:fmt(nb-un.length)+" of "+fmt(nb)+" bookings matched a walk-in",text:"Bookings come from Booking details. A booking is matched by exact Form No (column B = Walk-in column A). The first visit is that customer’s earliest fresh walk-in on or before the booking; where a Form No was reused, the customer name tells the customers apart. The walk-in gives only the first visit date, name and profile. Differences are listed on the Site Head tab under Booking details vs Walk-in. Direct or Indirect comes from Booking details column Q (Source Type); column R names the CP firm.",
       lines:[st].concat(un.filter(function(r){return!r.id}).length?[fmt(un.filter(function(r){return!r.id}).length)+" bookings have no Form No (column B)"]:[]).concat(un.filter(function(r){return r.id}).length?["Form No with no walk-in on or before the booking: "+un.filter(function(r){return r.id}).slice(0,12).map(function(r){return r.id}).join(", ")+(un.filter(function(r){return r.id}).length>12?" and "+(un.filter(function(r){return r.id}).length-12)+" more":"")]:[]).concat(B.noStatus?[fmt(B.noStatus)+" rows have a Booking Date but no Overall Status, so they are not counted"]:[]).concat(RATE_OUT.length?[fmt(RATE_OUT.length)+" bookings have a ₹/sq ft more than 40% away from their project’s usual rate, so they are left out of realisation (sales value keeps them). Check agreement value (AH) and carpet area (AD): "+RATE_OUT.slice(0,8).map(function(r){return(r.id||"no Form No")+" ₹"+fmt(Math.round(r.av/r.carpet))}).join(", ")+(RATE_OUT.length>8?" and "+(RATE_OUT.length-8)+" more":"")]:[]).concat(B.cxBeforeBk&&B.cxBeforeBk.length?[fmt(B.cxBeforeBk.length)+" cancellations are dated before their booking, so they are counted in the booking month: "+B.cxBeforeBk.slice(0,8).map(function(x){return(x.id||"no Form No")+" (row "+x.row+")"}).join(", ")]:[]).concat(B.noValue?[fmt(B.noValue)+" bookings have no agreement value (AH)"]:[]).concat(B.noCarpet?[fmt(B.noCarpet)+" bookings have no carpet area (AD)"]:[]),
       fix:un.length?"Correct the Form No on these bookings so it matches the Walk-in sheet.":""})}
   // 1. dates after today
