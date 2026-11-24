@@ -217,6 +217,7 @@ select:hover{border-color:var(--bar1)}
 .vis.site>#sTrend,.vis.site>#sTeam,.vis.site>#sSrcCard{height:340px}
 .vis.site>#sCp,.vis.site>#sFix,.vis.site>#sDisc{grid-column:1/-1}
 .m2nt{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.m2nt b{font-size:13px}.m2nt span{font-size:12px;opacity:.75}.m2ntn{font-size:12.5px;line-height:1.45;padding:8px 12px;margin:8px 0 0;border-radius:10px;background:var(--warnbg)}
+#cCm td.bar{width:auto;min-width:44px}
 .pjm{display:block;font-size:11px;opacity:.75;white-space:nowrap;font-weight:400}
 .dsc{border-top:1px solid rgba(0,0,0,.1)}.dsc summary{cursor:pointer;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;min-height:40px;padding:9px 2px}.dsc summary b{font-size:13px}.dsc summary span{font-size:12px;opacity:.8}.dsc summary .dn{margin-left:auto;font-weight:700;font-size:13px;opacity:1}.dsc .dtb{overflow-x:auto;padding-bottom:8px}.dsc td,.dsc th{text-align:left!important;white-space:nowrap}
 
@@ -1519,42 +1520,54 @@ function projCard(P){
 }
 // limit a period to the months that have targets, so actuals and targets cover the same months
 function clip(P,tm){if(!tm.length)return P;tm.sort();var a=tm[0],b=tm[tm.length-1];return{from:Math.max(P.from,monStart(a)),to:Math.min(P.to,monEnd(b)),full:{to:monEnd(b)},label:a===b?ymLab(a):ymLab(a)+"–"+ymLab(b),clipped:monStart(a)>P.from||monEnd(b)<P.full.to}}
+// manager tables: Net, walk-ins and conversion follow the picked period; achievement counts each person's results
+// only in the months where that person has a target, and names those months
+function tgLab(m){if(!m.length)return"";var a=m[0],b=m[m.length-1];return m.length>1?ymLab(a)+"–"+ymLab(b)+(monthsIn({from:monStart(a),to:monEnd(b)}).length>m.length?" ("+m.length+" months)":""):ymLab(a)}
+function tgMonths(o,n){return Object.keys(o[n]||{}).map(Number).sort()}
+function tgByMonth(FF,P,tm,keyFn){var o={};tm.forEach(function(ym){o[ym]=stats(FF,{from:Math.max(P.from,monStart(ym)),to:Math.min(P.to,monEnd(ym))},keyFn).G});return o}
+function tgSum(NM,m,n,f){return m.reduce(function(a,ym){var g=NM[ym]&&NM[ym][n];return a+(g?g[f]:0)},0)}
+function tgPace(P,m){return achievePace(clip(P,m.slice()))}
+function tgAch(a,t,m,P){if(!(t>0))return'<td><span class="dim">–</span></td>';var pc=a/t*100,l=tgLab(m);return'<td title="'+fmt(a)+' in '+l+' against a target of '+fmt(t)+'">'+pill(pc,stOf(pc,tgPace(P,m)))+'<small class="pjm">'+fmt(a)+' of '+fmt(t)+'</small></td>'}
 function closingCard(P){
-  var FF=Object.assign({},F,{cm:""}),ms=monthsIn(P),noT=F.proj||F.src||F.cp||F.sm,T={},tm=[];
-  if(!noT)CT.forEach(function(t){if(ms.indexOf(t.ym)>=0){T[t.m]=(T[t.m]||0)+t.t;if(tm.indexOf(t.ym)<0)tm.push(t.ym)}});
-  var PP=clip(P,tm),S=stats(FF,PP,function(r){return r.cm});
+  var FF=Object.assign({},F,{cm:""}),ms=monthsIn(P),noT=F.proj||F.src||F.cp||F.sm,T={},PM={},tm=[],key=function(r){return r.cm};
+  if(!noT)CT.forEach(function(t){if(ms.indexOf(t.ym)<0||!(t.t>0))return;T[t.m]=(T[t.m]||0)+t.t;(PM[t.m]=PM[t.m]||{})[t.ym]=1;if(tm.indexOf(t.ym)<0)tm.push(t.ym)});
+  tm.sort();
+  var S=stats(FF,P,key),NM=tgByMonth(FF,P,tm,key);
   var names=Object.keys(T);Object.keys(S.G).forEach(function(k){if(k&&S.G[k].gross+S.G[k].cx>0&&names.indexOf(k)<0)names.push(k)});
-  var pace=achievePace(PP),totT=0,totN=0;
-  var list=names.map(function(n){var s=S.G[n]||fin(blank()),t=T[n]||0;return{n:n,s:s,t:t,pc:t?s.net/t*100:null}});
+  var list=names.map(function(n){var s=S.G[n]||fin(blank()),t=T[n]||0,m=tgMonths(PM,n),a=tgSum(NM,m,n,"net");return{n:n,s:s,t:t,m:m,a:a,pc:t?a/t*100:null}});
   list.sort(function(a,b){return(a.pc==null)-(b.pc==null)||(a.pc-b.pc)||b.s.net-a.s.net});
   // with a closing manager picked: show only them (default) or everyone with them pinned on top
   var sel=F.cm,all=sel&&ui.cmcmp==="all";
   if(sel){if(all)list=list.filter(function(x){return x.n===sel}).concat(list.filter(function(x){return x.n!==sel}));else list=list.filter(function(x){return x.n===sel})}
-  var totF=0;list.forEach(function(x){totT+=x.t;totN+=x.s.net;totF+=x.s.fresh});
-  var gapTot=0;list.forEach(function(x){if(x.t&&x.s.net<x.t)gapTot+=x.t-x.s.net});
-  var mx=0;list.forEach(function(x){mx=Math.max(mx,x.t,x.s.net)});
-  var rows=list.map(function(x){var gap=x.t&&x.s.net<x.t?x.t-x.s.net:0,st=x.pc==null?"":stOf(x.pc,pace);
-    return drow("cm",x.n,'<td title="'+esc(lab(x.n))+'">'+esc(lab(x.n))+'</td><td>'+(x.t?fmt(x.t):'<span class="dim">–</span>')+'</td><td>'+fmt(x.s.net)+'</td><td class="bar">'+hbar(x.s.net,mx,st,x.t||null)+'</td><td>'+pill(x.pc,st)+'</td><td>'+fmt(x.s.fresh)+'</td><td title="Net bookings ÷ fresh walk-ins">'+convTxt(x.s.net,x.s.fresh)+'</td><td>'+(gap?fmt(gap)+' <span class="dim">'+fp(pct(gap,gapTot),0)+'</span>':'<span class="dim">–</span>')+'</td>',F.cm===x.n)}).join("");
-  var sub=noT?"targets hidden for this filter":(PP.clipped?esc(PP.label)+" (months with targets) · ":"")+"worst first";
+  var totT=0,totN=0,totF=0,totA=0,gapTot=0,mx=0;
+  // total: every manager over all target months (one picked: their own months)
+  var tmT=sel&&!all?tgMonths(PM,sel):tm;
+  list.forEach(function(x){totT+=x.t;totN+=x.s.net;totF+=x.s.fresh;totA+=tgSum(NM,tmT,x.n,"net");if(x.t&&x.a<x.t)gapTot+=x.t-x.a;mx=Math.max(mx,noT||!tm.length?x.s.net:Math.max(x.t,x.t?x.a:0))});
+  var rows=list.map(function(x){var gap=x.t&&x.a<x.t?x.t-x.a:0,st=x.pc==null?"":stOf(x.pc,tgPace(P,x.m));
+    return drow("cm",x.n,'<td title="'+esc(lab(x.n))+'">'+esc(lab(x.n))+(x.t?'<small class="pjm">'+tgLab(x.m)+'</small>':"")+'</td><td>'+(x.t?fmt(x.t):'<span class="dim">–</span>')+'</td><td class="bar">'+(x.t?hbar(x.a,mx,st,x.t):noT||!tm.length?hbar(x.s.net,mx,"",null):"")+'</td>'+tgAch(x.a,x.t,x.m,P)+'<td>'+(gap?fmt(gap)+' <span class="dim">'+fp(pct(gap,gapTot),0)+'</span>':'<span class="dim">–</span>')+'</td><td>'+fmt(x.s.net)+'</td><td>'+fmt(x.s.fresh)+'</td><td title="Net bookings ÷ fresh walk-ins">'+convTxt(x.s.net,x.s.fresh)+'</td>',F.cm===x.n)}).join("");
+  var sub=noT?"targets hidden for this filter":esc(P.label)+(tm.length?" · achieved is for target months only · worst first":"");
   var tgc=sel?togs("cmcmp",[["one",esc(lab(sel))+" only"],["all","All managers"]],all?"all":"one"):"";
-  return card("cCm","Closing managers",sub,tgc,list.length?'<table><thead><tr><th>Manager</th><th>Target</th><th>Net</th><th></th><th>Achieved</th><th>Fresh</th><th title="Net bookings ÷ fresh walk-ins">Conv</th><th>Gap (share)</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>'+(sel&&!all?esc(lab(sel))+" total":"Total")+'</td><td>'+(totT?fmt(totT):"–")+'</td><td>'+fmt(totN)+'</td><td></td><td>'+pill(totT?totN/totT*100:null,totT?stOf(totN/totT*100,pace):"")+'</td><td>'+fmt(totF)+'</td><td>'+convTxt(totN,totF)+'</td><td>'+(gapTot?fmt(gapTot):"–")+'</td></tr></tfoot></table>':empty("No closing data in this period"));
+  return card("cCm","Closing managers",sub,tgc,list.length?'<table><thead><tr><th>Manager</th><th>Target</th><th></th><th>Achieved</th><th>Gap (share)</th><th title="Net bookings in the picked period">Net</th><th>Fresh</th><th title="Net bookings ÷ fresh walk-ins">Conv</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>'+(sel&&!all?esc(lab(sel))+" total":"Total")+(totT?'<small class="pjm">'+tgLab(tmT)+'</small>':"")+'</td><td>'+(totT?fmt(totT):"–")+'</td><td></td>'+tgAch(totA,totT,tmT,P)+'<td>'+(gapTot?fmt(gapTot):"–")+'</td><td>'+fmt(totN)+'</td><td>'+fmt(totF)+'</td><td>'+convTxt(totN,totF)+'</td></tr></tfoot></table>':empty("No closing data in this period"));
 }
 function achievePace(P){var e=P.full.to,s=P.from,t=today();return t>=e?100:Math.max(0,(t-s+1)/(e-s+1)*100)}
 function sourcingCard(P){
-  var FF=Object.assign({},F,{sm:""}),ms=monthsIn(P),noT=F.proj||F.src||F.cp||F.cm,TW={},TB={},tm=[];
-  if(!noT)ST.forEach(function(t){if(ms.indexOf(t.ym)>=0){TW[t.m]=(TW[t.m]||0)+t.t;TB[t.m]=(TB[t.m]||0)+t.b;if(tm.indexOf(t.ym)<0)tm.push(t.ym)}});
-  var PP=clip(P,tm),S=stats(FF,PP,function(r){return r.sm});
-  var names=Object.keys(TW);Object.keys(S.G).forEach(function(k){if(k&&S.G[k].fresh>0&&names.indexOf(k)<0)names.push(k)});
-  var pace=achievePace(PP);
-  var list=names.map(function(n){var s=S.G[n]||fin(blank());return{n:n,s:s,tw:TW[n]||0,tb:TB[n]||0}});
-  list.sort(function(a,b){return(b.tw-a.tw)||(b.s.fresh-a.s.fresh)});
+  var FF=Object.assign({},F,{sm:""}),ms=monthsIn(P),noT=F.proj||F.src||F.cp||F.cm,TW={},TB={},PW={},PB={},tm=[],key=function(r){return r.sm};
+  if(!noT)ST.forEach(function(t){if(ms.indexOf(t.ym)<0)return;
+    if(t.t>0){TW[t.m]=(TW[t.m]||0)+t.t;(PW[t.m]=PW[t.m]||{})[t.ym]=1}
+    if(t.b>0){TB[t.m]=(TB[t.m]||0)+t.b;(PB[t.m]=PB[t.m]||{})[t.ym]=1}
+    if((t.t>0||t.b>0)&&tm.indexOf(t.ym)<0)tm.push(t.ym)});
+  var S=stats(FF,P,key),NM=tgByMonth(FF,P,tm,key);
+  var names=Object.keys(TW);Object.keys(TB).forEach(function(k){if(names.indexOf(k)<0)names.push(k)});
+  Object.keys(S.G).forEach(function(k){if(k&&S.G[k].fresh+S.G[k].gross+S.G[k].cx>0&&names.indexOf(k)<0)names.push(k)});
+  var list=names.map(function(n){var s=S.G[n]||fin(blank()),mw=tgMonths(PW,n),mb=tgMonths(PB,n);return{n:n,s:s,tw:TW[n]||0,tb:TB[n]||0,mw:mw,mb:mb,aw:tgSum(NM,mw,n,"fresh"),ab:tgSum(NM,mb,n,"net")}});
+  list.sort(function(a,b){return(b.tw-a.tw)||(b.tb-a.tb)||(b.s.fresh-a.s.fresh)});
   // with a sourcing manager picked: show only them (default) or everyone with them pinned on top
   var sel=F.sm,all=sel&&ui.smcmp==="all";
   if(sel){if(all)list=list.filter(function(x){return x.n===sel}).concat(list.filter(function(x){return x.n!==sel}));else list=list.filter(function(x){return x.n===sel})}
-  var mx=0;list.forEach(function(x){mx=Math.max(mx,x.tw,x.s.fresh)});
-  var rows=list.map(function(x){var pw=x.tw?x.s.fresh/x.tw*100:null,pb=x.tb?x.s.net/x.tb*100:null;
-    return drow("sm",x.n,'<td title="'+esc(lab(x.n))+'">'+esc(lab(x.n))+'</td><td>'+fmt(x.s.fresh)+(x.tw?'<span class="dim">/'+fmt(x.tw)+'</span>':"")+'</td><td class="bar">'+hbar(x.s.fresh,mx,x.tw?stOf(pw,pace):"",x.tw||null)+'</td><td>'+pill(pw,x.tw?stOf(pw,pace):"")+'</td><td>'+fmt(x.s.net)+(x.tb?'<span class="dim">/'+fmt(x.tb)+'</span>':"")+'</td><td>'+pill(pb,x.tb?stOf(pb,pace):"")+'</td>',F.sm===x.n)}).join("");
-  return card("cSm","Sourcing managers",noT?"targets hidden for this filter":(PP.clipped?esc(PP.label)+" (months with targets)":"fresh walk-ins & bookings vs target"),sel?togs("smcmp",[["one",esc(lab(sel))+" only"],["all","All managers"]],all?"all":"one"):"",list.length?'<table><thead><tr><th>Manager</th><th>Walk-ins</th><th></th><th>Ach.</th><th>Bookings</th><th>Ach.</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No sourcing data in this period"));
+  var plain=noT||!tm.length,mx=0;list.forEach(function(x){mx=Math.max(mx,plain?x.s.fresh:Math.max(x.tw,x.tw?x.aw:0))});
+  var rows=list.map(function(x){var m=x.tw?x.mw:x.mb,l=tgLab(m),diff=x.tw&&x.tb&&tgLab(x.mb)!==l;
+    return drow("sm",x.n,'<td title="'+esc(lab(x.n))+'">'+esc(lab(x.n))+(l?'<small class="pjm">'+l+(diff?" · bookings "+tgLab(x.mb):"")+'</small>':"")+'</td><td>'+fmt(x.s.fresh)+'</td><td class="bar">'+(x.tw?hbar(x.aw,mx,stOf(x.aw/x.tw*100,tgPace(P,x.mw)),x.tw):plain?hbar(x.s.fresh,mx,"",null):"")+'</td>'+tgAch(x.aw,x.tw,x.mw,P)+'<td>'+fmt(x.s.net)+'</td>'+tgAch(x.ab,x.tb,x.mb,P),F.sm===x.n)}).join("");
+  return card("cSm","Sourcing managers",noT?"targets hidden for this filter":esc(P.label)+(tm.length?" · achieved is for target months only":""),sel?togs("smcmp",[["one",esc(lab(sel))+" only"],["all","All managers"]],all?"all":"one"):"",list.length?'<table><thead><tr><th>Manager</th><th title="Fresh walk-ins in the picked period">Walk-ins</th><th></th><th>Ach.</th><th title="Net bookings in the picked period">Bookings</th><th>Ach.</th></tr></thead><tbody>'+rows+'</tbody></table>':empty("No sourcing data in this period"));
 }
 function channelCard(P,mode,site){
   var FF=Object.assign({},F,{src:""}),body="";
