@@ -1339,7 +1339,7 @@ function admAction(x){var a=x.getAttribute("data-adm"),em=x.getAttribute("data-e
 document.addEventListener("click",function(e){var x=e.target.closest&&e.target.closest("[data-adm]");if(x){e.preventDefault();admAction(x)}});
 /* ---------- admin: scheduled management emails (setups in Supabase "email_jobs", sends logged in "email_sends") ---------- */
 var EML={jobs:[],sends:[],loaded:false,busy:false,err:"",missing:false,ed:null,prev:null,phone:false};
-var EM_SEC=[["decisions","Decisions for you","biggest ₹ impact first: what happened, why, the choice to make and the owner"],["cards","Trend and win of the month","six-month sales value, best project and top closing manager"],["channel","Direct, indirect and cancellations","by project: bookings and value for each channel, booking ratio, top partner, cancellations"],["realisation","₹ per sq ft","column in the project table, against the last 3 months; price cuts on the same configuration"]];
+var EM_SEC=[["decisions","Decisions for you","biggest ₹ impact first: what happened, why, the choice to make and the owner"],["cards","Win of the month","best project and top closing manager"],["channel","Direct, indirect and cancellations","by project: bookings and value for each channel, booking ratio, top partner, cancellations"],["realisation","₹ per sq ft","column in the project table, against the last 3 months; price cuts on the same configuration"]];
 var EM_LISTS=[["to_list","To"],["cc_list","Cc"],["bcc_list","Bcc"]];
 function emlLoad(){if(!SB||!SESSION)return;EML.busy=true;
   Promise.all([SB.from("email_jobs").select("*").order("name"),SB.from("email_sends").select("*").order("at",{ascending:false}).limit(30)]).then(function(r){
