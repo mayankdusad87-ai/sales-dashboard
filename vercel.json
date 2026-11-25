@@ -1,10 +1,15 @@
 {
+  "regions": ["bom1"],
   "functions": { "api/data.js": { "maxDuration": 60, "memory": 1024 }, "api/email.js": { "maxDuration": 60, "memory": 1024 } },
   "headers": [
     { "source": "/(.*)", "headers": [
       { "key": "X-Content-Type-Options", "value": "nosniff" },
       { "key": "Referrer-Policy", "value": "same-origin" },
-      { "key": "X-Robots-Tag", "value": "noindex" }
+      { "key": "X-Robots-Tag", "value": "noindex" },
+      { "key": "X-Frame-Options", "value": "DENY" },
+      { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+      { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+      { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://iqazttfvyaihzktfvuzq.supabase.co wss://iqazttfvyaihzktfvuzq.supabase.co; frame-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'self'" }
     ] }
   ]
 }

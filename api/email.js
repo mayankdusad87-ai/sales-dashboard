@@ -4,7 +4,7 @@
 //   { action: "send", job }     -> sends the SAVED setup (job.id) to its To/Cc/Bcc for job.ym; recipients come from the database, not the screen
 // "job" is the email setup as it stands on the admin screen (saved or not): name, projects, sections, ym (optional).
 // Every test send is written to email_sends. Scheduled sending (Phase 3) will reuse buildFor().
-const { getData, whoIs, SB } = require("./data");
+const { getData, whoIs, SB, tooMany, ipOf } = require("./data");
 const { build, lastFullMonth } = require("../lib/report");
 
 const FROM = process.env.EMAIL_FROM || "Raghav Realty Control Tower <noreply@raghavgroup.in>";
@@ -45,6 +45,7 @@ async function logSend(token, row) {
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") return send(res, 405, { error: "method" });
+  if (tooMany("ip:" + ipOf(req), 300, 60000)) return send(res, 429, { error: "slow", message: "Too many requests. Wait a minute and try again." });
   const auth = String(req.headers.authorization || "");
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (!token) return send(res, 401, { error: "login" });
@@ -52,6 +53,8 @@ module.exports = async (req, res) => {
   try { me = await whoIs(token); } catch (e) { return send(res, 502, { error: "auth", message: "Could not check the sign-in. Try again in a minute." }); }
   if (!me) return send(res, 401, { error: "login" });
   if (me.none || !me.admin) return send(res, 403, { error: "admin", message: "Only admins can preview or send emails." });
+
+  if (tooMany("email:" + me.email, 15, 60000)) return send(res, 429, { error: "slow", message: "Too many requests. Wait a minute and try again." });
 
   let body = req.body;
   if (typeof body === "string") { try { body = JSON.parse(body); } catch (e) { body = {}; } }

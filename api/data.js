@@ -1,5 +1,5 @@
 // GET /api/data — reads the Google Sheet with a service account, drops personal columns
-// (customer name is kept only when DASHBOARD_PASSWORD is set; phone, email and remarks never),
+// (phone, email and remarks never; customer names only for Site Head rights, see lib/scope.js),
 // returns the cleaned dataset. Cached in memory for CACHE_SECONDS (default 300).
 const { JWT } = require("google-auth-library");
 const XLSX = require("xlsx");
@@ -9,14 +9,13 @@ const { scope } = require("../lib/scope");
 // Sign-in (Supabase). The URL and anon key are public by design; they can be overridden in Vercel.
 const SB_URL = process.env.SUPABASE_URL || "https://iqazttfvyaihzktfvuzq.supabase.co";
 const SB_ANON = process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxYXp0dGZ2eWFpaHprdGZ2dXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUyMzM2MTQsImV4cCI6MjExMDgwOTYxNH0.iGGgHGRH-kE1_QibRoiy3sz8_6M0rE_f0KnPi94zmx4";
-// LOGIN_REQUIRED=1 in Vercel: nobody sees data without signing in. Until then, signing in is optional.
-const LOGIN = process.env.LOGIN_REQUIRED === "1";
+// Signing in is always required: no setting can switch it off, so a lost setting can never open the data up.
 
 // who is calling, and what they may see (checked against Supabase with the caller's own token)
 const who = new Map();
 async function whoIs(token) {
   const hit = who.get(token);
-  if (hit && Date.now() - hit.at < 60000) return hit.me;
+  if (hit && Date.now() - hit.at < 20000) return hit.me;
   const h = { apikey: SB_ANON, Authorization: "Bearer " + token };
   const u = await fetch(SB_URL + "/auth/v1/user", { headers: h });
   if (!u.ok) return null;
@@ -30,6 +29,15 @@ async function whoIs(token) {
   who.set(token, { at: Date.now(), me: me });
   return me;
 }
+
+// simple per-person and per-network limits (each running copy of the server counts on its own)
+const hits = new Map();
+function tooMany(key, max, ms) {
+  const now = Date.now(); let h = hits.get(key);
+  if (!h || now - h.at > ms) { if (hits.size > 2000) hits.clear(); h = { at: now, n: 0 }; hits.set(key, h); }
+  return ++h.n > max;
+}
+const ipOf = (req) => String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
 
 // access log (supabase/access-log.sql): a visit is recorded here, where the data is handed out. Never blocks the dashboard.
 async function logOpen(token, ua) {
@@ -46,7 +54,8 @@ const CACHE_MS = (+process.env.CACHE_SECONDS || 300) * 1000;
 let cache = { at: 0, body: null, pending: null };
 // the cleaned dataset, from memory when it is fresh enough (shared with api/email.js)
 async function getData(fresh) {
-  if (!cache.body || fresh || Date.now() - cache.at > CACHE_MS) {
+  // a forced refresh is honoured at most once a minute for everyone, so it cannot be used to hammer the sheet
+  if (!cache.body || (fresh && Date.now() - cache.at > 60000) || Date.now() - cache.at > CACHE_MS) {
     if (!cache.pending) cache.pending = load().then((b) => { cache = { at: Date.now(), body: b, pending: null }; return b; }, (e) => { cache.pending = null; throw e; });
     await cache.pending;
   }
@@ -131,42 +140,38 @@ function send(res, code, body) {
 }
 
 module.exports = async (req, res) => {
-  const pass = process.env.DASHBOARD_PASSWORD;
+  const slow = { error: "slow", message: "Too many requests. Wait a minute and try again." };
+  if (tooMany("ip:" + ipOf(req), 300, 60000)) return send(res, 429, slow);
   const auth = String(req.headers.authorization || "");
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  if (!token) return send(res, 401, { error: "login" });
   let me = null;
   try {
-    if (token) {
-      me = await whoIs(token);
-      if (!me) return send(res, 401, { error: "login" });
-      if (me.none) return send(res, 403, { error: "noaccess", email: me.email });
-    } else if (LOGIN) {
-      return send(res, 401, { error: "login" });
-    } else if (pass && req.headers["x-dashboard-key"] !== pass) {
-      return send(res, 401, { error: "password" });
-    }
+    me = await whoIs(token);
+    if (!me) return send(res, 401, { error: "login" });
+    if (me.none) return send(res, 403, { error: "noaccess", email: me.email });
+    if (tooMany("data:" + me.email, 40, 60000)) return send(res, 429, slow);
   } catch (e) {
     console.error(e);
     return send(res, 502, { error: "auth", message: "Could not check the sign-in. Try again in a minute." });
   }
   try {
     const fresh = req.query && req.query.fresh === "1";
-    const logged = me ? logOpen(token, String(req.headers["user-agent"] || "")) : null;
+    const logged = logOpen(token, String(req.headers["user-agent"] || ""));
     await getData(fresh);
-    if (logged) await logged;
-    // signed in: only that person's projects; old mode: everything, with names only behind the shared password
-    if (me) return send(res, 200, scope(cache.body, me));
-    if (!cache.pub) cache.pub = JSON.stringify(pass ? cache.body : Object.assign({}, cache.body, { NM: null }));
-    return send(res, 200, cache.pub);
+    await logged;
+    return send(res, 200, scope(cache.body, me));
   } catch (e) {
     console.error(e);
     res.statusCode = 500;
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ error: "load", message: String(e.message || e) }));
+    res.end(JSON.stringify({ error: "load", message: "The sheet could not be read. Try again in a minute, or tell the admin." }));
   }
 };
 
 // shared with api/email.js
 module.exports.getData = getData;
 module.exports.whoIs = whoIs;
+module.exports.tooMany = tooMany;
+module.exports.ipOf = ipOf;
 module.exports.SB = { url: SB_URL, anon: SB_ANON };
