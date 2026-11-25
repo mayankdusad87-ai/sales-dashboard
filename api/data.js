@@ -31,6 +31,17 @@ async function whoIs(token) {
   return me;
 }
 
+// access log (supabase/access-log.sql): a visit is recorded here, where the data is handed out. Never blocks the dashboard.
+async function logOpen(token, ua) {
+  const device = /iPad|Tablet/i.test(ua) ? "Tablet" : /Mobi|Android|iPhone/i.test(ua) ? "Phone" : "Laptop";
+  try {
+    await fetch(SB_URL + "/rest/v1/rpc/log_access", {
+      method: "POST", headers: { apikey: SB_ANON, Authorization: "Bearer " + token, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_event: "open", p_device: device }), signal: AbortSignal.timeout(2500)
+    });
+  } catch (e) { console.error("access log", String(e && e.message || e)); }
+}
+
 const CACHE_MS = (+process.env.CACHE_SECONDS || 300) * 1000;
 let cache = { at: 0, body: null, pending: null };
 // the cleaned dataset, from memory when it is fresh enough (shared with api/email.js)
@@ -140,7 +151,9 @@ module.exports = async (req, res) => {
   }
   try {
     const fresh = req.query && req.query.fresh === "1";
+    const logged = me ? logOpen(token, String(req.headers["user-agent"] || "")) : null;
     await getData(fresh);
+    if (logged) await logged;
     // signed in: only that person's projects; old mode: everything, with names only behind the shared password
     if (me) return send(res, 200, scope(cache.body, me));
     if (!cache.pub) cache.pub = JSON.stringify(pass ? cache.body : Object.assign({}, cache.body, { NM: null }));

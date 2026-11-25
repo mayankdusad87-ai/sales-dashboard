@@ -931,6 +931,8 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
 @keyframes dBack{from{opacity:0;transform:translateX(-12%)}}
 @media (prefers-reduced-motion:reduce){.app.detail .focus,.app.leaving .focus,.app.leaving .dbar,.app.back .tiles,.app.back .vis{animation:none!important}}
 .vis:empty{display:none}
+.algf{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:8px 0 12px}.algf label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--muted)}.algp td:nth-child(n+3):nth-child(-n+4),.algp th:nth-child(n+3):nth-child(-n+4){text-align:right}.alog th{text-align:left;padding:6px 4px}
+ (max-width:760px){.algf label{flex:1 1 100%;justify-content:space-between}.algf select{min-height:44px;width:62%;max-width:none}.algf .abtn{width:100%;min-height:44px}.aseg{display:flex}.aseg button{flex:1;padding:8px 4px}}
 .ic{width:16px;height:16px;flex:none;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px}.si .ic{width:12px;height:12px;stroke-width:2.5;vertical-align:0}.tinfo::before{font:600 11px/1 inherit;font-family:inherit;font-style:normal}
 .m2tbl td,.m2tbl th{padding-top:8px;padding-bottom:8px}.note,.chd .sub{line-height:1.4}
 /* ---- phone: bottom tabs, row cards, nothing cut off ---- */
@@ -2343,6 +2345,45 @@ function admLoad(){if(!SB||!SESSION)return;ADM.busy=true;
 function admRights(email){var o={};ADM.a.forEach(function(x){if(x.email===email)o[x.project]=x});return o}
 function admSummary(email){var R=admRights(email),mg=[],st=[];for(var p in R){if(R[p].management)mg.push(p==="*"?"all projects":p);if(R[p].site_head)st.push(p==="*"?"all projects":p)}
   return(mg.length?"Management: "+mg.join(", "):"")+(mg.length&&st.length?" · ":"")+(st.length?"Site Head: "+st.join(", "):"")||"No rights yet"}
+/* ---------- access log (supabase/access-log.sql): screens are recorded from here, visits by the server ---------- */
+function logA(ev,screen,detail){try{if(!SB||!SB.rpc||!SESSION)return Promise.resolve();var ua=navigator.userAgent,dv=/iPad|Tablet/i.test(ua)?"Tablet":/Mobi|Android|iPhone/i.test(ua)?"Phone":"Laptop";
+  return Promise.resolve(SB.rpc("log_access",{p_event:ev,p_screen:screen||null,p_detail:detail||null,p_device:dv})).then(function(){},function(){})}catch(e){return Promise.resolve()}}
+var SCR_LAST="";
+function trackScreen(){if(!ME||document.hidden)return;
+  var s=tab==="cmd"?"Command Centre":tab==="mgmt"?"Management":tab==="site"?"Site Head":"Admin",
+    d=tab==="admin"?(ADM.view==="email"?"Emails":ADM.view==="log"?"Access log":"People and rights"):tab==="cmd"?"":(tab==="site"?[F.proj]:[]).concat(focus?[(tab==="site"&&REC[focus])||M(focus).label]:[]).filter(Boolean).join(" · "),k=s+"|"+d;
+  if(k===SCR_LAST)return;SCR_LAST=k;logA("screen",s,d)}
+/* admin: access log view */
+var ALG={sum:[],rows:[],loaded:false,busy:false,missing:false,err:"",who:"",scr:"",days:30,more:false};
+var ALG_N=100,ALG_EV={signin:"Signed in",signout:"Signed out",open:"Opened the dashboard",screen:"Screen"};
+function algQ(from){var q=SB.from("access_log").select("*").gte("at",new Date(Date.now()-ALG.days*864e5).toISOString());if(ALG.who)q=q.eq("email",ALG.who);
+  if(ALG.scr)q=ALG.scr==="signin"||ALG.scr==="open"||ALG.scr==="signout"?q.eq("event",ALG.scr):q.eq("screen",ALG.scr);
+  return q.order("at",{ascending:false}).order("id",{ascending:false}).range(from,from+ALG_N-1)}
+var ALG_T=0;
+function algLoad(more){if(!SB||!SESSION)return;var my=++ALG_T;ALG.busy=true;
+  Promise.all([more?Promise.resolve({data:ALG.sum}):SB.rpc("access_summary"),algQ(more?ALG.rows.length:0)]).then(function(r){if(my!==ALG_T)return;
+    ALG.busy=false;ALG.loaded=true;var e=r.filter(function(x){return x.error})[0];
+    ALG.missing=!!(e&&(/42P01|PGRST202|PGRST205/.test(e.error.code||"")||/does not exist|schema cache|could not find/i.test(e.error.message||"")));ALG.err=e&&!ALG.missing?e.error.message:"";
+    if(!e){ALG.sum=r[0].data||[];var d=r[1].data||[];ALG.rows=more?ALG.rows.concat(d):d;ALG.more=d.length===ALG_N}
+    if(tab==="admin"&&ADM.view==="log")admRender()},function(x){if(my!==ALG_T)return;ALG.busy=false;ALG.loaded=true;ALG.err=String(x&&x.message||x);if(tab==="admin"&&ADM.view==="log")admRender()})}
+function algT(t){return t?new Date(t).toLocaleString("en-IN",{timeZone:"Asia/Kolkata",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}):"–"}
+function algClock(t){return new Date(t).toLocaleString("en-IN",{timeZone:"Asia/Kolkata",hour:"numeric",minute:"2-digit"})}
+function algName(em){var m=ADM.m.filter(function(x){return x.email===em})[0];return m&&m.full_name||em}
+function algRender(){
+  if(!ALG.loaded){if(!ALG.busy)algLoad();return'<section class="card"><h2>Access log</h2><div class="sub">Loading…</div></section>'}
+  if(ALG.missing)return'<section class="card hwarn" role="alert"><h2>One step first</h2><div class="sub" style="margin:0">Run <b>supabase/access-log.sql</b> once in Supabase → SQL Editor, then open this tab again.</div></section>';
+  var act={};ADM.m.forEach(function(m){act[m.email]=m.active});
+  var ppl=ALG.sum.map(function(s){var off=act[s.email]===false;return'<tr class="click" data-adm="logwho" data-em="'+esc(s.email)+'"><td><b>'+esc(algName(s.email))+'</b>'+(off?'<span class="atag off">Switched off</span>':s.last_visit?"":'<span class="atag bad">Never opened</span>')+'<div class="dim" style="font-size:12px">'+esc(s.email)+'</div></td><td>'+esc(algT(s.last_visit))+'</td><td>'+fmt(+s.visits7||0)+'</td><td>'+fmt(+s.visits30||0)+'</td><td>'+esc(s.top_screen||"–")+'</td></tr>'}).join("");
+  var never=ALG.sum.filter(function(s){return!s.last_visit&&act[s.email]!==false}).length;
+  var rows=ALG.rows.map(function(l){var what=l.event==="screen"?l.screen||"":ALG_EV[l.event]||l.event,vis=l.event==="open"&&l.last_at&&new Date(l.last_at)-new Date(l.at)>6e4?" · until "+algClock(l.last_at):"";
+    return'<tr><td style="white-space:nowrap">'+esc(algT(l.at))+'</td><td>'+esc(algName(l.email))+'</td><td>'+(l.event==="screen"?esc(what):'<b>'+esc(what)+'</b>')+(l.detail?' <span class="dim">'+esc(l.detail)+'</span>':"")+'<span class="dim">'+esc(vis)+'</span></td><td>'+esc(l.device||"–")+'</td></tr>'}).join("");
+  var op=function(v,t,c){return'<option value="'+esc(v)+'"'+(String(c)===String(v)?" selected":"")+'>'+esc(t)+'</option>'};
+  var fl='<div class="algf"><label>Person <select data-alg="who">'+op("","Everyone",ALG.who)+ADM.m.map(function(m){return op(m.email,m.full_name||m.email,ALG.who)}).join("")+'</select></label><label>Show <select data-alg="scr">'+op("","Everything",ALG.scr)+op("open","Dashboard visits",ALG.scr)+op("signin","Sign-ins",ALG.scr)+op("signout","Sign-outs",ALG.scr)+["Command Centre","Management","Site Head","Admin"].map(function(s){return op(s,s+" screen",ALG.scr)}).join("")+'</select></label><label>Period <select data-alg="days">'+[[1,"Last 24 hours"],[7,"Last 7 days"],[30,"Last 30 days"],[90,"Last 90 days"],[180,"Last 180 days"]].map(function(d){return op(d[0],d[1],ALG.days)}).join("")+'</select></label><button class="abtn ghost" data-adm="logref">Refresh</button></div>';
+  return(ALG.err?'<section class="card hwarn" role="alert">'+esc(ALG.err)+'</section>':"")+
+    '<section class="card"><h2>People</h2><div class="sub">Who uses the dashboard'+(never?' · <b>'+never+'</b> not opened it yet':"")+'. Tap a person to see their activity.</div><table class="admt algp"><thead><tr><th>Person</th><th>Last visit</th><th>Visits, 7 days</th><th>Visits, 30 days</th><th>Most used screen</th></tr></thead><tbody>'+(ppl||'<tr><td>No people yet.</td></tr>')+'</tbody></table></section>'+
+    '<section class="card" id="algAct"><h2>Activity</h2><div class="sub">Latest first, India time. A visit lasts while the dashboard stays open and refreshing; the same screen counts once in 5 minutes. Kept for 180 days.</div>'+fl+'<table class="alog"><thead><tr><th>When</th><th>Person</th><th>What</th><th>Device</th></tr></thead><tbody>'+(rows||'<tr><td colspan="4">Nothing recorded for this selection.</td></tr>')+'</tbody></table>'+(ALG.more?'<button class="abtn ghost" data-adm="logmore" style="margin-top:8px">'+(ALG.busy?"Loading…":"Load more")+'</button>':"")+'</section>';
+}
+document.addEventListener("change",function(e){var k=e.target.getAttribute&&e.target.getAttribute("data-alg");if(!k)return;ALG[k]=k==="days"?+e.target.value:e.target.value;algLoad()});
 function admRender(){var el=$("adm");if(!SB||!SESSION||!(ME&&ME.admin)){el.innerHTML='<section class="card"><h2>Admin</h2><div class="sub">Sign in as an admin to manage people.</div></section>';return}
   if(!ADM.loaded){el.innerHTML='<section class="card"><h2>People and rights</h2><div class="sub">Loading…</div></section>';if(!ADM.busy)admLoad();return}
   var projs=projList().filter(function(p){return p&&p!=="All"}).sort();
@@ -2358,8 +2399,9 @@ function admRender(){var el=$("adm");if(!SB||!SESSION||!(ME&&ME.admin)){el.inner
         '<div class="aact"><button class="abtn ghost" data-adm="copy" data-em="'+esc(m.email)+'">Copy invite message</button>'+(me?"":'<button class="abtn ghost" data-adm="active" data-em="'+esc(m.email)+'">'+(m.active?"Switch off access":"Switch access back on")+'</button><button class="abtn danger" data-adm="remove" data-em="'+esc(m.email)+'">Remove person</button>')+'</div></div></td></tr>'}
     return tr}).join("");
   var logRows=ADM.log.map(function(l){return'<tr><td style="white-space:nowrap">'+esc(new Date(l.at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}))+'</td><td>'+esc(l.actor||"system")+'</td><td>'+esc(admLogText(l))+'</td></tr>'}).join("");
-  var seg='<div class="aseg" role="tablist" aria-label="Admin sections"><button role="tab" data-adm="view" data-v="people" aria-selected="'+(ADM.view!=="email")+'">People and rights</button><button role="tab" data-adm="view" data-v="email" aria-selected="'+(ADM.view==="email")+'">Emails</button></div>';
+  var seg='<div class="aseg" role="tablist" aria-label="Admin sections"><button role="tab" data-adm="view" data-v="people" aria-selected="'+(ADM.view!=="email"&&ADM.view!=="log")+'">People and rights</button><button role="tab" data-adm="view" data-v="email" aria-selected="'+(ADM.view==="email")+'">Emails</button><button role="tab" data-adm="view" data-v="log" aria-selected="'+(ADM.view==="log")+'">Access log</button></div>';
   if(ADM.view==="email"){el.innerHTML=seg+emlRender();return}
+  if(ADM.view==="log"){el.innerHTML=seg+algRender();return}
   el.innerHTML=seg+(ADM.err?'<section class="card hwarn" role="alert">'+esc(ADM.err)+'</section>':"")+
     '<section class="card"><h2>People and rights</h2><div class="sub">Add a person, then tick what they may see for each project. They create their own password with "Create account" on the sign-in screen.</div>'+
     '<form class="admadd" id="admAdd"><input type="email" id="admEmail" placeholder="Email" required><input type="text" id="admName" placeholder="Full name"><button class="abtn" type="submit">Add person</button></form>'+
@@ -2382,7 +2424,10 @@ document.addEventListener("change",function(e){var c=e.target;if(!c.matches||!c.
   var em=c.getAttribute("data-em"),pj=c.getAttribute("data-pj"),k=c.getAttribute("data-acc"),R=admRights(em)[pj]||{management:false,site_head:false},row={email:em,project:pj,management:!!R.management,site_head:!!R.site_head};row[k]=c.checked;
   admSave(!row.management&&!row.site_head?SB.from("access").delete().eq("email",em).eq("project",pj):SB.from("access").upsert(row))});
 function admAction(x){var a=x.getAttribute("data-adm"),em=x.getAttribute("data-em");
-  if(a==="view"){ADM.view=x.getAttribute("data-v");admRender();return}
+  if(a==="view"){ADM.view=x.getAttribute("data-v");if(ADM.view==="log"&&ALG.loaded){ALG.loaded=false}trackScreen();admRender();return}
+  if(a==="logref"){algLoad();return}
+  if(a==="logmore"){if(!ALG.busy)algLoad(true);return}
+  if(a==="logwho"){ALG.who=em;algLoad();var ac=$("algAct");if(ac)ac.scrollIntoView({behavior:"auto",block:"start"});return}
   if(/^em/.test(a)){emlAction(a,x);return}
   if(a==="open"){ADM.open=ADM.open===em?"":em;admRender();return}
   if(a==="copy"){var m=ADM.m.filter(function(z){return z.email===em})[0]||{},msg="Hi"+(m.full_name?" "+m.full_name.split(" ")[0]:"")+", you now have access to the Raghav Realty Control Tower.\n\nOpen "+location.origin+location.pathname+" and choose \"Create account\". Use this email: "+em+"\nYou will get an email to confirm it; after that, sign in with your new password.";
@@ -2490,6 +2535,7 @@ function emlAction(a,x){
 }
 function render(){
   if(!DATA)return;
+  trackScreen();
   $("tabAdm").setAttribute("aria-selected",tab==="admin");APP.classList.toggle("admtab",tab==="admin");
   if(tab==="admin"){["tabCmd","tabMgmt","tabSite"].forEach(function(i){$(i).setAttribute("aria-selected","false")});admRender();return}
   renderFilters();
@@ -2595,6 +2641,7 @@ $("authForm").addEventListener("submit",function(e){e.preventDefault();if(!SB)re
   var p=AMODE==="signin"?SB.auth.signInWithPassword({email:em,password:pw}):AMODE==="signup"?SB.auth.signUp({email:em,password:pw,options:{emailRedirectTo:back}}):
     AMODE==="forgot"?SB.auth.resetPasswordForEmail(em,{redirectTo:back}):SB.auth.updateUser({password:pw});
   p.then(function(r){authBusy(false);if(r.error)return bad(authErrText(r.error.message));
+    if(AMODE==="signin"&&r.data&&r.data.session){SCR_LAST="";setTimeout(function(){logA("signin")},1200)}
     if(AMODE==="signup"&&!r.data.session)ok.textContent="Almost done: open the confirmation link we emailed you, then sign in.";
     else if(AMODE==="forgot")ok.textContent="If this email has an account, a reset link is on its way.";
     else if(AMODE==="reset"){ok.textContent="Password saved.";history.replaceState(null,"",back);setTimeout(function(){$("auth").style.display="none";ldStart();load()},600)}
@@ -2604,7 +2651,7 @@ document.addEventListener("click",function(e){var b=e.target.closest&&e.target.c
 function acctPaint(){var b=$("acct");if(!SB||!SESSION){b.hidden=true;return}b.hidden=false;b.textContent=ME&&ME.name?ME.name.split(" ")[0]:"Account"}
 $("acct").onclick=function(e){e.stopPropagation();if(!SESSION){authShow("signin");return}var m=$("acctMenu");
   if(!m.hidden){m.hidden=true;return}m.innerHTML='<b>'+esc(ME&&ME.name||"Signed in")+'</b><small>'+esc(SESSION.user&&SESSION.user.email||"")+'</small><button type="button" id="signout">Sign out</button>';m.hidden=false;
-  $("signout").onclick=function(){SB.auth.signOut()}};
+  $("signout").onclick=function(){var go=function(){if(go.d)return;go.d=1;SCR_LAST="";SB.auth.signOut()};logA("signout").then(go);setTimeout(go,1500)}};
 document.addEventListener("click",function(e){if(!e.target.closest(".acct"))$("acctMenu").hidden=true});
 // what this person may see: tabs and projects (the server already removed everything else)
 function applyRights(me){ME=me||null;
