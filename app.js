@@ -714,17 +714,23 @@ function cpCard(P){
   var firms=Object.keys(G).filter(function(k){var s=G[k];return s.fresh+s.rev+s.gross+s.cx>0}),active=firms.filter(function(k){return G[k].fresh+G[k].rev>0});
   var cpFresh=noFirm?noFirm.fresh:0;firms.forEach(function(k){cpFresh+=G[k].fresh});
   var booked=firms.filter(function(k){return G[k].net>0}).length,byF=firms.slice().sort(function(a,b){return G[b].fresh-G[a].fresh}),top3=0;byF.slice(0,3).forEach(function(k){top3+=G[k].fresh});
-  var t3=cpFresh?top3/cpFresh*100:null,seen={};
-  ROWS.forEach(function(r){if(r.cp&&isCP(r.src)&&r.vday<P.from&&r.vday>=P.from-365&&pass(r,FF))seen[r.cp]=1});
-  var nNew=active.filter(function(k){return!seen[k]}).length,PV=prevOf(P),pAct=null;
+  // new CP firm = its first-ever fresh walk-in at this site falls in the period (whole sheet history, any manager)
+  var t3=cpFresh?top3/cpFresh*100:null,first={},FS={proj:F.proj};
+  ROWS.forEach(function(r){if(r.cp&&isCP(r.src)&&r.kind===0&&r.vday>0&&pass(r,FS)&&!(first[r.cp]<=r.vday))first[r.cp]=r.vday});
+  var newF=Object.keys(first).filter(function(k){return first[k]>=P.from&&first[k]<=P.to}).sort(function(a,b){return first[a]-first[b]||a.localeCompare(b)});
+  var nNew=newF.length,PV=prevOf(P),pAct=null;
   if(PV){var GP=stats(FF,PV,function(r){return isCP(r.src)&&r.cp?r.cp:"\u0000"}).G;delete GP["\u0000"];pAct=Object.keys(GP).filter(function(k){return GP[k].fresh+GP[k].rev>0}).length}
   var own=cpOwner(FF);
-  var k5=function(lb,v,sub,cls){return'<div class="kb'+(cls?" "+cls:"")+'"><small>'+lb+'</small><b>'+v+'</b><i>'+sub+'</i></div>'};
+  var k5=function(lb,v,sub,cls,btn){return(btn?'<button type="button" class="kb kbtn'+(cls?" "+cls:"")+'" '+btn+'>':'<div class="kb'+(cls?" "+cls:"")+'">')+'<small>'+lb+'</small><b>'+v+'</b><i>'+sub+'</i>'+(btn?'</button>':'</div>')};
   var strip='<div class="kstrip">'+k5("CP share of walk-ins",all.fresh?fp(pct(cpFresh,all.fresh),0):"–",fmt(cpFresh)+" of "+fmt(all.fresh)+" fresh")+
     k5("Active CP firms",fmt(active.length),pAct==null?"brought a walk-in":(active.length>=pAct?"▲":"▼")+Math.abs(active.length-pAct)+" vs "+esc(PV.label))+
     k5("Firms that booked",fmt(booked)+'<span> of '+fmt(active.length)+'</span>',fmt(Math.max(0,active.length-booked))+" with visits, no net booking")+
     k5("Top 3 firms' share",t3==null?"–":fp(t3,0),t3!=null&&t3>50?"Dependence risk: above 50%":"of CP walk-ins",t3!=null&&t3>50?"warn":"")+
-    k5("New CP firms",fmt(nNew),"first walk-in here in a year")+'</div>';
+    k5("New CP firms",fmt(nNew),nNew?(ui.cpnew?"Hide the list ▴":"First fresh walk-in here · see list ▾"):"first fresh walk-in here",ui.cpnew?"on":"",nNew?'data-cpnew="1" aria-expanded="'+!!ui.cpnew+'"':"")+'</div>';
+  if(ui.cpnew&&nNew){var GN=stats(Object.assign({},FF,{cm:"",sm:""}),P,function(r){return isCP(r.src)&&r.cp?r.cp:"\u0000"}).G;
+    strip+='<div class="cpnew"><h3 class="lh">New CP firms <span>first-ever fresh walk-in at '+esc(lab(F.proj))+' in '+esc(P.label)+', earliest first</span></h3><table><thead><tr><th>CP firm</th><th>First walk-in</th><th>Fresh</th><th>Net bkg</th><th>Sourcing</th></tr></thead><tbody>'+
+      newF.map(function(k){var s=GN[k]||{fresh:0,net:0};return drow("cp",k,'<td title="'+esc(k)+'"><b>'+esc(k)+'</b></td><td style="white-space:nowrap">'+dl(first[k])+(P.to-P.from>40?" '"+String(ymd(first[k])[0]).slice(2):"")+'</td><td>'+fmt(s.fresh)+'</td><td>'+fmt(s.net)+'</td><td class="dim">'+esc(own[k]||"–")+'</td>')}).join("")+
+      '</tbody></table><div class="note">Fresh and Net bkg are for '+esc(P.label)+'. Sourcing = the manager who handles most of the firm’s walk-ins. A firm spelled two ways counts twice; the sheet’s first month counts every firm as new.</div></div>'}
   var top=firms.filter(function(k){return G[k].fresh+G[k].gross>0}).sort(function(a,b){return G[b].net-G[a].net||G[b].fresh-G[a].fresh}).slice(0,8);
   var topT=top.length?'<table><thead><tr><th>#</th><th>CP firm</th><th>Fresh</th><th>Net bkg</th><th>Rate</th><th>Sourcing</th></tr></thead><tbody>'+top.map(function(k,i){var s=G[k];return drow("cp",k,'<td class="dim">'+(i+1)+'</td><td title="'+esc(k)+'"><b>'+esc(k)+'</b></td><td>'+fmt(s.fresh)+'</td><td><b>'+fmt(s.net)+'</b></td><td>'+rateTxt(s.net,s.fresh)+'</td><td class="dim">'+esc(own[k]||"–")+'</td>',F.cp===k)}).join("")+'</tbody></table>':empty("No channel-partner walk-ins in this period");
   // watch list over the last 90 days, so one quiet week does not mark a firm
@@ -1635,6 +1641,7 @@ document.addEventListener("click",function(e){
     if(ALLOW&&(ALLOW.mgNone||(ALLOW.mgT&&pSel(pp||F.proj).some(function(q){return q&&!ALLOW.mgT.has(q)}))))return;
     tab="mgmt";F.per=x.getAttribute("data-per")||"l30";ui.fdimPicked=0;if(pp)F.proj=pp;if(ss)F.src=ss;
     if(isPhone()&&k){openDetail(k)}else{focus=k||null;render();window.scrollTo(0,0)}return}
+  if((x=t.closest("[data-cpnew]"))){ui.cpnew=!ui.cpnew;render();var nl=document.querySelector(".cpnew");if(ui.cpnew&&nl)nl.scrollIntoView({behavior:NOMO.matches?"auto":"smooth",block:"nearest"});return}
   if((x=t.closest("[data-unfocus]"))){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}return}
   if((x=t.closest("[data-tile]"))&&tab==="site"){var sid=x.getAttribute("data-tile");
     if(sid==="cpf"){var cpc=$("sCp");if(focus){focus=null;render();cpc=$("sCp")}if(cpc)cpc.scrollIntoView({behavior:NOMO.matches?"auto":"smooth",block:"start"});return}
