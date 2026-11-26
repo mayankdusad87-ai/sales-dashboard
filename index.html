@@ -1003,6 +1003,19 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
   .m2kv{font-size:26px}
 }
 @media (max-width:760px) and (prefers-reduced-motion:reduce){.tile,.tabs button,table.rc tr{transition:none}}
+/* tablets and unfolded foldables (761-1199px): the laptop top bar is too wide, so it gets compact icon buttons */
+@media (min-width:761px) and (max-width:1199px){
+  .hdr{gap:8px}
+  .brand small,.tl2,.lu{display:none}
+  .tabs button{padding:4px 8px}
+  .live{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .m2proj{overflow-x:auto}
+  .tbtn{width:36px;height:36px;padding:0;font-size:0;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+  #refresh::before{content:"BB";font-size:18px;font-weight:600}
+  #theme::before{content:"D0";font-size:15px}
+  #acct::before{content:"";width:18px;height:18px;background:#fff;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c1-4 4-6 8-6s7 2 8 6'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c1-4 4-6 8-6s7 2 8 6'/%3E%3C/svg%3E") center/contain no-repeat}
+}
+@media (min-width:761px) and (max-width:900px){.hdr{flex-wrap:wrap}.hdr .sp{flex:1}.tabs{order:3;width:100%}.tabs button{flex:1}}
 /* phones: iPhone zooms into any field whose text is under 16px, so form fields use 16px on touch screens */
 @media (pointer:coarse){input:not([type=checkbox]):not([type=radio]),select,textarea{font-size:16px!important}}
 </style>
