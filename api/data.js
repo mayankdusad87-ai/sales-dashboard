@@ -21,7 +21,9 @@ async function whoIs(token) {
   if (!u.ok) return null;
   const user = await u.json();
   const email = String(user.email || "").toLowerCase();
-  const m = await fetch(SB_URL + "/rest/v1/members?select=email,full_name,is_admin,active,access(project,management,site_head)&email=eq." + encodeURIComponent(email), { headers: h });
+  const ask = (cols) => fetch(SB_URL + "/rest/v1/members?select=email,full_name,is_admin,active,access(" + cols + ")&email=eq." + encodeURIComponent(email), { headers: h });
+  let m = await ask("project,management,site_head,control_tower");
+  if (!m.ok) m = await ask("project,management,site_head");   // supabase/control-tower.sql not run yet
   const rows = m.ok ? await m.json() : [];
   const r = rows[0];
   const me = !r || !r.active ? { email: email, none: true } : { email: email, name: r.full_name, admin: r.is_admin, access: r.access || [] };

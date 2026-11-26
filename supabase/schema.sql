@@ -17,6 +17,7 @@ create table if not exists public.access (
   project    text not null,
   management boolean not null default false,
   site_head  boolean not null default false,
+  control_tower boolean not null default false,   -- Control Tower tab only (Management includes it)
   primary key (email, project)
 );
 

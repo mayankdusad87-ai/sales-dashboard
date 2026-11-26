@@ -98,7 +98,7 @@ function ingest(d){
 }
 function pass(r,FF){
   // each tab shows only the projects this person has that right for
-  if(ALLOW){var A=tab==="site"?ALLOW.st:ALLOW.mg;if(A&&!A.has(r.proj))return false}
+  if(ALLOW){var A=alw();if(A&&!A.has(r.proj))return false}
   if(FF.proj&&!pHas(FF.proj,r.proj))return false;
   if(FF.cm&&r.cm!==FF.cm)return false;
   if(FF.sm&&r.sm!==FF.sm)return false;
@@ -250,10 +250,10 @@ function personList(key,T){var c={},t=Math.min(today()-400,tab==="cmd"?today():p
 function renderFilters(){
   setOpts($("fPer"),[["mtd","This month"],["lm","Last month"],["l30","Last 30 days"],["qtd","This quarter"],["fy","This FY to date"],["lfy","Last FY"],["l12","Last 12 months"],["all","All time"]].concat(recentMonths(18)),F.per);
   var pj=projList().map(function(p){return[p,lab(p)]});
-  if(ALLOW){var AL=tab==="site"?ALLOW.st:ALLOW.mg;if(AL)pj=pj.filter(function(o){return AL.has(o[0])})}
+  if(ALLOW){var AL=alw();if(AL)pj=pj.filter(function(o){return AL.has(o[0])})}
   if(tab==="site")setOpts($("fProj"),pj.filter(function(o){return o[0]!=="All"}),F.proj);
   $("fProj").style.display=tab==="site"?"":"none";$("mProj").style.display=tab==="site"?"none":"";
-  if(tab!=="site"){var allN=ALLOW&&ALLOW.mg?"All my projects":"All projects",opt=pj.map(function(o){return o[0]});pSel(F.proj).forEach(function(p){if(opt.indexOf(p)<0)opt.push(p)});
+  if(tab!=="site"){var allN=alw()?"All my projects":"All projects",opt=pj.map(function(o){return o[0]});pSel(F.proj).forEach(function(p){if(opt.indexOf(p)<0)opt.push(p)});
     $("mProjB").innerHTML='<span>'+esc(F.proj?pName(F.proj):allN)+'</span>'+ic("chev")+'';$("mProjB").title=F.proj?lab(F.proj):allN;
     var act=document.activeElement&&document.activeElement.getAttribute?document.activeElement.getAttribute("data-mp"):null;
     $("mProjP").innerHTML='<label class="mop"><input type="checkbox" data-mp=""'+(F.proj?"":" checked")+'> <b>'+allN+'</b></label>'+opt.map(function(p){return'<label class="mop"><input type="checkbox" data-mp="'+esc(p)+'"'+(F.proj&&pHas(F.proj,p)?" checked":"")+'> '+esc(p==="All"?"No single project (“All”)":p)+'</label>'}).join("")+'<div class="mft"><button type="button" class="reset" id="mProjC">Clear</button><button type="button" class="reset" id="mProjD">Done</button></div>';
@@ -758,7 +758,7 @@ var DSC=[["nodate","Left out: Booking Date blank or unreadable","Not counted as 
   ["cpblank","Direct booking, but the walk-in came from a CP","The booking keeps column Q."],["cpwalk","Indirect booking, but the walk-in is not from a CP","The booking keeps column Q."],["cpdiff","Different CP firm","The booking keeps column R."],["cm","Different closing manager","The booking keeps column T."],["cmspell","Closing manager spelled differently","Use one spelling in both sheets."],["proj","Different project","May be fine: a customer can visit one project and book another."]];
 function discCard(P){
   if(!HAS_BK)return"";
-  var A=ALLOW&&(tab==="site"?ALLOW.st:ALLOW.mg),L=(DATA.DISC||[]).filter(function(x){return(x.bday<0||x.t==="future"||x.bday>=P.from&&x.bday<=P.to)&&(!F.proj||pHas(F.proj,x.p))&&!(A&&!A.has(x.p))}),G={};
+  var A=ALLOW&&(alw()),L=(DATA.DISC||[]).filter(function(x){return(x.bday<0||x.t==="future"||x.bday>=P.from&&x.bday<=P.to)&&(!F.proj||pHas(F.proj,x.p))&&!(A&&!A.has(x.p))}),G={};
   L.forEach(function(x){(G[x.t]=G[x.t]||[]).push(x)});
   var body=DSC.filter(function(d){return G[d[0]]}).map(function(d){var l=G[d[0]].sort(function(a,b){return b.bday-a.bday}),two=l.some(function(x){return x.w}),one=l.some(function(x){return x.b});
     return'<details class="dsc"><summary><b>'+d[1]+'</b><span>'+d[2]+'</span><span class="dn">'+fmt(l.length)+'</span></summary><div class="dtb"><table><thead><tr><th>Form No</th><th>Sheet row</th><th>Project</th><th>Booked</th><th>Status</th>'+(one||two?'<th>Booking details</th>':"")+(two?'<th>Walk-in</th>':"")+'</tr></thead><tbody>'+l.map(function(x){return'<tr><td class="fno">'+esc(x.id||"–")+'</td><td>'+(x.row||"–")+'</td><td>'+esc(x.p||"–")+'</td><td>'+(x.bday>0?dly(x.bday):"–")+'</td><td>'+(x.cx?"Cancelled":"Booked")+'</td>'+(one||two?'<td>'+esc(x.b||"–")+'</td>':"")+(two?'<td>'+esc(x.w||"–")+'</td>':"")+'</tr>'}).join("")+'</tbody></table></div></details>'}).join("");
@@ -1245,8 +1245,8 @@ function admLoad(){if(!SB||!SESSION)return;ADM.busy=true;
   Promise.all([SB.from("members").select("*").order("email"),SB.from("access").select("*"),SB.from("audit_log").select("*").order("at",{ascending:false}).limit(40)]).then(function(r){
     ADM.busy=false;var e=r.filter(function(x){return x.error})[0];ADM.err=e?e.error.message:"";ADM.m=r[0].data||[];ADM.a=r[1].data||[];ADM.log=r[2].data||[];ADM.loaded=true;if(tab==="admin")admRender()})}
 function admRights(email){var o={};ADM.a.forEach(function(x){if(x.email===email)o[x.project]=x});return o}
-function admSummary(email){var R=admRights(email),mg=[],st=[];for(var p in R){if(R[p].management)mg.push(p==="*"?"all projects":p);if(R[p].site_head)st.push(p==="*"?"all projects":p)}
-  return(mg.length?"Management: "+mg.join(", "):"")+(mg.length&&st.length?" · ":"")+(st.length?"Site Head: "+st.join(", "):"")||"No rights yet"}
+function admSummary(email){var R=admRights(email),mg=[],st=[],ct=[];for(var p in R){var n=p==="*"?"all projects":p;if(R[p].management)mg.push(n);else if(R[p].control_tower)ct.push(n);if(R[p].site_head)st.push(n)}
+  return[mg.length?"Management: "+mg.join(", "):"",ct.length?"Control Tower: "+ct.join(", "):"",st.length?"Site Head: "+st.join(", "):""].filter(Boolean).join(" · ")||"No rights yet"}
 /* ---------- access log (supabase/access-log.sql): screens are recorded from here, visits by the server ---------- */
 function logA(ev,screen,detail){try{if(!SB||!SB.rpc||!SESSION)return Promise.resolve();var ua=navigator.userAgent,dv=/iPad|Tablet/i.test(ua)?"Tablet":/Mobi|Android|iPhone/i.test(ua)?"Phone":"Laptop";
   return Promise.resolve(SB.rpc("log_access",{p_event:ev,p_screen:screen||null,p_detail:detail||null,p_device:dv})).then(function(){},function(){})}catch(e){return Promise.resolve()}}
@@ -1291,13 +1291,15 @@ function admRender(){var el=$("adm");if(!SB||!SESSION||!(ME&&ME.admin)){el.inner
   var projs=projList().filter(function(p){return p&&p!=="All"}).sort();
   var rows=ADM.m.map(function(m){var open=ADM.open===m.email,me=SESSION.user&&SESSION.user.email===m.email;
     var tr='<tr><td><b>'+esc(m.full_name||m.email)+'</b>'+(m.is_admin?'<span class="atag adm1">Admin</span>':"")+(m.active?"":'<span class="atag off">Switched off</span>')+'<div class="dim" style="font-size:12px">'+esc(m.email)+'</div></td><td style="white-space:normal">'+esc(m.is_admin&&!ADM.a.some(function(x){return x.email===m.email})?"Admin: sees everything":admSummary(m.email))+'</td><td><button class="abtn ghost" data-adm="open" data-em="'+esc(m.email)+'">'+(open?"Close":"Edit rights")+'</button></td></tr>';
-    if(open){var R=admRights(m.email),cb=function(p,k){var on=R[p]&&R[p][k],lab=(k==="management"?"Management":"Site Head")+' for '+esc(p==="*"?"all projects":p);
+    if(open){var R=admRights(m.email),cb=function(p,k){var on=R[p]&&R[p][k],lab=(k==="management"?"Management":k==="control_tower"?"Control Tower":"Site Head")+' for '+esc(p==="*"?"all projects":p);
+        // Management already includes the Control Tower
+        if(k==="control_tower"&&((R[p]&&R[p].management)||(R["*"]&&R["*"].management)))return'<input type="checkbox" class="cov" checked disabled title="Included in Management" aria-label="'+lab+', included in Management">';
         // "All projects" ticked: each project is already covered, so its tick shows greyed out and can't be changed
         if(p!=="*"&&R["*"]&&R["*"][k])return'<input type="checkbox" class="cov" checked disabled title="Covered by All projects" aria-label="'+lab+', covered by All projects">';
         return'<input type="checkbox" data-acc="'+k+'" data-em="'+esc(m.email)+'" data-pj="'+esc(p)+'"'+(on?" checked":"")+' aria-label="'+lab+'">'};
-      tr+='<tr><td colspan="3"><div class="agrid"><table><thead><tr><th>Project</th><th>Management</th><th>Site Head</th></tr></thead><tbody><tr class="all"><td>All projects, including future ones</td><td>'+cb("*","management")+'</td><td>'+cb("*","site_head")+'</td></tr>'+
-        projs.map(function(p){return'<tr><td>'+esc(p)+'</td><td>'+cb(p,"management")+'</td><td>'+cb(p,"site_head")+'</td></tr>'}).join("")+'</tbody></table>'+
-        '<div class="note">Management = Control Tower and Management tabs. Site Head = Site Head tab, including customer names. Greyed ticks are covered by “All projects”. Changes save at once and apply the next time the person loads the dashboard.</div>'+
+      tr+='<tr><td colspan="3"><div class="agrid"><table><thead><tr><th>Project</th><th>Control Tower</th><th>Management</th><th>Site Head</th></tr></thead><tbody><tr class="all"><td>All projects, including future ones</td><td>'+cb("*","control_tower")+'</td><td>'+cb("*","management")+'</td><td>'+cb("*","site_head")+'</td></tr>'+
+        projs.map(function(p){return'<tr><td>'+esc(p)+'</td><td>'+cb(p,"control_tower")+'</td><td>'+cb(p,"management")+'</td><td>'+cb(p,"site_head")+'</td></tr>'}).join("")+'</tbody></table>'+
+        '<div class="note">Control Tower = Control Tower tab only. Management = Control Tower and Management tabs. Site Head = Site Head tab, including customer names. Greyed ticks are covered by “All projects”. Changes save at once and apply the next time the person loads the dashboard.</div>'+
         '<div class="aact"><button class="abtn ghost" data-adm="copy" data-em="'+esc(m.email)+'">Copy invite message</button>'+(me?"":'<button class="abtn ghost" data-adm="active" data-em="'+esc(m.email)+'">'+(m.active?"Switch off access":"Switch access back on")+'</button><button class="abtn danger" data-adm="remove" data-em="'+esc(m.email)+'">Remove person</button>')+'</div></div></td></tr>'}
     return tr}).join("");
   var logRows=ADM.log.map(function(l){return'<tr><td style="white-space:nowrap">'+esc(new Date(l.at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}))+'</td><td>'+esc(l.actor||"system")+'</td><td>'+esc(admLogText(l))+'</td></tr>'}).join("");
@@ -1311,20 +1313,22 @@ function admRender(){var el=$("adm");if(!SB||!SESSION||!(ME&&ME.admin)){el.inner
     '<section class="card"><h2>Change log</h2><div class="sub">Who gave or removed access, and when (latest 40).</div><table class="alog"><tbody>'+(logRows||'<tr><td>No changes yet.</td></tr>')+'</tbody></table></section>';
 }
 function admLogText(l){var d=l.detail||{},a=d.after||d,b=d.before;
-  if(/^access/.test(l.action)){var w=(a.management?"Management":"")+(a.management&&a.site_head?" + ":"")+(a.site_head?"Site Head":"");var pj=a.project==="*"?"all projects":a.project;
+  if(/^access/.test(l.action)){var w=[a.management?"Management":a.control_tower?"Control Tower":"",a.site_head?"Site Head":""].filter(Boolean).join(" + ");var pj=a.project==="*"?"all projects":a.project;
     if(/delete/.test(l.action))return"Removed all rights on "+pj+" for "+a.email;return(w?"Gave "+w:"Removed rights")+" on "+pj+" to "+a.email}
   if(/insert/.test(l.action))return"Added "+(a.full_name?a.full_name+" ("+a.email+")":a.email);
   if(/delete/.test(l.action))return"Removed "+a.email;
   if(b&&b.active!==a.active)return(a.active?"Switched access back on for ":"Switched off access for ")+a.email;
   return"Updated "+a.email}
-function admSave(p,okText){ADM.busy=true;return p.then(function(r){ADM.busy=false;if(r&&r.error){toast("Not saved: "+r.error.message);ADM.loaded=false;admRender();return}toast(okText||"Saved");admLoad()})}
+function admSave(p,okText){ADM.busy=true;return p.then(function(r){ADM.busy=false;if(r&&r.error){toast(/control_tower/.test(r.error.message||"")?"Not saved: run supabase/control-tower.sql in Supabase first":"Not saved: "+r.error.message);ADM.loaded=false;admRender();return}toast(okText||"Saved");admLoad()})}
 document.addEventListener("submit",function(e){if(e.target.id!=="admAdd")return;e.preventDefault();
   var em=$("admEmail").value.trim().toLowerCase(),nm=$("admName").value.trim();if(!/^\S+@\S+\.\S+$/.test(em)){toast("Enter a valid email");return}
   if(ADM.m.some(function(m){return m.email===em})){ADM.open=em;admRender();return}
   ADM.open=em;admSave(SB.from("members").insert({email:em,full_name:nm||null}),"Added "+em+". Now tick their rights.")});
 document.addEventListener("change",function(e){var c=e.target;if(!c.matches||!c.matches("[data-acc]"))return;
-  var em=c.getAttribute("data-em"),pj=c.getAttribute("data-pj"),k=c.getAttribute("data-acc"),R=admRights(em)[pj]||{management:false,site_head:false},row={email:em,project:pj,management:!!R.management,site_head:!!R.site_head};row[k]=c.checked;
-  admSave(!row.management&&!row.site_head?SB.from("access").delete().eq("email",em).eq("project",pj):SB.from("access").upsert(row))});
+  var em=c.getAttribute("data-em"),pj=c.getAttribute("data-pj"),k=c.getAttribute("data-acc"),R=admRights(em)[pj]||{},row={email:em,project:pj,management:!!R.management,site_head:!!R.site_head};row[k]=c.checked;
+  // the Control Tower column exists only after supabase/control-tower.sql; leave it out of rows that don't need it
+  if(k==="control_tower"||R.control_tower!==undefined)row.control_tower=k==="control_tower"?c.checked:!!R.control_tower;
+  admSave(!row.management&&!row.site_head&&!row.control_tower?SB.from("access").delete().eq("email",em).eq("project",pj):SB.from("access").upsert(row))});
 function admAction(x){var a=x.getAttribute("data-adm"),em=x.getAttribute("data-em");
   if(a==="view"){ADM.view=x.getAttribute("data-v");if(ADM.view==="log"&&ALG.loaded){ALG.loaded=false}trackScreen();admRender();return}
   if(a==="logref"){algLoad();return}
@@ -1556,14 +1560,19 @@ $("acct").onclick=function(e){e.stopPropagation();if(!SESSION){authShow("signin"
   $("signout").onclick=function(){var go=function(){if(go.d)return;go.d=1;SCR_LAST="";SB.auth.signOut()};logA("signout").then(go);setTimeout(go,1500)}};
 document.addEventListener("click",function(e){if(!e.target.closest(".acct"))$("acctMenu").hidden=true});
 // what this person may see: tabs and projects (the server already removed everything else)
+// projects a tab may show: Site Head, Management, or Control Tower (Management includes the Control Tower)
+function alw(t){if(!ALLOW)return null;t=t||tab;return t==="site"?ALLOW.st:t==="mgmt"?ALLOW.mgT:ALLOW.mg}
 function applyRights(me){ME=me||null;
   if(!ME){ALLOW=null;$("tabAdm").hidden=true;["tabCmd","tabMgmt","tabSite"].forEach(function(i){$(i).hidden=false});acctPaint();return}
-  ALLOW={mg:ME.mg==="*"?null:new Set(ME.mg),st:ME.st==="*"?null:new Set(ME.st),mgNone:ME.mg!=="*"&&!ME.mg.length,stNone:ME.st!=="*"&&!ME.st.length};
-  $("tabCmd").hidden=$("tabMgmt").hidden=ALLOW.mgNone;$("tabSite").hidden=ALLOW.stNone;$("tabAdm").hidden=!ME.admin;
-  if((tab==="cmd"||tab==="mgmt")&&ALLOW.mgNone)tab=ALLOW.stNone?(ME.admin?"admin":"cmd"):"site";
-  if(tab==="site"&&ALLOW.stNone)tab=ALLOW.mgNone?(ME.admin?"admin":"cmd"):"cmd";
+  var cv=ME.ct||ME.mg,set=function(v){return v==="*"?null:new Set(v)},none=function(v){return v!=="*"&&!v.length};
+  // mg = Control Tower projects (used by the Control Tower tab), mgT = Management projects (Management tab)
+  ALLOW={mg:set(cv),mgT:set(ME.mg),st:set(ME.st),ctNone:none(cv),mgNone:none(ME.mg),stNone:none(ME.st)};
+  $("tabCmd").hidden=ALLOW.ctNone;$("tabMgmt").hidden=ALLOW.mgNone;$("tabSite").hidden=ALLOW.stNone;$("tabAdm").hidden=!ME.admin;APP.classList.toggle("nomg",ALLOW.mgNone);
+  if(tab==="mgmt"&&ALLOW.mgNone)tab="cmd";
+  if(tab==="cmd"&&ALLOW.ctNone)tab=ALLOW.stNone?(ME.admin?"admin":"cmd"):"site";
+  if(tab==="site"&&ALLOW.stNone)tab=ALLOW.ctNone?(ME.admin?"admin":"cmd"):"cmd";
   if(tab==="admin"&&!ME.admin)tab="cmd";
-  if(ALLOW.mg&&F.proj&&tab!=="site")F.proj=pKeep(F.proj,ALLOW.mg);
+  if(alw()&&F.proj&&tab!=="site")F.proj=pKeep(F.proj,alw());
   acctPaint()}
 function load(fresh){
   var key=store("dashKey")||"",hd={};if(key)hd["x-dashboard-key"]=key;if(SESSION&&SESSION.access_token)hd.Authorization="Bearer "+SESSION.access_token;
@@ -1601,11 +1610,11 @@ document.addEventListener("mouseout",function(e){if(!kpBtn||kpPinned)return;var 
 window.addEventListener("scroll",function(){if(kpBtn&&!isPhone()&&CAN_HOVER.matches)kpClose(false)},{passive:true});
 window.addEventListener("popstate",function(){if(focus)closeDetail()});
 $("dback").onclick=goBack;
-function setTab(t){if(ALLOW&&((t==="site"&&ALLOW.stNone)||((t==="cmd"||t==="mgmt")&&ALLOW.mgNone)))return;if(t==="admin"&&!(ME&&ME.admin))return;
+function setTab(t){if(ALLOW&&((t==="site"&&ALLOW.stNone)||(t==="cmd"&&ALLOW.ctNone)||(t==="mgmt"&&ALLOW.mgNone)))return;if(t==="admin"&&!(ME&&ME.admin))return;
   // Site Head works on one project: several ticks are put aside and come back on the other tabs
   if(t==="site"&&pMulti(F.proj)){var okS=pSel(F.proj).filter(function(p){return p!=="All"&&(!ALLOW||!ALLOW.st||ALLOW.st.has(p))}),one=okS[0]||siteProj();PKEEP={v:F.proj,one:one};F.proj=one}
   else if(t!=="site"&&tab==="site"&&PKEEP){if(F.proj===PKEEP.one)F.proj=PKEEP.v;PKEEP=null}
-  if(t!=="site"&&ALLOW&&ALLOW.mg&&F.proj)F.proj=pKeep(F.proj,ALLOW.mg);
+  if(t!=="site"&&alw(t)&&F.proj)F.proj=pKeep(F.proj,alw(t));
   tab=t;focus=null;if(t==="site"&&(!F.proj||F.proj==="All"))F.proj=siteProj();$("flt").classList.toggle("site1",t==="site");render()}
 var PKEEP=null;
 
@@ -1623,6 +1632,7 @@ document.addEventListener("click",function(e){
   if((x=t.closest("[data-jump]"))){var je=$(x.getAttribute("data-jump"));if(je){if(je.tagName==="DETAILS")je.open=true;je.scrollIntoView({behavior:NOMO.matches?"auto":"smooth",block:"start"})}return}
   if((x=t.closest("[data-cproj]"))){F.proj=x.getAttribute("data-cproj");ui.fdimPicked=0;ui.pcmp="";render();window.scrollTo({top:0,behavior:NOMO.matches?"auto":"smooth"});return}
   if((x=t.closest("[data-cmdopen]"))){var k=x.getAttribute("data-cmdopen"),pp=x.getAttribute("data-p"),ss=x.getAttribute("data-s");
+    if(ALLOW&&(ALLOW.mgNone||(ALLOW.mgT&&pSel(pp||F.proj).some(function(q){return q&&!ALLOW.mgT.has(q)}))))return;
     tab="mgmt";F.per=x.getAttribute("data-per")||"l30";ui.fdimPicked=0;if(pp)F.proj=pp;if(ss)F.src=ss;
     if(isPhone()&&k){openDetail(k)}else{focus=k||null;render();window.scrollTo(0,0)}return}
   if((x=t.closest("[data-unfocus]"))){if(APP.classList.contains("detail"))goBack();else{focus=null;render()}return}
