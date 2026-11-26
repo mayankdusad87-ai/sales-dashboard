@@ -104,7 +104,6 @@ function pass(r,FF){
   // each tab shows only the projects this person has that right for
   if(ALLOW){var A=alw();if(A&&!A.has(r.proj))return false}
   if(FF.proj&&!pHas(FF.proj,r.proj))return false;
-  if(tab==="site"&&(!r.proj||r.proj==="All"))return false;
   if(FF.cm&&r.cm!==FF.cm)return false;
   if(FF.sm&&r.sm!==FF.sm)return false;
   if(FF.cp&&r.cp!==FF.cp)return false;
@@ -674,18 +673,20 @@ function recListHtml(id,P){
   var showWait=id==="tat",showLost=id==="cx"||st==="lost",showBk=HAS_BK&&(id==="net"||id==="nr"||id==="tatb"||id==="cx");
   var tbd=function(r){var fv=r.fv>0?r.fv:r.vday;return fv>0&&r.bday>=fv?r.bday-fv:null};
   var src=function(r){return isCP(r.src)?(r.cp||"CP · firm not entered"):(r.src||"–")};
-  var head='<tr><th>Form No</th><th>Customer</th><th>Visit</th><th>Source / CP firm</th><th>Config</th><th>Budget</th><th>Affinity</th><th>Closing</th><th>Sourcing</th>'+(showBk?'<th>Value</th><th>₹ / sq ft</th><th>TAT</th>':"")+(showWait?'<th>Wait</th>':"")+(showLost?'<th>Reason lost</th>':"")+'<th>Status</th></tr>';
+  var many=!pOne(F.proj);
+  var head='<tr><th>Form No</th>'+(many?'<th>Project</th>':"")+'<th>Customer</th><th>Visit</th><th>Source / CP firm</th><th>Config</th><th>Budget</th><th>Affinity</th><th>Closing</th><th>Sourcing</th>'+(showBk?'<th>Value</th><th>₹ / sq ft</th><th>TAT</th>':"")+(showWait?'<th>Wait</th>':"")+(showLost?'<th>Reason lost</th>':"")+'<th>Status</th></tr>';
   var body="",cards="";
   list.slice(0,MAX).forEach(function(r){var s=stLab(r),af=r.aff&&!r.bkRow?'<span class="rtag a-'+(AFC[r.aff]||"cold")+'">'+esc(r.aff)+'</span>':'<span class="dim">–</span>',vd=r.vday>0?dly(r.vday):r.fv>0?dly(r.fv):"–",tt=tbd(r),bkc=showBk?'<td>'+(r.av>0?fcr(r.av):"–")+'</td><td>'+(r.av>0&&r.carpet>0?"₹"+fmt(Math.round(r.av/r.carpet)):"–")+'</td><td>'+(tt==null?'<span class="dim" title="No matching walk-in">–</span>':tt+" d")+'</td>':"";
-    body+='<tr><td class="fno">'+esc(r.id||"–")+'</td><td class="rnm">'+nmCell(r)+'</td><td>'+vd+'</td><td class="rsrc" title="'+esc(src(r))+'">'+esc(src(r))+'</td><td>'+esc(r.cfg||"–")+'</td><td>'+esc(r.budget||"–")+'</td><td>'+af+'</td><td>'+esc(r.cm||"–")+'</td><td>'+esc(r.sm||"–")+'</td>'+bkc+(showWait?'<td><b'+(r.wait>15?' class="lo"':"")+'>'+r.wait+' min</b></td>':"")+(showLost?'<td>'+esc(r.lost||"–")+'</td>':"")+'<td><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></td></tr>';
-    cards+='<div class="rcard"><div class="rc1"><b>'+nmCell(r)+'</b>'+af+'</div><div class="rc2">'+esc(r.id||"")+(r.id?" · ":"")+vd+(r.cm?" · "+esc(r.cm):"")+'</div><div class="rc3"><span>'+esc(r.cfg||"–")+'</span><span>'+esc(r.budget||"–")+'</span><span>'+esc(src(r))+'</span>'+(showWait?'<span><b'+(r.wait>15?' class="lo"':"")+'>Waited '+r.wait+' min</b></span>':"")+(showLost&&r.lost?'<span>'+esc(r.lost)+'</span>':"")+(showBk&&r.av>0?'<span><b>'+fcr(r.av)+'</b>'+(r.carpet>0?" · ₹"+fmt(Math.round(r.av/r.carpet))+"/sq ft":"")+'</span>':"")+(showBk&&tt!=null?'<span>TAT '+tt+' d</span>':"")+'</div>'+(s[1]!=="op"?'<div class="rc4"><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></div>':"")+'</div>'});
+    body+='<tr><td class="fno">'+esc(r.id||"–")+'</td>'+(many?'<td>'+esc(r.proj&&r.proj!=="All"?r.proj:"–")+'</td>':"")+'<td class="rnm">'+nmCell(r)+'</td><td>'+vd+'</td><td class="rsrc" title="'+esc(src(r))+'">'+esc(src(r))+'</td><td>'+esc(r.cfg||"–")+'</td><td>'+esc(r.budget||"–")+'</td><td>'+af+'</td><td>'+esc(r.cm||"–")+'</td><td>'+esc(r.sm||"–")+'</td>'+bkc+(showWait?'<td><b'+(r.wait>15?' class="lo"':"")+'>'+r.wait+' min</b></td>':"")+(showLost?'<td>'+esc(r.lost||"–")+'</td>':"")+'<td><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></td></tr>';
+    cards+='<div class="rcard"><div class="rc1"><b>'+nmCell(r)+'</b>'+af+'</div><div class="rc2">'+(many&&r.proj&&r.proj!=="All"?esc(r.proj)+" · ":"")+esc(r.id||"")+(r.id?" · ":"")+vd+(r.cm?" · "+esc(r.cm):"")+'</div><div class="rc3"><span>'+esc(r.cfg||"–")+'</span><span>'+esc(r.budget||"–")+'</span><span>'+esc(src(r))+'</span>'+(showWait?'<span><b'+(r.wait>15?' class="lo"':"")+'>Waited '+r.wait+' min</b></span>':"")+(showLost&&r.lost?'<span>'+esc(r.lost)+'</span>':"")+(showBk&&r.av>0?'<span><b>'+fcr(r.av)+'</b>'+(r.carpet>0?" · ₹"+fmt(Math.round(r.av/r.carpet))+"/sq ft":"")+'</span>':"")+(showBk&&tt!=null?'<span>TAT '+tt+' d</span>':"")+'</div>'+(s[1]!=="op"?'<div class="rc4"><span class="rtag s-'+s[1]+'">'+esc(s[0])+'</span></div>':"")+'</div>'});
   return'<div class="rtbl"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div><div class="rcards">'+cards+'</div>'+(list.length>MAX?'<div class="note">Showing the first '+MAX+' of '+fmt(list.length)+'. Search or pick a status to narrow the list.</div>':"");
 }
 function recHtml(id,P){
   REC_CTX={id:id,P:P};
   var base=recRows(id,P),st=ui.rst||"all";
   var cnt=function(k){var n=0;base.forEach(function(r){if(recPass(r,k,""))n++});return n};
-  var chips=[["all","All"],["open","Open"],["hot","Hot / Warm high"],["booked","Booked"],["cx","Cancelled"],["lost","Lost"]].map(function(c){var n=cnt(c[0]);return n||c[0]==="all"||c[0]===st?'<button class="rchip" data-ui="rst" data-uv="'+c[0]+'" aria-pressed="'+(st===c[0])+'">'+c[1]+' <b>'+fmt(n)+'</b></button>':""}).join("");
+  var bkList=id==="net"||id==="nr"||id==="tatb"||id==="cx";if(bkList&&st==="hot")st=ui.rst="all";
+  var chips=[["all","All"],["open","Open"],["hot","Hot / Warm high"],["booked","Booked"],["cx","Cancelled"],["lost","Lost"]].filter(function(c){return!(bkList&&c[0]==="hot")}).map(function(c){var n=cnt(c[0]);return n||c[0]==="all"||c[0]===st?'<button class="rchip" data-ui="rst" data-uv="'+c[0]+'" aria-pressed="'+(st===c[0])+'">'+c[1]+' <b>'+fmt(n)+'</b></button>':""}).join("");
   var tw=id==="tat"&&base.length?'<div class="note">Half of these customers waited <b>'+Math.round(median(base.map(function(r){return r.wait})))+' min</b> or less; '+fmt(base.filter(function(r){return r.wait>15}).length)+' waited over 15 minutes. Longest waits first.</div>':"";
   if(id==="fresh"||id==="conv")tw+='<div class="note">Status is what the first-visit row says. Most bookings are recorded on a later revisit row, so the full list of bookings is in the Booking register (Net Bookings tile).</div>';
   var lock=HAS_NAMES?"Phone numbers, email and remarks are never loaded.":"Customer names show once the dashboard password is set (Vercel → Settings → Environment Variables → DASHBOARD_PASSWORD). Phone numbers, email and remarks are never loaded.";
@@ -697,7 +698,7 @@ function recHtml(id,P){
 function teamCard(P){
   var mode=ui.steam==="sm"?"sm":"cm",FF=Object.assign({},F);FF[mode]="";
   var ms=monthsIn(P),T={},tm=[];
-  var inSel=function(q){return q&&q!=="All"&&(F.proj?pHas(F.proj,q):(!ALLOW||!ALLOW.st||ALLOW.st.has(q)))};
+  var inSel=function(q){return F.proj?q!=="All"&&pHas(F.proj,q):q==="All"?!ALLOW||!ALLOW.st:(!ALLOW||!ALLOW.st||ALLOW.st.has(q))};
   (mode==="cm"?CT:ST).forEach(function(t){if(inSel(t.p)&&ms.indexOf(t.ym)>=0){T[t.m]=(T[t.m]||0)+t.t;if(tm.indexOf(t.ym)<0)tm.push(t.ym)}});
   var hasT=Object.keys(T).length>0,PP=hasT?clip(P,tm):P,S=stats(FF,PP,function(r){return r[mode]}),pace=achievePace(PP);
   var names=Object.keys(T);Object.keys(S.G).forEach(function(k){var s=S.G[k];if(k&&(s.fresh+s.gross+s.cx+s.rev)>0&&names.indexOf(k)<0)names.push(k)});
@@ -707,7 +708,7 @@ function teamCard(P){
   var rows=list.map(function(x){var st=x.pc==null?"":stOf(x.pc,pace),s=x.s;
     return drow(mode,x.n,'<td title="'+esc(x.n)+'">'+esc(x.n)+'</td>'+(mode==="cm"?'<td>'+fmt(s.fresh)+'</td><td>'+fmt(s.net)+'</td>':'<td>'+fmt(s.fresh)+'</td>')+'<td>'+(x.t?fmt(x.t):'<span class="dim">–</span>')+'</td><td class="bar">'+hbar(x.got,mx,st,x.t||null)+'</td><td>'+pill(x.pc,st)+'</td>'+(mode==="cm"?'<td>'+rateTxt(s.net,s.fresh)+'</td><td>'+(s.cx?'<b class="lo">'+fmt(s.cx)+'</b>':"0")+'</td>':'<td>'+fmt(s.net)+'</td><td>'+rateTxt(s.net,s.fresh)+'</td>'),F[mode]===x.n)}).join("");
   var sheet=mode==="cm"?"Closing Targets":"Sourcing Targets",ml=ms.length===1?ymLab(ms[0])+" target is":"target for these months is";
-  var note=hasT?(mode==="cm"?"Target = net bookings":"Target = fresh walk-ins")+" from "+sheet+" rows tagged "+sLab()+" in column C"+(pOne(F.proj)?"":", added together")+". Worst first.":"No "+ml+" tagged to "+sLab()+" yet. Put the project name in column C of the "+sheet+" sheet to see achievement here.";
+  var note=hasT?(mode==="cm"?"Target = net bookings":"Target = fresh walk-ins")+" from "+sheet+(F.proj?" rows tagged "+sLab()+" in column C"+(pOne(F.proj)?"":", added together"):", every row of your projects, including company-wide (“All”) rows")+". Worst first.":"No "+ml+" tagged to "+sLab()+" yet. Put the project name in column C of the "+sheet+" sheet to see achievement here.";
   var head=mode==="cm"?'<th>Manager</th><th>Fresh</th><th>Net bkg</th><th>Target</th><th></th><th>Achieved</th><th>Conv</th><th>Cancelled</th>':'<th>Manager</th><th>Fresh</th><th>Target</th><th></th><th>Achieved</th><th>Net bkg</th><th>Conv</th>';
   return card("sTeam","Team",mode==="cm"?"closing managers":"sourcing managers",togs("steam",[["cm","Closing"],["sm","Sourcing"]],mode),(list.length?'<table><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table>':empty("No activity at this project in the period"))+'<div class="note">'+esc(note)+'</div>');
 }
@@ -722,7 +723,7 @@ function cpCard(P){
   var booked=firms.filter(function(k){return G[k].net>0}).length,byF=firms.slice().sort(function(a,b){return G[b].fresh-G[a].fresh}),top3=0;byF.slice(0,3).forEach(function(k){top3+=G[k].fresh});
   // new CP firm = its first-ever fresh walk-in at this site falls in the period (whole sheet history, any manager)
   var t3=cpFresh?top3/cpFresh*100:null,first={},FS={proj:F.proj},SEP="\u0001",prs={};
-  ROWS.forEach(function(r){if(!r.cp||!isCP(r.src)||r.kind!==0||!(r.vday>0)||!pass(r,FS))return;var k=r.cp+SEP+r.proj;prs[r.proj]=1;if(!(first[k]<=r.vday))first[k]=r.vday});
+  ROWS.forEach(function(r){if(!r.cp||!isCP(r.src)||r.kind!==0||!(r.vday>0)||!r.proj||r.proj==="All"||!pass(r,FS))return;var k=r.cp+SEP+r.proj;prs[r.proj]=1;if(!(first[k]<=r.vday))first[k]=r.vday});
   var many=Object.keys(prs).length>1||pMulti(F.proj)||!F.proj,fm=function(k){return k.split(SEP)[0]},fp2=function(k){return k.split(SEP)[1]};
   var newF=Object.keys(first).filter(function(k){return first[k]>=P.from&&first[k]<=P.to}).sort(function(a,b){return first[a]-first[b]||a.localeCompare(b)});
   var nNew=newF.length,nPj={};newF.forEach(function(k){nPj[fp2(k)]=1});nPj=Object.keys(nPj).length;var PV=prevOf(P),pAct=null;
