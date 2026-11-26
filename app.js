@@ -13,6 +13,8 @@ function pOne(v){return!!v&&!pMulti(v)}
 function pHas(v,p){return v===p||(v.indexOf(PSEP)>=0&&(PSEP+v+PSEP).indexOf(PSEP+p+PSEP)>=0)}
 function pKeep(v,set){return set?pSel(v).filter(function(p){return set.has(p)}).join(PSEP):v}
 function pName(v){var n=pSel(v).length;return n>3?n+" projects":lab(v)}
+// Site Head: "" = all the person's Site Head projects
+function sLab(){return F.proj?lab(F.proj):(ALLOW&&ALLOW.st?"all your projects":"all projects")}
 function lab(v){return v===""||v==null?"Not entered":pMulti(v)?v.split(PSEP).join(", "):v}
 
 function fmt(n){return n==null||isNaN(n)?"–":Math.round(n).toLocaleString("en-IN")}
@@ -100,6 +102,7 @@ function pass(r,FF){
   // each tab shows only the projects this person has that right for
   if(ALLOW){var A=alw();if(A&&!A.has(r.proj))return false}
   if(FF.proj&&!pHas(FF.proj,r.proj))return false;
+  if(tab==="site"&&(!r.proj||r.proj==="All"))return false;
   if(FF.cm&&r.cm!==FF.cm)return false;
   if(FF.sm&&r.sm!==FF.sm)return false;
   if(FF.cp&&r.cp!==FF.cp)return false;
@@ -251,9 +254,9 @@ function renderFilters(){
   setOpts($("fPer"),[["mtd","This month"],["lm","Last month"],["l30","Last 30 days"],["qtd","This quarter"],["fy","This FY to date"],["lfy","Last FY"],["l12","Last 12 months"],["all","All time"]].concat(recentMonths(18)),F.per);
   var pj=projList().map(function(p){return[p,lab(p)]});
   if(ALLOW){var AL=alw();if(AL)pj=pj.filter(function(o){return AL.has(o[0])})}
-  if(tab==="site")setOpts($("fProj"),pj.filter(function(o){return o[0]!=="All"}),F.proj);
-  $("fProj").style.display=tab==="site"?"":"none";$("mProj").style.display=tab==="site"?"none":"";
-  if(tab!=="site"){var allN=alw()?"All my projects":"All projects",opt=pj.map(function(o){return o[0]});pSel(F.proj).forEach(function(p){if(opt.indexOf(p)<0)opt.push(p)});
+  if(tab==="site")pj=pj.filter(function(o){return o[0]!=="All"});
+  $("fProj").style.display="none";$("mProj").style.display="";
+  {var allN=alw()?"All my projects":"All projects",opt=pj.map(function(o){return o[0]});pSel(F.proj).forEach(function(p){if(opt.indexOf(p)<0)opt.push(p)});
     $("mProjB").innerHTML='<span>'+esc(F.proj?pName(F.proj):allN)+'</span>'+ic("chev")+'';$("mProjB").title=F.proj?lab(F.proj):allN;
     var act=document.activeElement&&document.activeElement.getAttribute?document.activeElement.getAttribute("data-mp"):null;
     $("mProjP").innerHTML='<label class="mop"><input type="checkbox" data-mp=""'+(F.proj?"":" checked")+'> <b>'+allN+'</b></label>'+opt.map(function(p){return'<label class="mop"><input type="checkbox" data-mp="'+esc(p)+'"'+(F.proj&&pHas(F.proj,p)?" checked":"")+'> '+esc(p==="All"?"No single project (“All”)":p)+'</label>'}).join("")+'<div class="mft"><button type="button" class="reset" id="mProjC">Clear</button><button type="button" class="reset" id="mProjD">Done</button></div>';
@@ -264,10 +267,10 @@ function renderFilters(){
   setOpts($("fSrc"),[["","All"],["Direct","Direct"],["Indirect","Indirect (Channel Partner)"]].concat(uniq("src").filter(function(s){return!isCP(s)&&s!=="Direct"}).map(function(s){return[s,s]})),F.src);
   var P=period(F.per),ch=[];
   ch.push(tab==="cmd"?'<span class="chip" title="The Command Centre always looks at the latest days; the Period filter does not apply">Live · '+dl(today())+'</span>':'<span class="chip" title="Period">'+esc(P.label)+'</span>');
-  [["proj","Project"],["cm","Closing"],["sm","Sourcing"],["src","Source"],["cp","CP firm"]].forEach(function(k){if(F[k[0]]&&!(tab==="site"&&k[0]==="proj"))ch.push('<button class="chip" data-x="'+k[0]+'" title="Remove filter">'+k[1]+': <b>'+esc(lab(F[k[0]]))+'</b> '+ic("x")+'</button>')});
-  if(tab==="site")ch.unshift('<span class="chip"><b>'+esc(lab(F.proj))+'</b></span>');
+  [["proj","Project"],["cm","Closing"],["sm","Sourcing"],["src","Source"],["cp","CP firm"]].forEach(function(k){if(F[k[0]])ch.push('<button class="chip" data-x="'+k[0]+'" title="Remove filter">'+k[1]+': <b>'+esc(lab(F[k[0]]))+'</b> '+ic("x")+'</button>')});
+  if(tab==="site"&&!F.proj)ch.splice(1,0,'<span class="chip"><b>'+esc(sLab())+'</b></span>');
   $("chips").innerHTML=ch.join("");
-  var n=["proj","cm","sm","src","cp"].filter(function(k){return F[k]&&!(tab==="site"&&k==="proj")}).length;
+  var n=["proj","cm","sm","src","cp"].filter(function(k){return F[k]}).length;
   $("fopen").textContent="Filters"+(n?" ("+n+")":"");
 }
 
@@ -684,7 +687,7 @@ function recHtml(id,P){
   var tw=id==="tat"&&base.length?'<div class="note">Half of these customers waited <b>'+Math.round(median(base.map(function(r){return r.wait})))+' min</b> or less; '+fmt(base.filter(function(r){return r.wait>15}).length)+' waited over 15 minutes. Longest waits first.</div>':"";
   if(id==="fresh"||id==="conv")tw+='<div class="note">Status is what the first-visit row says. Most bookings are recorded on a later revisit row, so the full list of bookings is in the Booking register (Net Bookings tile).</div>';
   var lock=HAS_NAMES?"Phone numbers, email and remarks are never loaded.":"Customer names show once the dashboard password is set (Vercel → Settings → Environment Variables → DASHBOARD_PASSWORD). Phone numbers, email and remarks are never loaded.";
-  return'<section class="card rec"><div class="rhd"><button class="reset rback" data-unfocus>‹ Site Head</button><div><h2>'+esc(REC[id]||M(id).label)+' <span class="rn">'+fmt(base.length)+'</span></h2><div class="sub">'+esc(lab(F.proj))+' · '+esc(P.label)+(F.cm?' · '+esc(F.cm):"")+(F.sm?' · '+esc(F.sm):"")+(F.cp?' · '+esc(F.cp):"")+'</div></div></div>'+
+  return'<section class="card rec"><div class="rhd"><button class="reset rback" data-unfocus>‹ Site Head</button><div><h2>'+esc(REC[id]||M(id).label)+' <span class="rn">'+fmt(base.length)+'</span></h2><div class="sub">'+esc(sLab())+' · '+esc(P.label)+(F.cm?' · '+esc(F.cm):"")+(F.sm?' · '+esc(F.sm):"")+(F.cp?' · '+esc(F.cp):"")+'</div></div></div>'+
     '<div class="rtools"><input class="rsearch" id="rq" type="search" autocomplete="off" placeholder="Search name, Form No or CP firm" value="'+esc(ui.rq||"")+'" aria-label="Search customers"><div class="rchips">'+chips+'</div></div>'+tw+
     '<div id="recList">'+recListHtml(id,P)+'</div><div class="rnote"><span aria-hidden="true">🔒</span> '+lock+'</div></section>';
 }
@@ -692,7 +695,8 @@ function recHtml(id,P){
 function teamCard(P){
   var mode=ui.steam==="sm"?"sm":"cm",FF=Object.assign({},F);FF[mode]="";
   var ms=monthsIn(P),T={},tm=[];
-  (mode==="cm"?CT:ST).forEach(function(t){if(t.p===F.proj&&ms.indexOf(t.ym)>=0){T[t.m]=(T[t.m]||0)+t.t;if(tm.indexOf(t.ym)<0)tm.push(t.ym)}});
+  var inSel=function(q){return q&&q!=="All"&&(F.proj?pHas(F.proj,q):(!ALLOW||!ALLOW.st||ALLOW.st.has(q)))};
+  (mode==="cm"?CT:ST).forEach(function(t){if(inSel(t.p)&&ms.indexOf(t.ym)>=0){T[t.m]=(T[t.m]||0)+t.t;if(tm.indexOf(t.ym)<0)tm.push(t.ym)}});
   var hasT=Object.keys(T).length>0,PP=hasT?clip(P,tm):P,S=stats(FF,PP,function(r){return r[mode]}),pace=achievePace(PP);
   var names=Object.keys(T);Object.keys(S.G).forEach(function(k){var s=S.G[k];if(k&&(s.fresh+s.gross+s.cx+s.rev)>0&&names.indexOf(k)<0)names.push(k)});
   var list=names.map(function(n){var s=S.G[n]||fin(blank()),t=T[n]||0,got=mode==="cm"?s.net:s.fresh;return{n:n,s:s,t:t,got:got,pc:t?got/t*100:null}});
@@ -701,7 +705,7 @@ function teamCard(P){
   var rows=list.map(function(x){var st=x.pc==null?"":stOf(x.pc,pace),s=x.s;
     return drow(mode,x.n,'<td title="'+esc(x.n)+'">'+esc(x.n)+'</td>'+(mode==="cm"?'<td>'+fmt(s.fresh)+'</td><td>'+fmt(s.net)+'</td>':'<td>'+fmt(s.fresh)+'</td>')+'<td>'+(x.t?fmt(x.t):'<span class="dim">–</span>')+'</td><td class="bar">'+hbar(x.got,mx,st,x.t||null)+'</td><td>'+pill(x.pc,st)+'</td>'+(mode==="cm"?'<td>'+rateTxt(s.net,s.fresh)+'</td><td>'+(s.cx?'<b class="lo">'+fmt(s.cx)+'</b>':"0")+'</td>':'<td>'+fmt(s.net)+'</td><td>'+rateTxt(s.net,s.fresh)+'</td>'),F[mode]===x.n)}).join("");
   var sheet=mode==="cm"?"Closing Targets":"Sourcing Targets",ml=ms.length===1?ymLab(ms[0])+" target is":"target for these months is";
-  var note=hasT?(mode==="cm"?"Target = net bookings":"Target = fresh walk-ins")+" from "+sheet+" rows tagged "+lab(F.proj)+" in column C. Worst first.":"No "+ml+" tagged to "+lab(F.proj)+" yet. Put the project name in column C of the "+sheet+" sheet to see achievement here.";
+  var note=hasT?(mode==="cm"?"Target = net bookings":"Target = fresh walk-ins")+" from "+sheet+" rows tagged "+sLab()+" in column C"+(pOne(F.proj)?"":", added together")+". Worst first.":"No "+ml+" tagged to "+sLab()+" yet. Put the project name in column C of the "+sheet+" sheet to see achievement here.";
   var head=mode==="cm"?'<th>Manager</th><th>Fresh</th><th>Net bkg</th><th>Target</th><th></th><th>Achieved</th><th>Conv</th><th>Cancelled</th>':'<th>Manager</th><th>Fresh</th><th>Target</th><th></th><th>Achieved</th><th>Net bkg</th><th>Conv</th>';
   return card("sTeam","Team",mode==="cm"?"closing managers":"sourcing managers",togs("steam",[["cm","Closing"],["sm","Sourcing"]],mode),(list.length?'<table><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table>':empty("No activity at this project in the period"))+'<div class="note">'+esc(note)+'</div>');
 }
@@ -715,10 +719,11 @@ function cpCard(P){
   var cpFresh=noFirm?noFirm.fresh:0;firms.forEach(function(k){cpFresh+=G[k].fresh});
   var booked=firms.filter(function(k){return G[k].net>0}).length,byF=firms.slice().sort(function(a,b){return G[b].fresh-G[a].fresh}),top3=0;byF.slice(0,3).forEach(function(k){top3+=G[k].fresh});
   // new CP firm = its first-ever fresh walk-in at this site falls in the period (whole sheet history, any manager)
-  var t3=cpFresh?top3/cpFresh*100:null,first={},FS={proj:F.proj};
-  ROWS.forEach(function(r){if(r.cp&&isCP(r.src)&&r.kind===0&&r.vday>0&&pass(r,FS)&&!(first[r.cp]<=r.vday))first[r.cp]=r.vday});
+  var t3=cpFresh?top3/cpFresh*100:null,first={},FS={proj:F.proj},SEP="\u0001",prs={};
+  ROWS.forEach(function(r){if(!r.cp||!isCP(r.src)||r.kind!==0||!(r.vday>0)||!pass(r,FS))return;var k=r.cp+SEP+r.proj;prs[r.proj]=1;if(!(first[k]<=r.vday))first[k]=r.vday});
+  var many=Object.keys(prs).length>1||pMulti(F.proj)||!F.proj,fm=function(k){return k.split(SEP)[0]},fp2=function(k){return k.split(SEP)[1]};
   var newF=Object.keys(first).filter(function(k){return first[k]>=P.from&&first[k]<=P.to}).sort(function(a,b){return first[a]-first[b]||a.localeCompare(b)});
-  var nNew=newF.length,PV=prevOf(P),pAct=null;
+  var nNew=newF.length,nPj={};newF.forEach(function(k){nPj[fp2(k)]=1});nPj=Object.keys(nPj).length;var PV=prevOf(P),pAct=null;
   if(PV){var GP=stats(FF,PV,function(r){return isCP(r.src)&&r.cp?r.cp:"\u0000"}).G;delete GP["\u0000"];pAct=Object.keys(GP).filter(function(k){return GP[k].fresh+GP[k].rev>0}).length}
   var own=cpOwner(FF);
   var k5=function(lb,v,sub,cls,btn){return(btn?'<button type="button" class="kb kbtn'+(cls?" "+cls:"")+'" '+btn+'>':'<div class="kb'+(cls?" "+cls:"")+'">')+'<small>'+lb+'</small><b>'+v+'</b><i>'+sub+'</i>'+(btn?'</button>':'</div>')};
@@ -726,11 +731,11 @@ function cpCard(P){
     k5("Active CP firms",fmt(active.length),pAct==null?"brought a walk-in":(active.length>=pAct?"▲":"▼")+Math.abs(active.length-pAct)+" vs "+esc(PV.label))+
     k5("Firms that booked",fmt(booked)+'<span> of '+fmt(active.length)+'</span>',fmt(Math.max(0,active.length-booked))+" with visits, no net booking")+
     k5("Top 3 firms' share",t3==null?"–":fp(t3,0),t3!=null&&t3>50?"Dependence risk: above 50%":"of CP walk-ins",t3!=null&&t3>50?"warn":"")+
-    k5("New CP firms",fmt(nNew),nNew?(ui.cpnew?"Hide the list ▴":"First fresh walk-in here · see list ▾"):"first fresh walk-in here",ui.cpnew?"on":"",nNew?'data-cpnew="1" aria-expanded="'+!!ui.cpnew+'"':"")+'</div>';
-  if(ui.cpnew&&nNew){var GN=stats(Object.assign({},FF,{cm:"",sm:""}),P,function(r){return isCP(r.src)&&r.cp?r.cp:"\u0000"}).G;
-    strip+='<div class="cpnew"><h3 class="lh">New CP firms <span>first-ever fresh walk-in at '+esc(lab(F.proj))+' in '+esc(P.label)+', earliest first</span></h3><table><thead><tr><th>CP firm</th><th>First walk-in</th><th>Fresh</th><th>Net bkg</th><th>Sourcing</th></tr></thead><tbody>'+
-      newF.map(function(k){var s=GN[k]||{fresh:0,net:0};return drow("cp",k,'<td title="'+esc(k)+'"><b>'+esc(k)+'</b></td><td style="white-space:nowrap">'+dl(first[k])+(P.to-P.from>40?" '"+String(ymd(first[k])[0]).slice(2):"")+'</td><td>'+fmt(s.fresh)+'</td><td>'+fmt(s.net)+'</td><td class="dim">'+esc(own[k]||"–")+'</td>')}).join("")+
-      '</tbody></table><div class="note">Fresh and Net bkg are for '+esc(P.label)+'. Sourcing = the manager who handles most of the firm’s walk-ins. A firm spelled two ways counts twice; the sheet’s first month counts every firm as new.</div></div>'}
+    k5("New CP firms",fmt(nNew),nNew?(ui.cpnew?"Hide the list ▴":(many?"new at a site, "+nPj+" project"+(nPj>1?"s":"")+" · see list ▾":"First fresh walk-in here · see list ▾")):"first fresh walk-in here",ui.cpnew?"on":"",nNew?'data-cpnew="1" aria-expanded="'+!!ui.cpnew+'"':"")+'</div>';
+  if(ui.cpnew&&nNew){var GN=stats(Object.assign({},FF,{cm:"",sm:""}),P,function(r){return isCP(r.src)&&r.cp?r.cp+SEP+r.proj:"\u0000"}).G;
+    strip+='<div class="cpnew"><h3 class="lh">New CP firms <span>first-ever fresh walk-in '+(many?'at each project':'at '+esc(sLab()))+' in '+esc(P.label)+', earliest first</span></h3><table><thead><tr><th>CP firm</th>'+(many?'<th>Project</th>':'')+'<th>First walk-in</th><th>Fresh</th><th>Net bkg</th><th>Sourcing</th></tr></thead><tbody>'+
+      newF.map(function(k){var s=GN[k]||{fresh:0,net:0},n=fm(k);return drow("cp",n,'<td title="'+esc(n)+'"><b>'+esc(n)+'</b></td>'+(many?'<td>'+esc(fp2(k))+'</td>':'')+'<td style="white-space:nowrap">'+dl(first[k])+(P.to-P.from>40?" '"+String(ymd(first[k])[0]).slice(2):"")+'</td><td>'+fmt(s.fresh)+'</td><td>'+fmt(s.net)+'</td><td class="dim">'+esc(own[n]||"–")+'</td>')}).join("")+
+      '</tbody></table><div class="note">Fresh and Net bkg are for '+esc(P.label)+'. Sourcing = the manager who handles most of the firm’s walk-ins. '+(many?'A firm new at two projects is listed once for each. ':'')+'A firm spelled two ways counts twice; the sheet’s first month counts every firm as new.</div></div>'}
   var top=firms.filter(function(k){return G[k].fresh+G[k].gross>0}).sort(function(a,b){return G[b].net-G[a].net||G[b].fresh-G[a].fresh}).slice(0,8);
   var topT=top.length?'<table><thead><tr><th>#</th><th>CP firm</th><th>Fresh</th><th>Net bkg</th><th>Rate</th><th>Sourcing</th></tr></thead><tbody>'+top.map(function(k,i){var s=G[k];return drow("cp",k,'<td class="dim">'+(i+1)+'</td><td title="'+esc(k)+'"><b>'+esc(k)+'</b></td><td>'+fmt(s.fresh)+'</td><td><b>'+fmt(s.net)+'</b></td><td>'+rateTxt(s.net,s.fresh)+'</td><td class="dim">'+esc(own[k]||"–")+'</td>',F.cp===k)}).join("")+'</tbody></table>':empty("No channel-partner walk-ins in this period");
   // watch list over the last 90 days, so one quiet week does not mark a firm
@@ -798,7 +803,7 @@ function fixCard(P){
     if(ub.length){var nb0=ub.filter(function(r){return!r.id}).length,wid=ub.filter(function(r){return r.id});
       iss.push("<b>"+fmt(ub.length)+"</b> booking"+(ub.length>1?"s":"")+" in Booking details "+(ub.length>1?"have":"has")+" no matching walk-in"+(nb0?": <b>"+fmt(nb0)+"</b> with no Form No (column B)":"")+(wid.length?(nb0?"; ":": ")+"Form No with no walk-in on or before the booking: "+wid.slice(0,6).map(function(r){return esc(r.id)}).join(", ")+(wid.length>6?" and "+(wid.length-6)+" more":""):"")+".")}}
   if(HAS_BK){var cb=0,tf=0;ROWS.forEach(function(r){if(r.bkRow&&r.bday>=P.from&&r.bday<=P.to&&pass(r,F)&&!r.cx)cb++;if(r.kind===0&&r.vday>=P.from&&r.vday<=P.to&&pass(r,F))tf++});
-    if(cb>tf)iss.push("<b>"+fmt(cb)+"</b> bookings but only <b>"+fmt(tf)+"</b> fresh walk-ins tagged "+esc(lab(F.proj))+" in "+esc(P.label)+", so the walk-in to booking rate can’t be shown. Tag column B for this project’s walk-ins.")}
+    if(cb>tf)iss.push("<b>"+fmt(cb)+"</b> bookings but only <b>"+fmt(tf)+"</b> fresh walk-ins tagged "+esc(sLab())+" in "+esc(P.label)+", so the walk-in to booking rate can’t be shown. Tag column B for this project’s walk-ins.")}
   var tc=Object.keys(q.tgtCombined||{});
   if(tc.length)iss.push("Target sheets have several projects in one cell of column C ("+tc.slice(0,4).map(function(s){return"“"+esc(s)+"”"}).join(", ")+(tc.length>4?" and "+(tc.length-4)+" more":"")+"). These targets are counted in the company total only, not under any project. Put one project per row to see them project-wise.");
   if(!TIME_OK)iss.push("Time In and Time Attended could not be read for any walk-in, so TAT is not shown yet. If these columns are filled, their format or position needs a look.");
@@ -1259,7 +1264,7 @@ function logA(ev,screen,detail){try{if(!SB||!SB.rpc||!SESSION)return Promise.res
 var SCR_LAST="";
 function trackScreen(){if(!ME||document.hidden)return;
   var s=tab==="cmd"?"Command Centre":tab==="mgmt"?"Management":tab==="site"?"Site Head":"Admin",
-    d=tab==="admin"?(ADM.view==="email"?"Emails":ADM.view==="log"?"Access log":"People and rights"):tab==="cmd"?"":(tab==="site"?[F.proj]:[]).concat(focus?[(tab==="site"&&REC[focus])||M(focus).label]:[]).filter(Boolean).join(" · "),k=s+"|"+d;
+    d=tab==="admin"?(ADM.view==="email"?"Emails":ADM.view==="log"?"Access log":"People and rights"):tab==="cmd"?"":(tab==="site"?[sLab()]:[]).concat(focus?[(tab==="site"&&REC[focus])||M(focus).label]:[]).filter(Boolean).join(" · "),k=s+"|"+d;
   if(k===SCR_LAST)return;SCR_LAST=k;logA("screen",s,d)}
 /* admin: access log view */
 var ALG={sum:[],rows:[],loaded:false,busy:false,missing:false,err:"",who:"",scr:"",days:30,more:false};
@@ -1578,7 +1583,7 @@ function applyRights(me){ME=me||null;
   if(tab==="cmd"&&ALLOW.ctNone)tab=ALLOW.stNone?(ME.admin?"admin":"cmd"):"site";
   if(tab==="site"&&ALLOW.stNone)tab=ALLOW.ctNone?(ME.admin?"admin":"cmd"):"cmd";
   if(tab==="admin"&&!ME.admin)tab="cmd";
-  if(alw()&&F.proj&&tab!=="site")F.proj=pKeep(F.proj,alw());
+  if(alw()&&F.proj)F.proj=pKeep(F.proj,alw());
   acctPaint()}
 function load(fresh){
   var key=store("dashKey")||"",hd={};if(key)hd["x-dashboard-key"]=key;if(SESSION&&SESSION.access_token)hd.Authorization="Bearer "+SESSION.access_token;
@@ -1591,7 +1596,7 @@ function load(fresh){
     return r.json();
   }).then(function(d){
     loadErr="";ingest(d);applyRights(d.me);lastLoad=Date.now();$("gate").style.display="none";$("auth").style.display="none";
-    if(tab==="site"&&(!F.proj||F.proj==="All"))F.proj=siteProj();
+    if(tab==="site"&&F.proj)F.proj=pSel(F.proj).filter(function(q){return q!=="All"}).join(PSEP);
     render();setLive();ldDone();
   }).catch(function(e){if(e.message==="password")return;loadErr="Could not load data";setLive();if(!DATA){ldFail("Could not load the data: "+e.message+". Try again in a minute.")}});
 }
@@ -1618,10 +1623,10 @@ window.addEventListener("popstate",function(){if(focus)closeDetail()});
 $("dback").onclick=goBack;
 function setTab(t){if(ALLOW&&((t==="site"&&ALLOW.stNone)||(t==="cmd"&&ALLOW.ctNone)||(t==="mgmt"&&ALLOW.mgNone)))return;if(t==="admin"&&!(ME&&ME.admin))return;
   // Site Head works on one project: several ticks are put aside and come back on the other tabs
-  if(t==="site"&&pMulti(F.proj)){var okS=pSel(F.proj).filter(function(p){return p!=="All"&&(!ALLOW||!ALLOW.st||ALLOW.st.has(p))}),one=okS[0]||siteProj();PKEEP={v:F.proj,one:one};F.proj=one}
-  else if(t!=="site"&&tab==="site"&&PKEEP){if(F.proj===PKEEP.one)F.proj=PKEEP.v;PKEEP=null}
-  if(t!=="site"&&alw(t)&&F.proj)F.proj=pKeep(F.proj,alw(t));
-  tab=t;focus=null;if(t==="site"&&(!F.proj||F.proj==="All"))F.proj=siteProj();$("flt").classList.toggle("site1",t==="site");render()}
+
+  if(alw(t)&&F.proj)F.proj=pKeep(F.proj,alw(t));
+  if(t==="site"&&F.proj)F.proj=pSel(F.proj).filter(function(q){return q!=="All"}).join(PSEP);
+  tab=t;focus=null;$("flt").classList.toggle("site1",t==="site");render()}
 var PKEEP=null;
 
 // a site head works on a real project: "All" in column B is not one
@@ -1653,7 +1658,7 @@ document.addEventListener("click",function(e){
   if((x=t.closest("[data-ui]"))){ui[x.getAttribute("data-ui")]=x.getAttribute("data-uv");if(x.getAttribute("data-ui")==="fdim")ui.fdimPicked=1;render();return}
   if((x=t.closest("[data-x]"))){F[x.getAttribute("data-x")]="";ui.fdimPicked=0;render();return}
   if((x=t.closest("[data-per]"))){F.per=normPer(x.getAttribute("data-per"));render();return}
-  if((x=t.closest("tr[data-f]"))){var f=x.getAttribute("data-f"),v=x.getAttribute("data-v");if(tab==="site"&&f==="proj")return;F[f]=F[f]===v?"":v;if(f==="cp"&&F.cp&&F.src!=="Indirect")F.src="";render();return}
+  if((x=t.closest("tr[data-f]"))){var f=x.getAttribute("data-f"),v=x.getAttribute("data-v");F[f]=F[f]===v?"":v;if(f==="cp"&&F.cp&&F.src!=="Indirect")F.src="";render();return}
 });
 document.addEventListener("keydown",function(e){
   if(e.key==="Enter"&&e.target.matches&&e.target.matches("tr[data-f],tr[data-cproj]")){e.target.click()}
@@ -1669,7 +1674,7 @@ document.addEventListener("change",function(e){var t=e.target;
   else if(t.matches("[data-why]")){if(t.getAttribute("data-why")==="sWhy")ui.swhy=t.value;else ui.why=t.value}else return;
   render();
 });
-$("freset").onclick=function(){ui.fdimPicked=0;ui.ccat="";Object.assign(F,{per:"mtd",proj:tab==="site"?F.proj:"",cm:"",sm:"",src:"",cp:""});focus=null;render()};
+$("freset").onclick=function(){ui.fdimPicked=0;ui.ccat="";Object.assign(F,{per:"mtd",proj:"",cm:"",sm:"",src:"",cp:""});focus=null;render()};
 function mProjOpen(o){$("mProjP").hidden=!o;$("mProjB").setAttribute("aria-expanded",o?"true":"false")}
 $("mProjB").onclick=function(){mProjOpen($("mProjP").hidden)};
 $("mProjP").addEventListener("click",function(e){if(e.target.id==="mProjC"){F.proj="";ui.fdimPicked=0;ui.pcmp="";render()}else if(e.target.id==="mProjD"){mProjOpen(false);$("mProjB").focus()}});
