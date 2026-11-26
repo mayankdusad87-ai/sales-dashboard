@@ -46,19 +46,23 @@ var tab="cmd",focus=null,ui={trend:"book",chan:"split",why:"lost",fdim:"proj",st
 var lastLoad=0,loadErr="";
 
 /* ---------- period ---------- */
+// running periods end YESTERDAY (complete days only), like the Command Centre; "Today" is its own period
 function period(key){
-  var t=today(),a=ymd(t),cur=a[0]*100+a[1]+1,fy=fyStart(t),p;
-  if(key==="mtd")p={from:monStart(cur),to:t,label:"This month",shift:1};
+  var t=today(),y=t-1,a=ymd(t),cur=a[0]*100+a[1]+1,fy=fyStart(t),p;
+  if(key==="today")p={from:t,to:t,label:"Today ("+dl(t)+", so far)",shift:0};
+  else if(key==="mtd")p={from:monStart(cur),to:y,label:"This month",shift:1};
   else if(key==="lm"){var l=ymAdd(cur,-1);p={from:monStart(l),to:monEnd(l),label:"Last month ("+ymLab(l)+")",shift:1}}
-  else if(key==="l30")p={from:t-29,to:t,label:"Last 30 days",shift:0};
-  else if(key==="qtd"){var qs=ymAdd(cur,-((a[1]-3+12)%3));p={from:monStart(qs),to:t,label:"This quarter",shift:3}}
-  else if(key==="fy")p={from:mkDay(fy,3,1),to:t,label:"FY "+fy+"-"+String(fy+1).slice(2)+" to date",shift:12};
+  else if(key==="l30")p={from:y-29,to:y,label:"Last 30 days",shift:0};
+  else if(key==="qtd"){var qs=ymAdd(cur,-((a[1]-3+12)%3));p={from:monStart(qs),to:y,label:"This quarter",shift:3}}
+  else if(key==="fy")p={from:mkDay(fy,3,1),to:y,label:"FY "+fy+"-"+String(fy+1).slice(2)+" to date",shift:12};
   else if(key==="lfy")p={from:mkDay(fy-1,3,1),to:mkDay(fy,2,31),label:"FY "+(fy-1)+"-"+String(fy).slice(2),shift:12};
-  else if(key==="l12")p={from:monStart(ymAdd(cur,-11)),to:t,label:"Last 12 months",shift:12};
-  else if(key==="all")p={from:MIN_DAY,to:t,label:"All time",shift:0};
-  else if(/^m\d{6}$/.test(key)){var ym=+key.slice(1);p={from:monStart(ym),to:Math.min(monEnd(ym),t),label:ymLab(ym),shift:1,month:ym}}
+  else if(key==="l12")p={from:monStart(ymAdd(cur,-11)),to:y,label:"Last 12 months",shift:12};
+  else if(key==="all")p={from:MIN_DAY,to:y,label:"All time",shift:0};
+  else if(/^m\d{6}$/.test(key)){var ym=+key.slice(1);p={from:monStart(ym),to:Math.min(monEnd(ym),y),label:ymLab(ym),shift:1,month:ym}}
   else return period("fy");
   if(key==="mtd")p.month=cur;if(key==="lm")p.month=ymAdd(cur,-1);
+  // say which days are in: "to 25 Nov", or that no full day has passed yet (the 1st of a month, quarter or year)
+  if(key!=="today"&&key!=="lm"&&key!=="lfy"&&p.to===y&&!(p.month&&p.month!==cur))p.label+=p.to<p.from?" (no full day yet)":" (to "+dl(y)+")";
   p.key=key;p.full={from:p.from,to:p.month?monEnd(p.month):(key==="fy"?mkDay(fy+1,2,31):key==="qtd"?monEnd(ymAdd(ymOf(p.from),2)):p.to)};
   return p;
 }
@@ -150,6 +154,7 @@ function series(FF,p,weekly){
 /* ---------- targets ---------- */
 function targets(FF,p){
   var months=monthsIn(p),res={book:null,walk:null,bookM:{},walkM:{},bookW:null,walkW:null,why:""};
+  if(p.key==="today"){res.why="Targets are monthly: pick This month to see progress";return res}
   if(FF.src||FF.cp){res.why="Targets are set per manager and project, not per source";return res}
   var bRows,wRows;
   if(FF.cm&&FF.sm){res.why="No target for a closing + sourcing manager pair";return res}
@@ -169,7 +174,7 @@ function targets(FF,p){
 function achieve(ser,M,metric){
   var got=0,tgt=0,ms=[];for(var k in M){k=+k;if(ser.B[k]){got+=metric(ser.B[k]);tgt+=M[k];ms.push(k)}}
   if(!ms.length||!tgt)return null;
-  ms.sort();var s=monStart(ms[0]),e=monEnd(ms[ms.length-1]),t=today();
+  ms.sort();var s=monStart(ms[0]),e=monEnd(ms[ms.length-1]),t=today()-1;
   var pace=t>=e?1:t<s?0:(t-s+1)/(e-s+1);
   var pc=got/tgt*100;
   return{got:got,tgt:tgt,pc:pc,pace:pace*100,ms:ms,st:pc>=pace*100?"good":pc>=pace*80?"warn":"bad"};
@@ -252,7 +257,7 @@ function projList(){var c={};ROWS.forEach(function(r){if(r.proj&&r.vday>=today()
 // everyone active in the last 400 days or in the picked period (visits, bookings or cancellations), plus the picked person
 function personList(key,T){var c={},t=Math.min(today()-400,tab==="cmd"?today():period(F.per).from);if(F[key])c[F[key]]=1;ROWS.forEach(function(r){if(r[key]&&(r.vday>=t||r.bday>=t||r.cday>=t))c[r[key]]=(c[r[key]]||0)+1});T.forEach(function(x){c[x.m]=(c[x.m]||0)+1e6});return Object.keys(c).sort()}
 function renderFilters(){
-  setOpts($("fPer"),[["mtd","This month"],["lm","Last month"],["l30","Last 30 days"],["qtd","This quarter"],["fy","This FY to date"],["lfy","Last FY"],["l12","Last 12 months"],["all","All time"]].concat(recentMonths(18)),F.per);
+  setOpts($("fPer"),[["today","Today"],["mtd","This month"],["lm","Last month"],["l30","Last 30 days"],["qtd","This quarter"],["fy","This FY to date"],["lfy","Last FY"],["l12","Last 12 months"],["all","All time"]].concat(recentMonths(18)),F.per);
   var pj=projList().map(function(p){return[p,lab(p)]});
   if(ALLOW){var AL=alw();if(AL)pj=pj.filter(function(o){return AL.has(o[0])})}
   if(tab==="site")pj=pj.filter(function(o){return o[0]!=="All"});
@@ -436,7 +441,7 @@ function rs(v){return v==null?"–":"₹"+fmt(Math.round(v))}
 // drawn hollow and faded (one unusual unit can move them), months with none show "–"; mix note when the mix moves
 function nrTrendCard(P){
   var ms=monthsIn(P);if(ms.length>24)ms=ms.slice(-24);
-  var pts=ms.map(function(k){var L=nrRows(F,monStart(k),Math.min(monEnd(k),today())),x=nrSum(L),c={};L.forEach(function(r){var key=(F.proj?"":r.proj+" ")+(r.cfg||"Not entered");c[key]=(c[key]||0)+1});
+  var pts=ms.map(function(k){var L=nrRows(F,monStart(k),Math.min(monEnd(k),today()-1)),x=nrSum(L),c={};L.forEach(function(r){var key=(F.proj?"":r.proj+" ")+(r.cfg||"Not entered");c[key]=(c[key]||0)+1});
     var top="",tn=0;for(var q in c)if(c[q]>tn){tn=c[q];top=q}return{k:k,lab:ymLab(k),n:x.n,v:x.n?x.v:null,few:x.n>0&&x.n<3,top:top,share:x.n?tn/x.n:0}});
   var vals=pts.filter(function(p){return p.v!=null}).map(function(p){return p.v});
   if(!vals.length)return card("nrT","Net realisation by month","","",empty("No booking in these months has both agreement value and carpet area"),"auto");
@@ -557,7 +562,7 @@ function closingCard(P){
   var tgc=sel?togs("cmcmp",[["one",esc(lab(sel))+" only"],["all","All managers"]],all?"all":"one"):"";
   return card("cCm","Closing managers",sub,tgc,list.length?'<table><thead><tr><th>Manager</th><th>Target</th><th></th><th>Achieved</th><th>Gap (share)</th><th title="Net bookings in the picked period">Net</th><th>Fresh</th><th title="Net bookings ÷ fresh walk-ins">Conv</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>'+(sel&&!all?esc(lab(sel))+" total":"Total")+(totT?'<small class="pjm">'+tgLab(tmT)+'</small>':"")+'</td><td>'+(totT?fmt(totT):"–")+'</td><td></td>'+tgAch(totA,totT,tmT,P)+'<td>'+(gapTot?fmt(gapTot):"–")+'</td><td>'+fmt(totN)+'</td><td>'+fmt(totF)+'</td><td>'+convTxt(totN,totF)+'</td></tr></tfoot></table>':empty("No closing data in this period"));
 }
-function achievePace(P){var e=P.full.to,s=P.from,t=today();return t>=e?100:Math.max(0,(t-s+1)/(e-s+1)*100)}
+function achievePace(P){var e=P.full.to,s=P.from,t=today()-1;return t>=e?100:Math.max(0,(t-s+1)/(e-s+1)*100)}
 function sourcingCard(P){
   var FF=Object.assign({},F,{sm:""}),ms=monthsIn(P),noT=F.proj||F.src||F.cp||F.cm,TW={},TB={},PW={},PB={},tm=[],key=function(r){return r.sm};
   if(!noT)ST.forEach(function(t){if(ms.indexOf(t.ym)<0)return;
