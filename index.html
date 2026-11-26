@@ -1003,6 +1003,8 @@ button.lagw{width:100%;text-align:left;font:inherit;cursor:pointer}
   .m2kv{font-size:26px}
 }
 @media (max-width:760px) and (prefers-reduced-motion:reduce){.tile,.tabs button,table.rc tr{transition:none}}
+/* phones: iPhone zooms into any field whose text is under 16px, so form fields use 16px on touch screens */
+@media (pointer:coarse){input:not([type=checkbox]):not([type=radio]),select,textarea{font-size:16px!important}}
 </style>
 </head>
 <body class="booting">
