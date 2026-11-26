@@ -62,7 +62,9 @@ function period(key){
   p.key=key;p.full={from:p.from,to:p.month?monEnd(p.month):(key==="fy"?mkDay(fy+1,2,31):key==="qtd"?monEnd(ymAdd(ymOf(p.from),2)):p.to)};
   return p;
 }
-function prevOf(p){if(!p.shift)return null;return{from:addMonths(p.from,-p.shift),to:addMonths(p.to,-p.shift),label:p.shift===1?"last month":p.shift===3?"last quarter":"last year"}}
+function prevOf(p){if(!p.shift)return null;
+  if(p.month&&p.to===monEnd(p.month)){var pm=ymAdd(p.month,-1);return{from:monStart(pm),to:monEnd(pm),label:"last month"}}
+  return{from:addMonths(p.from,-p.shift),to:addMonths(p.to,-p.shift),label:p.shift===1?"last month":p.shift===3?"last quarter":"last year"}}
 
 /* ---------- data ---------- */
 function ingest(d){
@@ -109,17 +111,17 @@ function pass(r,FF){
   if(FF.src){if(FF.src==="Direct"||FF.src==="Indirect"){if(chOf(r)!==FF.src)return false}else if(r.src!==FF.src)return false}
   return true;
 }
-function blank(){return{fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],wt:[],cps:{},cpWalk:0,av:0,avx:0,avR:0,ca:0,nR:0,sf:0,sfx:0,noCa:0}}
+function blank(){return{nAv:0,fresh:0,rev:0,gross:0,cx:0,hot:0,tat:[],wt:[],cps:{},cpWalk:0,av:0,avx:0,avR:0,ca:0,nR:0,sf:0,sfx:0,noCa:0}}
 // money and turnaround of one booking row (Booking details): value, value per sq ft, days from first visit
 // CP brokerage taken off indirect bookings for realisation (sales value stays the full agreement value)
 var BRK=.0225;
 function netAV(r){return r.av*(r.chan==="Indirect"?1-BRK:1)}
 // area sold = carpet area (AD) booked in the period minus carpet area cancelled in it, like sales value
-function addBk(s,r){s.gross++;if(r.carpet>0)s.sf+=r.carpet;else s.noCa++;var fv=r.fv>0?r.fv:r.vday;if(fv>0&&r.bday>=fv)s.tat.push(r.bday-fv);if(r.av>0){s.av+=r.av;if(!r.cx&&r.carpet>0&&!r.rOut){s.avR+=netAV(r);s.ca+=r.carpet;s.nR++}}}
+function addBk(s,r){s.gross++;if(r.carpet>0)s.sf+=r.carpet;else s.noCa++;var fv=r.fv>0?r.fv:r.vday;if(fv>0&&r.bday>=fv)s.tat.push(r.bday-fv);if(r.av>0){s.nAv++;s.av+=r.av;if(!r.cx&&r.carpet>0&&!r.rOut){s.avR+=netAV(r);s.ca+=r.carpet;s.nR++}}}
 function addCx(s,r){s.cx++;if(r.carpet>0)s.sfx+=r.carpet;if(r.av>0)s.avx+=r.av}
 // conversion = NET bookings (bookings − cancellations) ÷ fresh walk-ins, so it matches the Net Bookings number everywhere
 // a booking rate above 100% means the walk-ins behind those bookings are tagged elsewhere: show "–", never a fake rate
-function fin(s){s.net=s.gross-s.cx;s.conv=pct(s.net,s.fresh);s.convBad=s.conv!=null&&s.conv>100;if(s.convBad)s.conv=null;s.tatM=median(s.tat);s.sv=HAS_BK?s.av-s.avx:null;s.sqft=HAS_BK?s.sf-s.sfx:null;s.rpsf=HAS_BK&&s.ca?s.avR/s.ca:null;s.wtM=median(s.wt);s.wt15=s.wt.filter(function(w){return w>15}).length;s.ncp=Object.keys(s.cps).length;return s}
+function fin(s){s.net=s.gross-s.cx;s.conv=pct(s.net,s.fresh);s.convBad=s.conv!=null&&s.conv>100;s.convNeg=s.net<0&&s.fresh>0;if(s.convBad||s.convNeg)s.conv=null;s.tatM=median(s.tat);s.sv=HAS_BK?s.av-s.avx:null;s.sqft=HAS_BK?s.sf-s.sfx:null;s.rpsf=HAS_BK&&s.ca?s.avR/s.ca:null;s.wtM=median(s.wt);s.wt15=s.wt.filter(function(w){return w>15}).length;s.ncp=Object.keys(s.cps).length;return s}
 // one pass: totals, optional groups by keyFn
 function stats(FF,p,keyFn){
   var tot=blank(),G={};
@@ -287,12 +289,12 @@ function tileData(id,P,S,PS,TG,ser){
     else o.noT=TG.why||"No target";
   }
   if(id==="net"){if(o.noT)o.sub=fmt(S.tot.gross)+" booked · "+fmt(S.tot.cx)+" cancelled";else o.sub2=fmt(S.tot.gross)+" booked · "+fmt(S.tot.cx)+" cancelled"}
-  if(id==="conv")o.sub=S.tot.convBad?"more bookings than tagged walk-ins":fmt(S.tot.net)+" net bookings ÷ "+fmt(S.tot.fresh)+" fresh";
+  if(id==="conv")o.sub=S.tot.convNeg?"more cancellations than bookings":S.tot.convBad?"more bookings than tagged walk-ins":fmt(S.tot.net)+" net bookings ÷ "+fmt(S.tot.fresh)+" fresh";
   if(id==="rev")o.sub=S.tot.fresh?fp(pct(S.tot.rev,S.tot.fresh),0)+" of fresh walk-ins came back":"";
   if(id==="cx")o.sub=fp(pct(S.tot.cx,S.tot.gross),0)+" of bookings in period";
   if(id==="hot")o.sub="of "+fmt(S.tot.fresh)+" fresh walk-ins";
   if(id==="cpf")o.sub="sent "+fmt(S.tot.cpWalk)+" CP walk-ins";
-  if(id==="sv"){o.sub=S.tot.gross?fcr(S.tot.av/Math.max(1,S.tot.gross))+" avg ticket":"No bookings";if(S.tot.avx)o.sub2=fcr(S.tot.avx)+" cancelled"}
+  if(id==="sv"){var nv=S.tot.gross-S.tot.nAv;o.sub=S.tot.nAv?fcr(S.tot.av/S.tot.nAv)+" avg ticket":S.tot.gross?"No values entered":"No bookings";if(nv>0){o.sub+=" · "+nv+" booking"+(nv>1?"s have":" has")+" no agreement value";o.red=1}if(S.tot.avx)o.sub2=fcr(S.tot.avx)+" cancelled"}
   if(id==="nr"&&!m.ph){
     if(!pOne(F.proj)){var pr=nrByProj(P).list,ok3=pr.filter(function(x){return x.n>=3}),use=ok3.length?ok3:pr;
       if(use.length){var lo=Math.min.apply(null,use.map(function(x){return x.v})),hi=Math.max.apply(null,use.map(function(x){return x.v}));
@@ -320,7 +322,7 @@ function renderTiles(ids,P,S,PS,TG,ser){
   el.innerHTML=ids.map(function(id,i){var o=tileData(id,P,S,PS,TG,ser);var c=METRICS.indexOf(o.m);TILEC.o[id]=o;
     // a tile with a target is the speedometer itself: title, dial, % read-out, and "achieved of target · months"
     if(o.bar)return'<div class="tile t'+c+' speedo'+(focus===id?" sel":"")+'" role="button" tabindex="0" data-tile="'+id+'" aria-pressed="'+(focus===id)+'" aria-label="'+esc(o.m.label)+': '+esc(o.sub)+'. Open details">'+si(o.st)+'<div class="tl"><span>'+esc(o.m.label)+'</span><button type="button" class="tinfo" data-info="'+id+'" aria-label="How '+esc(o.m.label)+' is calculated" aria-haspopup="dialog" aria-expanded="false" aria-controls="kpop"></button></div>'+speedo(o)+'</div>';
-    return'<div class="tile t'+c+(o.m.ph?" ph":"")+(focus===id?" sel":"")+'" role="button" tabindex="0" data-tile="'+id+'" aria-pressed="'+(focus===id)+'" aria-label="'+esc(o.m.label)+': open details">'+si(o.st)+'<div class="tl"><span>'+esc(o.m.label)+'</span><button type="button" class="tinfo" data-info="'+id+'" aria-label="How '+esc(o.m.label)+' is calculated" aria-haspopup="dialog" aria-expanded="false" aria-controls="kpop"></button></div><div class="tv">'+o.val+'</div><div class="ts">'+esc(o.sub)+'</div><div class="ts">'+esc(o.sub2)+'</div></div>'}).join("");
+    return'<div class="tile t'+c+(o.m.ph?" ph":"")+(focus===id?" sel":"")+'" role="button" tabindex="0" data-tile="'+id+'" aria-pressed="'+(focus===id)+'" aria-label="'+esc(o.m.label)+': open details">'+si(o.st)+'<div class="tl"><span>'+esc(o.m.label)+'</span><button type="button" class="tinfo" data-info="'+id+'" aria-label="How '+esc(o.m.label)+' is calculated" aria-haspopup="dialog" aria-expanded="false" aria-controls="kpop"></button></div><div class="tv">'+o.val+'</div><div class="ts'+(o.red?" tred":"")+'">'+esc(o.sub)+'</div><div class="ts">'+esc(o.sub2)+'</div></div>'}).join("");
 }
 /* ---------- (i) formula popover ---------- */
 var kpBtn=null,kpPinned=false,kpT=null,CAN_HOVER=matchMedia("(hover:hover) and (pointer:fine)");
@@ -764,7 +766,7 @@ function cpCard(P){
   return card("sCp","Channel partner scorecard",esc(P.label)+" · click a firm to filter the page","",strip+'<div class="cpgrid"><div><h3 class="lh good">▲ Top CP firms <span>by net bookings, then walk-ins</span></h3>'+topT+'</div><div><h3 class="lh bad">▼ Watch list <span>last 90 days, with the reason</span></h3>'+watchT+'</div></div><div class="note">'+rules+'</div>',"auto");
 }
 // Booking details against Walk-in: things to check, worst first. Nothing here changes a figure.
-var DSC=[["nodate","Left out: Booking Date blank or unreadable","Not counted as a booking until column AN is filled. Shown for every period."],["nostatus","Left out: Overall Status blank","Not counted until column Y is filled. Shown for every period."],["srcbad","Source Type is not Direct or Indirect","Counts in the total, but in neither channel. Correct column Q."],["cpmissing","Indirect, but CP name missing","Counts as Indirect. Fill column R."],["dirfirm","Direct, but a CP name is entered","Counts as Direct. Correct column Q or clear column R."],["noform","No Form No in Booking details","Fill column B. No TAT until then."],["notfound","Form No not in the Walk-in sheet","Correct column B, or add the walk-in."],["late","Walk-in is dated after the booking","Check the Form No or the dates. Left unmatched, so no TAT."],["revisit","Only revisits before the booking, no fresh walk-in","Check column AW in Walk-in."],["check","Form No used more than once, customer not certain","Names are blank or only similar, so the latest fresh walk-in is used."],
+var DSC=[["nodate","Left out: Booking Date blank or unreadable","Not counted as a booking until column AN is filled. Shown for every period."],["nostatus","Left out: Overall Status blank","Not counted until column Y is filled. Shown for every period."],["srcbad","Source Type is not Direct or Indirect","Counts in the total, but in neither channel. Correct column Q."],["cpmissing","Indirect, but CP name missing","Counts as Indirect. Fill column R."],["dirfirm","Direct, but a CP name is entered","Counts as Direct. Correct column Q or clear column R."],["noform","No Form No in Booking details","Fill column B. No TAT until then."],["noval","Agreement value (column AH) blank","Counted as a booking, but adds nothing to sales value and average ticket. Fill column AH."],["otherproj","Form No found only at another project","No walk-in at this project with that Form No, so it has no Booking TAT."],["notfound","Form No not in the Walk-in sheet","Correct column B, or add the walk-in."],["late","Walk-in is dated after the booking","Check the Form No or the dates. Left unmatched, so no TAT."],["revisit","Only revisits before the booking, no fresh walk-in","Check column AW in Walk-in."],["check","Form No used more than once, customer not certain","Names are blank or only similar, so the latest fresh walk-in is used."],
   ["multi","Same Form No on more than one booking","Two flats, or a wrong Form No?"],["dup","Entered twice on the same booking date","Check for hidden or filtered rows."],["status","Left out: Overall Status is not one of the two values","Only “Directly Booked” and “Cancelled at Booking” count. Correct column Y."],["future","Booking or cancellation date after today","Counted only once that date arrives. Check columns AN and V."],["badnum","Value or carpet area cannot be read","Counted as a booking with that figure as 0. Type a plain number in AH (₹) or AD (sq ft)."],["cxnodate","Cancelled, but no cancellation date","Fill column V. Counted on the booking date until then."],["cxbefore","Cancelled before it was booked","Correct column V or AN."],["blank","Blank in Booking details","Not filled from the Walk-in sheet any more."],
   ["cpblank","Direct booking, but the walk-in came from a CP","The booking keeps column Q."],["cpwalk","Indirect booking, but the walk-in is not from a CP","The booking keeps column Q."],["cpdiff","Different CP firm","The booking keeps column R."],["cm","Different closing manager","The booking keeps column T."],["cmspell","Closing manager spelled differently","Use one spelling in both sheets."],["proj","Different project","May be fine: a customer can visit one project and book another."]];
 function discCard(P){
@@ -772,7 +774,7 @@ function discCard(P){
   var A=ALLOW&&(alw()),L=(DATA.DISC||[]).filter(function(x){return(x.bday<0||x.t==="future"||x.bday>=P.from&&x.bday<=P.to)&&(!F.proj||pHas(F.proj,x.p))&&!(A&&!A.has(x.p))}),G={};
   L.forEach(function(x){(G[x.t]=G[x.t]||[]).push(x)});
   var body=DSC.filter(function(d){return G[d[0]]}).map(function(d){var l=G[d[0]].sort(function(a,b){return b.bday-a.bday}),two=l.some(function(x){return x.w}),one=l.some(function(x){return x.b});
-    return'<details class="dsc"><summary><b>'+d[1]+'</b><span>'+d[2]+'</span><span class="dn">'+fmt(l.length)+'</span></summary><div class="dtb"><table><thead><tr><th>Form No</th><th>Sheet row</th><th>Project</th><th>Booked</th><th>Status</th>'+(one||two?'<th>Booking details</th>':"")+(two?'<th>Walk-in</th>':"")+'</tr></thead><tbody>'+l.map(function(x){return'<tr><td class="fno">'+esc(x.id||"–")+'</td><td>'+(x.row||"–")+'</td><td>'+esc(x.p||"–")+'</td><td>'+(x.bday>0?dly(x.bday):"–")+'</td><td>'+(x.cx?"Cancelled":"Booked")+'</td>'+(one||two?'<td>'+esc(x.b||"–")+'</td>':"")+(two?'<td>'+esc(x.w||"–")+'</td>':"")+'</tr>'}).join("")+'</tbody></table></div></details>'}).join("");
+    return'<details class="dsc'+(d[0]==="noval"?" red":"")+'"><summary><b>'+d[1]+'</b><span>'+d[2]+'</span><span class="dn">'+fmt(l.length)+'</span></summary><div class="dtb"><table><thead><tr><th>Form No</th><th>Sheet row</th><th>Project</th><th>Booked</th><th>Status</th>'+(one||two?'<th>Booking details</th>':"")+(two?'<th>Walk-in</th>':"")+'</tr></thead><tbody>'+l.map(function(x){return'<tr><td class="fno">'+esc(x.id||"–")+'</td><td>'+(x.row||"–")+'</td><td>'+esc(x.p||"–")+'</td><td>'+(x.bday>0?dly(x.bday):"–")+'</td><td>'+(x.cx?"Cancelled":"Booked")+'</td>'+(one||two?'<td>'+esc(x.b||"–")+'</td>':"")+(two?'<td>'+esc(x.w||"–")+'</td>':"")+'</tr>'}).join("")+'</tbody></table></div></details>'}).join("");
   return card("sDisc","Booking details vs Walk-in",L.length?fmt(L.length)+" to check · bookings in "+esc(P.label):"","",body?'<div class="note" style="margin:0 0 8px">Bookings are counted from Booking details only. These are differences to check. One booking can be in more than one list.</div>'+body:empty("Nothing to check for bookings in this period"),"auto");
 }
 // data to fix: blank fields on this project's fresh walk-ins, by closing manager; plus sheet-wide issues
