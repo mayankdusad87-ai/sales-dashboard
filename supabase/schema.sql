@@ -8,8 +8,10 @@ create table if not exists public.members (
   full_name  text,
   is_admin   boolean not null default false,
   active     boolean not null default true,
+  auto_email boolean not null default true,   -- false = left out of the automatic 1st / 15th emails
   created_at timestamptz not null default now()
 );
+alter table public.members add column if not exists auto_email boolean not null default true;
 
 -- one row per person per project; project '*' = all projects, including future ones
 create table if not exists public.access (

@@ -69,7 +69,7 @@ module.exports = async (req, res) => {
     let built, R;
     try {
       const h = { apikey: SB.anon, Authorization: "Bearer " + token };
-      const [mem, acc] = await Promise.all([fetch(SB.url + "/rest/v1/members?select=email,is_admin,active", { headers: h }).then((r) => r.json()), fetch(SB.url + "/rest/v1/access?select=*", { headers: h }).then((r) => r.json())]);
+      const [mem, acc] = await Promise.all([fetch(SB.url + "/rest/v1/members?select=*", { headers: h }).then((r) => r.json()), fetch(SB.url + "/rest/v1/access?select=*", { headers: h }).then((r) => r.json())]);
       R = auto.recipients(which, mem, acc);
       built = build(await getData(false), { ym: per.ym, to: per.to || undefined, projects: ["*"], url: SITE });
     } catch (e) { return send(res, 500, { error: "build", message: "Could not build the report: " + String(e.message || e).slice(0, 200) }); }

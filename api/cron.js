@@ -31,7 +31,7 @@ module.exports = async (req, res) => {
   const log = (row) => fetch(SB.url + "/rest/v1/email_sends", { method: "POST", headers: Object.assign({ Prefer: "return=minimal" }, h), body: JSON.stringify(row) }).catch((e) => console.error("email_sends", e));
 
   let members, access, data;
-  try { [members, access] = await Promise.all([get("members?select=email,is_admin,active"), get("access?select=*")]); data = await getData(false); }
+  try { [members, access] = await Promise.all([get("members?select=*"), get("access?select=*")]); data = await getData(false); }
   catch (e) { console.error(e); return send(res, 502, { error: "load", message: String(e.message || e).slice(0, 200) }); }
 
   const out = [];
