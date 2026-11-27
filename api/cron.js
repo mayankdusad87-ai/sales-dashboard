@@ -25,7 +25,8 @@ module.exports = async (req, res) => {
   const due = auto.dueToday();
   if (!due.length) return send(res, 200, { sent: [], message: "Nothing due today" });
 
-  const h = { apikey: svc, Authorization: "Bearer " + svc, "Content-Type": "application/json" };
+  // new Supabase secret keys (sb_secret_…) go in the apikey header only; legacy service_role keys (eyJ…) also as Bearer
+  const h = /^sb_secret_/.test(svc) ? { apikey: svc, "Content-Type": "application/json" } : { apikey: svc, Authorization: "Bearer " + svc, "Content-Type": "application/json" };
   const get = async (path) => { const r = await fetch(SB.url + "/rest/v1/" + path, { headers: h }); if (!r.ok) throw new Error("Supabase " + r.status); return r.json(); };
   const log = (row) => fetch(SB.url + "/rest/v1/email_sends", { method: "POST", headers: Object.assign({ Prefer: "return=minimal" }, h), body: JSON.stringify(row) }).catch((e) => console.error("email_sends", e));
 
