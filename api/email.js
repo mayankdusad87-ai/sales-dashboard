@@ -6,6 +6,7 @@
 // Every test send is written to email_sends. Scheduled sending (Phase 3) will reuse buildFor().
 const { getData, whoIs, SB, tooMany, ipOf } = require("./data");
 const { build, lastFullMonth } = require("../lib/report");
+const auto = require("../lib/auto");
 
 const FROM = process.env.EMAIL_FROM || "Raghav Realty Control Tower <noreply@raghavgroup.in>";
 const SITE = process.env.SITE_URL || "https://sales-dashboard-pi-one.vercel.app";
@@ -60,6 +61,29 @@ module.exports = async (req, res) => {
   if (typeof body === "string") { try { body = JSON.parse(body); } catch (e) { body = {}; } }
   body = body || {};
   const job = clean(body.job);
+
+  // the automatic emails (lib/auto.js): preview with today's recipients, or a test to the signed-in admin
+  if (body.action === "auto") {
+    const which = body.which === "mid" ? "mid" : "monthly", job = auto.JOBS[which], per = auto.periodOf(which);
+    if (/^\d{4}-(0[1-9]|1[0-2])$/.test(String(body.ym || "")) && which === "monthly") per.ym = body.ym;
+    let built, R;
+    try {
+      const h = { apikey: SB.anon, Authorization: "Bearer " + token };
+      const [mem, acc] = await Promise.all([fetch(SB.url + "/rest/v1/members?select=email,is_admin,active", { headers: h }).then((r) => r.json()), fetch(SB.url + "/rest/v1/access?select=*", { headers: h }).then((r) => r.json())]);
+      R = auto.recipients(which, mem, acc);
+      built = build(await getData(false), { ym: per.ym, to: per.to || undefined, projects: ["*"], url: SITE });
+    } catch (e) { return send(res, 500, { error: "build", message: "Could not build the report: " + String(e.message || e).slice(0, 200) }); }
+    if (body.mode !== "test") return send(res, 200, { name: job.name, day: job.day, subject: built.subject, html: built.html, period: built.period, to: R.to, cc: R.cc, bcc: R.bcc });
+    const key = process.env.RESEND_API_KEY;
+    if (!key) return send(res, 500, { error: "config", message: "RESEND_API_KEY is not set in Vercel." });
+    let ok = false, err = "";
+    try {
+      const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify({ from: FROM, to: [me.email], subject: "[Test] " + built.subject, html: built.html, headers: { "X-Entity-Ref-ID": "ct-test-" + Date.now() } }) });
+      const j = await r.json().catch(() => ({})); ok = r.ok; if (!ok) err = String(j.message || j.error || "Resend said " + r.status).slice(0, 300);
+    } catch (e) { err = String(e.message || e).slice(0, 300); }
+    await logSend(token, { job_name: job.name, period: built.period, kind: "test", to_count: 1, ok, error: err || null, sent_by: me.email });
+    return ok ? send(res, 200, { sent: true, to: me.email }) : send(res, 502, { error: "send", message: err });
+  }
 
   let out;
   if (body.action !== "send") try { out = await buildFor(job); } catch (e) {
