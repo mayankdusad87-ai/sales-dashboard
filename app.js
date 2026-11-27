@@ -149,7 +149,7 @@ function series(FF,p,weekly){
     if(r.cx&&r.cday>=p.from&&r.cday<=p.to&&(s=B[key(r.cday)]))addCx(s,r)}
   keys.forEach(function(k){fin(B[k])});
   if(weekly)while(keys.length>4&&!B[keys[keys.length-1]].fresh&&!B[keys[keys.length-1]].gross&&!B[keys[keys.length-1]].cx&&keys[keys.length-1]>weekOf(p.full.to))keys.pop();
-  return{keys:keys,B:B};
+  return{keys:keys,B:B,p:p};
 }
 /* ---------- targets ---------- */
 function targets(FF,p){
@@ -164,9 +164,13 @@ function targets(FF,p){
   else if(FF.sm){bRows=ST.filter(function(t){return t.m===FF.sm&&inP(t)}).map(function(t){return{ym:t.ym,v:t.b,w:null}});wRows=ST.filter(function(t){return t.m===FF.sm&&inP(t)}).map(function(t){return{ym:t.ym,v:t.t,w:t.w}})}
   else{bRows=CT.filter(inP).map(function(t){return{ym:t.ym,v:t.t,w:t.w}});wRows=ST.filter(inP).map(function(t){return{ym:t.ym,v:t.t,w:t.w}})}
   if(FF.proj&&!bRows.length&&!(wRows&&wRows.length)){res.why="No target tagged to "+pName(FF.proj)+" yet (column C of the target sheets)";return res}
-  function sum(rows,M){var tot=0,any=false,W=[0,0,0,0,0,0],anyW=false;rows.forEach(function(t){if(months.indexOf(t.ym)<0)return;M[t.ym]=(M[t.ym]||0)+t.v;tot+=t.v;any=true;if(t.w)t.w.forEach(function(x,i){W[i]+=x;if(x)anyW=true})});return{tot:any?tot:null,W:anyW?W:null}}
-  var b=sum(bRows,res.bookM);res.book=b.tot;res.bookW=b.W;
-  if(wRows){var w=sum(wRows,res.walkM);res.walk=w.tot;res.walkW=w.W}
+  // Last 30 days cuts across two months: each month's target counts only for its days inside the period
+  var share=function(ym){if(p.key!=="l30")return 1;var s=monStart(ym),e=monEnd(ym),a=Math.max(s,p.from),b=Math.min(e,p.to);return b<a?0:(b-a+1)/(e-s+1)};
+  function sum(rows,M){var tot=0,any=false,W=[0,0,0,0,0,0],anyW=false;rows.forEach(function(t){if(months.indexOf(t.ym)<0)return;var v=t.v*share(t.ym);M[t.ym]=(M[t.ym]||0)+v;tot+=v;any=true;if(t.w)t.w.forEach(function(x,i){W[i]+=x;if(x)anyW=true})});return{tot:any?tot:null,W:anyW?W:null}}
+  var r1=function(v){return v==null?null:Math.round(v*10)/10};
+  var b=sum(bRows,res.bookM);res.book=r1(b.tot);res.bookW=b.W;
+  if(wRows){var w=sum(wRows,res.walkM);res.walk=r1(w.tot);res.walkW=w.W}
+  if(p.key==="l30"&&(res.book!=null||res.walk!=null))res.part="monthly targets counted for the days inside these 30 days";
   if(res.book==null&&res.walk==null)res.why="No target set for "+(months.length===1?ymLab(months[0]):"these months");
   return res;
 }
@@ -175,7 +179,7 @@ function achieve(ser,M,metric){
   var got=0,tgt=0,ms=[];for(var k in M){k=+k;if(ser.B[k]){got+=metric(ser.B[k]);tgt+=M[k];ms.push(k)}}
   if(!ms.length||!tgt)return null;
   ms.sort();var s=monStart(ms[0]),e=monEnd(ms[ms.length-1]),t=today()-1;
-  var pace=t>=e?1:t<s?0:(t-s+1)/(e-s+1);
+  var pace=ser.p&&ser.p.key==="l30"?1:t>=e?1:t<s?0:(t-s+1)/(e-s+1);   // Last 30 days: targets are already cut to its days
   var pc=got/tgt*100;
   return{got:got,tgt:tgt,pc:pc,pace:pace*100,ms:ms,st:pc>=pace*100?"good":pc>=pace*80?"warn":"bad"};
 }
