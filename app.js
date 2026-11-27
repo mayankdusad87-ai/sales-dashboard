@@ -206,13 +206,14 @@ var METRICS=[
   {id:"nr",label:"Net Realisation",ph:true,unit:"/sq ft",fx:"Net realisation = (agreement value − CP brokerage) ÷ carpet area",v:function(s){return s.rpsf},f:function(v){return v==null?"–":"₹"+fmt(Math.round(v))},up:1,def:"Agreement value (column AH, excluding GST and stamp duty), less 2.25% CP brokerage on bookings through a channel partner, ÷ carpet area (column AD). Over bookings in the period that are not cancelled and have both values. Comes from Booking details. Sq ft sold is separate: carpet area (column AD) of all bookings in the period, minus the carpet area of bookings cancelled in the period."},
   {id:"inv",label:"Unsold Inventory",fx:"Unsold = units with status Available",inv:true,def:"From the Inventory Status tab, as of now (not affected by the period). Sold = Sold + Booked + Overdue · On hold = Reserved + Blocked · Unsold = Available."}
 ];
-var SITE_TILES=["net","fresh","conv","rev","cx","cpf","tat","nr"];
+var SITE_TILES=["net","fresh","conv","rev","cx","cpf","nr"];
 var MGMT_TILES=["net","fresh","conv","rev","cx","cpf","inv"];
 function M(id){for(var i=0;i<METRICS.length;i++)if(METRICS[i].id===id)return METRICS[i]}
 var NET_DEF=M("net").def;
-// tiles stay at 7 (Management) and 8 (Site Head); money and turnaround replace the less decisive ones once Booking details is connected
+// 7 tiles on both Management and Site Head; money and turnaround replace the less decisive ones once Booking details is connected
+// (Site Head no longer shows the Waiting Time tile)
 function mgmtTiles(){return HAS_BK?["net","sv","nr","fresh","conv","tatb","cx"]:MGMT_TILES}
-function siteTiles(){return HAS_BK?["net","fresh","conv","rev","cx","nr","tatb","tat"]:SITE_TILES}
+function siteTiles(){return HAS_BK?["net","fresh","conv","rev","cx","nr","tatb"]:SITE_TILES}
 // money: ₹14.2 Cr / ₹85 L on cards; exact rupees in tooltips
 function sqf(v){return v==null?"–":(v<0?"−":"")+fmt(Math.abs(v))+" sq ft"}
 function fcr(v){if(v==null)return"–";var a=Math.abs(v),sg=v<0?"−":"";return sg+(a>=1e7?"₹"+(a/1e7).toFixed(a>=1e9?0:a>=1e8?1:2).replace(/\.?0+$/,"")+" Cr":a>=1e5?"₹"+(a/1e5).toFixed(0)+" L":"₹"+fmt(Math.round(a)))}
